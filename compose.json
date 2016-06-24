@@ -1,0 +1,16 @@
+{
+    "name": "froq/froq-file",
+    "homepage": "https://github.com/froq/froq-file",
+    "description": "File module for Froq!",
+    "keywords": ["froq", "file"],
+    "license": "GNU General Public License v3.0",
+    "authors": [
+        {"name": "Kerem Güneş", "email": "k-gun@mail.com"}
+    ],
+    "require": {
+        "php": "^7.0"
+    },
+    "autoload": {
+        "classmap": ["src/"]
+    }
+}
