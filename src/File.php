@@ -134,7 +134,7 @@ abstract class File
      */
     final public function setName(string $name): self
     {
-        $this->name = $name;
+        $this->name = pathinfo($name, PATHINFO_FILENAME);
 
         return $this;
     }
