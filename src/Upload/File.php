@@ -39,16 +39,25 @@ final class File extends FileBase
      */
     final public function save(): bool
     {
-        return move_uploaded_file($this->getSourceFile(), $this->getTargetFile());
+        return copy($this->getSourceFile(), $this->getTargetFile());
     }
 
     /**
      * Save as.
-     * @param  string $target
+     * @param  string $targetFile (full path)
      * @return bool
      */
-    final public function saveAs(string $target): bool
+    final public function saveAs(string $targetFile): bool
     {
-        return move_uploaded_file($this->getSourceFile(), $target);
+        return copy($this->getSourceFile(), $targetFile);
+    }
+
+    /**
+     * Clear.
+     * @return void
+     */
+    final public function clear()
+    {
+        @unlink($this->getSourceFile());
     }
 }
