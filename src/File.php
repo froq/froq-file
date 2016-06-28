@@ -32,18 +32,29 @@ namespace Froq\File;
 abstract class File
 {
     private $dir;
-    private $data = [];
 
-    // bunlari koyalim
     private $name;
+    private $nameTmp;
+    private $type;
     private $size;
-    private $mime;
     private $extension;
+    private $error;
 
     public function __construct(string $dir = null, array $data = null)
     {
         $dir && $this->setDir($dir);
-        $data && $this->setData($data);
+        if (!empty($data)) {
+            isset($data['name']) &&
+                $this->setName($data['name']);
+            isset($data['temp_name']) &&
+                $this->setNameTmp($data['temp_name']);
+            isset($data['type']) &&
+                $this->setType($data['type']) &&
+                $this->setExtension($data['type']);
+            isset($data['size']) &&
+                $this->setSize($data['size']);
+            $this->error = $data['error'] ?? null;
+        }
     }
 
     final public function setDir(string $dir): self
@@ -59,31 +70,71 @@ abstract class File
         return $this->dir;
     }
 
-    final public function setData(array $data): self
+    final public function setName(string $name): self
     {
-        $this->data = $data;
+        $this->name = $name;
         return $this;
     }
-    final public function getData(): array
+    final public function getName()
     {
-        return $this->data;
+        return $this->name;
     }
-    final public function getDataValue(string $key)
+
+    final public function setNameTmp(string $nameTmp): self
     {
-        return $this->data['name'] ?? null;
+        $this->nameTmp = $nameTmp;
+        return $this;
+    }
+    final public function getNameTmp()
+    {
+        return $this->nameTmp;
+    }
+
+    final public function setType(string $type): self
+    {
+        $this->type = $type;
+        return $this;
+    }
+    final public function getType()
+    {
+        return $this->type;
+    }
+
+    final public function setExtension(string $type): self
+    {
+        $this->extension = Mime::getExtension($type);
+        return $this;
+    }
+    final public function getExtension()
+    {
+        return $this->extension;
+    }
+
+    final public function setSize(int $size): self
+    {
+        $this->size = $size;
+        return $this;
+    }
+    final public function getSize()
+    {
+        return $this->size;
+    }
+
+    final public function hasError(): bool
+    {
+        return ($this->error == UPLOAD_ERR_OK);
     }
 
     final public function getSourceFile()
     {
-        return $this->data['temp_name'] ?? null;
+        return $this->nameTmp;
     }
 
     final public function getTargetFile()
     {
         $src = $this->getSourceFile();
         if ($src) {
-            return sprintf('%s/%s.%s', $this->dir,
-                $this->getDataValue('name'), $this->getDataValue('extension'));
+            return sprintf('%s/%s.%s', $this->dir, $this->name, $this->extension);
         }
     }
 
