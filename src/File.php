@@ -270,10 +270,10 @@ abstract class File
 
     /**
      * Save as.
-     * @param  string $targetFile (full path)
+     * @param  string $name
      * @return bool
      */
-    abstract public function saveAs(string $targetFile): bool;
+    abstract public function saveAs(string $name): bool;
 
     /**
      * Clear.
