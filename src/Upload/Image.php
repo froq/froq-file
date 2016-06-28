@@ -120,6 +120,17 @@ final class Image extends FileBase
     }
 
     /**
+     * Crop.
+     * @param  int    $width
+     * @param  int    $height
+     * @return bool
+     */
+    final public function crop(int $width, int $height): bool
+    {
+        // @todo
+    }
+
+    /**
      * Display.
      * @return bool
      */
