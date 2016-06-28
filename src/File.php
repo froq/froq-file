@@ -96,6 +96,14 @@ abstract class File
     }
 
     /**
+     * Destructor.
+     */
+    public function __destruct()
+    {
+        $this->clear();
+    }
+
+    /**
      * Set dir.
      * @param  string $dir
      * @return self
