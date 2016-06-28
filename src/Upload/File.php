@@ -44,12 +44,12 @@ final class File extends FileBase
 
     /**
      * Save as.
-     * @param  string $targetFile (full path)
+     * @param  string $name
      * @return bool
      */
-    final public function saveAs(string $targetFile): bool
+    final public function saveAs(string $name): bool
     {
-        return copy($this->getSourceFile(), $targetFile);
+        return copy($this->getSourceFile(), "{$this->dir}/{$name}.{$this->extension}");
     }
 
     /**
