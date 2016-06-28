@@ -31,23 +31,61 @@ namespace Froq\File;
  */
 abstract class File
 {
+    /**
+     * Dir.
+     * @var string
+     */
     private $dir;
 
+    /**
+     * Name.
+     * @var string
+     */
     private $name;
+
+    /**
+     * Tmp name.
+     * @var string
+     */
     private $nameTmp;
+
+    /**
+     * Type.
+     * @var string
+     */
     private $type;
+
+    /**
+     * Size.
+     * @var int
+     */
     private $size;
+
+    /**
+     * Extension.
+     * @var string
+     */
     private $extension;
+
+    /**
+     * Error.
+     * @var int
+     */
     private $error;
 
+    /**
+     * Construct.
+     * @param string|null $dir
+     * @param array|null  $data
+     */
     public function __construct(string $dir = null, array $data = null)
     {
         $dir && $this->setDir($dir);
         if (!empty($data)) {
             isset($data['name']) &&
                 $this->setName($data['name']);
-            isset($data['temp_name']) &&
-                $this->setNameTmp($data['temp_name']);
+            isset($data['tmp_name']) &&
+                $this->setNameTmp($data['tmp_name']);
             isset($data['type']) &&
                 $this->setType($data['type']) &&
                 $this->setExtension($data['type']);
@@ -57,79 +95,157 @@ abstract class File
         }
     }
 
+    /**
+     * Set dir.
+     * @param  string $dir
+     * @return self
+     */
     final public function setDir(string $dir): self
     {
         $this->dir = $dir;
         if (!is_dir($this->dir)) {
             mkdir($dir, 0644, true);
         }
+
         return $this;
     }
+
+    /**
+     * Get dir.
+     * @return string|null
+     */
     final public function getDir()
     {
         return $this->dir;
     }
 
+    /**
+     * Set name.
+     * @param  string $name
+     * @return self
+     */
     final public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
+
+    /**
+     * Get name.
+     * @return string|null
+     */
     final public function getName()
     {
         return $this->name;
     }
 
+    /**
+     * Set name tmp.
+     * @param  string $nameTmp
+     * @return self
+     */
     final public function setNameTmp(string $nameTmp): self
     {
         $this->nameTmp = $nameTmp;
+
         return $this;
     }
+
+    /**
+     * Get name tmp.
+     * @return string|null
+     */
     final public function getNameTmp()
     {
         return $this->nameTmp;
     }
 
+    /**
+     * Set type.
+     * @param  string $type
+     * @return self
+     */
     final public function setType(string $type): self
     {
         $this->type = $type;
+
         return $this;
     }
+
+    /**
+     * Get type.
+     * @return string|null
+     */
     final public function getType()
     {
         return $this->type;
     }
 
+    /**
+     * Set extension.
+     * @param  string $type
+     * @return self
+     */
     final public function setExtension(string $type): self
     {
         $this->extension = Mime::getExtension($type);
+
         return $this;
     }
+
+    /**
+     * Get extension.
+     * @return string|null
+     */
     final public function getExtension()
     {
         return $this->extension;
     }
 
+    /**
+     * Set size.
+     * @param  int $size
+     * @return self
+     */
     final public function setSize(int $size): self
     {
         $this->size = $size;
+
         return $this;
     }
+
+    /**
+     * Get size.
+     * @return int
+     */
     final public function getSize()
     {
         return $this->size;
     }
 
-    final public function hasError(): bool
+    /**
+     * Is ok.
+     * @return bool
+     */
+    final public function isOK(): bool
     {
         return ($this->error == UPLOAD_ERR_OK);
     }
 
+    /**
+     * Get source file.
+     * @return string|null
+     */
     final public function getSourceFile()
     {
         return $this->nameTmp;
     }
 
+    /**
+     * Get target file.
+     * @return string|null
+     */
     final public function getTargetFile()
     {
         $src = $this->getSourceFile();
@@ -138,6 +254,22 @@ abstract class File
         }
     }
 
+    /**
+     * Save.
+     * @return bool
+     */
     abstract public function save(): bool;
-    abstract public function saveAs(string $target): bool;
+
+    /**
+     * Save as.
+     * @param  string $targetFile (full path)
+     * @return bool
+     */
+    abstract public function saveAs(string $targetFile): bool;
+
+    /**
+     * Clear.
+     * @return void
+     */
+    abstract public function clear();
 }
