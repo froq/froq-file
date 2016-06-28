@@ -35,43 +35,43 @@ abstract class File
      * Dir.
      * @var string
      */
-    private $dir;
+    protected $dir;
 
     /**
      * Name.
      * @var string
      */
-    private $name;
+    protected $name;
 
     /**
      * Tmp name.
      * @var string
      */
-    private $nameTmp;
+    protected $nameTmp;
 
     /**
      * Type.
      * @var string
      */
-    private $type;
+    protected $type;
 
     /**
      * Size.
      * @var int
      */
-    private $size;
+    protected $size;
 
     /**
      * Extension.
      * @var string
      */
-    private $extension;
+    protected $extension;
 
     /**
      * Error.
      * @var int
      */
-    private $error;
+    protected $error;
 
     /**
      * Construct.
