@@ -44,6 +44,7 @@ final class File extends FileBase
 
     /**
      * Save as.
+     * @param  string $target
      * @return bool
      */
     final public function saveAs(string $target): bool
