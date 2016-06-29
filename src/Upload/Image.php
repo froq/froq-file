@@ -82,7 +82,6 @@ final class Image extends FileBase
             } else {
                 $factor = min($width / $origWidth, $height / $origHeight);
             }
-
             $newWidth = (int) round($origWidth * $factor);
             $newHeight = (int) round($origHeight * $factor);
         } else {
@@ -137,9 +136,58 @@ final class Image extends FileBase
             $cropWidth = $width;
             $cropHeight = $height;
         }
-
         $x = (int) (($origWidth - $cropWidth) / 2);
         $y = (int) (($origHeight - $cropHeight) / 2);
+
+        $this->srcFile = $this->createImageFile();
+        if ($this->srcFile == null) {
+            return false;
+        }
+
+        $this->dstFile = imagecreatetruecolor($width, $height);
+
+        // handle png's
+        if ($this->info[2] == IMAGETYPE_PNG) {
+            imagealphablending($this->dstFile, false);
+            $transparent = imagecolorallocatealpha($this->dstFile, 0, 0, 0, 127);
+            imagefill($this->dstFile, 0, 0, $transparent);
+            imagesavealpha($this->dstFile, true);
+        }
+
+        return imagecopyresampled($this->dstFile, $this->srcFile, 0, 0, $x, $y, $width, $height,
+            $cropWidth, $cropHeight);
+    }
+
+    /**
+     * Crop by.
+     * @param  int    $width
+     * @param  int    $height
+     * @param  int    $x
+     * @param  int    $y
+     * @param  bool   $calcSize
+     * @return bool
+     */
+    final public function cropBy(int $width, int $height, int $x, int $y, bool $calcSize = true): bool
+    {
+        // ensure file info
+        $this->fillInfo();
+
+        // do not crop original width/height dims
+        if ($width == $this->info[0] && $height == $this->info[1]) {
+            return $this->resize($width, $height);
+        }
+
+        $origWidth = $this->info[0];
+        $origHeight = $this->info[1];
+        if ($calcSize) {
+            $size = ($origWidth > $origHeight) ? $origWidth : $origHeight;
+            $percent = .5;
+            $cropWidth = (int) ($size * $percent);
+            $cropHeight = (int) ($size * $percent);
+        } else {
+            $cropWidth = $width;
+            $cropHeight = $height;
+        }
 
         $this->srcFile = $this->createImageFile();
         if ($this->srcFile == null) {
