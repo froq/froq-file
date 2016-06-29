@@ -305,7 +305,7 @@ final class Image extends FileBase
             throw new FileException('tmp_name is empty yet!');
         }
 
-        if (empty($this->info)) {
+        if ($this->info == null) {
             $this->info = @getimagesize($this->nameTmp);
         }
 
