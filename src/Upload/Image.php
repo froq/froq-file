@@ -111,11 +111,12 @@ final class Image extends FileBase
 
     /**
      * Crop.
-     * @param  int $width
-     * @param  int $height
+     * @param  int  $width
+     * @param  int  $height
+     * @param  bool $calcSize
      * @return bool
      */
-    final public function crop(int $width, int $height): bool
+    final public function crop(int $width, int $height, bool $calcSize = true): bool
     {
         // ensure file info
         $this->fillInfo();
@@ -127,10 +128,16 @@ final class Image extends FileBase
 
         $origWidth = $this->info[0];
         $origHeight = $this->info[1];
-        $size = ($origWidth > $origHeight) ? $origWidth : $origHeight;
-        $percent = .5;
-        $cropWidth = (int) ($size * $percent);
-        $cropHeight = (int) ($size * $percent);
+        if ($calcSize) {
+            $size = ($origWidth > $origHeight) ? $origWidth : $origHeight;
+            $percent = .5;
+            $cropWidth = (int) ($size * $percent);
+            $cropHeight = (int) ($size * $percent);
+        } else {
+            $cropWidth = $width;
+            $cropHeight = $height;
+        }
+
         $x = (int) (($origWidth - $cropWidth) / 2);
         $y = (int) (($origHeight - $cropHeight) / 2);
 
