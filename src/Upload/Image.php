@@ -208,15 +208,6 @@ final class Image extends FileBase
     }
 
     /**
-     * Display.
-     * @return bool
-     */
-    final public function display(): bool
-    {
-        return (bool) $this->output($this->getTargetFile());
-    }
-
-    /**
      * Save.
      * @return bool
      */
@@ -252,6 +243,15 @@ final class Image extends FileBase
     final public function moveAs(string $name): bool
     {
         return move_uploaded_file($this->getSourceFile(), "{$this->dir}/{$name}.{$this->extension}");
+    }
+
+    /**
+     * Display.
+     * @return bool
+     */
+    final public function display(): bool
+    {
+        return (bool) $this->output($this->getTargetFile());
     }
 
     /**
