@@ -101,13 +101,12 @@ final class Image extends FileBase
 
         $this->dstFile = imagecreatetruecolor($newWidth, $newHeight);
 
+        // handle png's
         if ($this->info[2] == IMAGETYPE_PNG) {
             imagealphablending($this->dstFile, false);
             $transparent = imagecolorallocatealpha($this->dstFile, 0, 0, 0, 127);
             imagefill($this->dstFile, 0, 0, $transparent);
             imagesavealpha($this->dstFile, true);
-        } elseif ($this->info[2] == IMAGETYPE_GIF) {
-            // @todo
         }
 
         return imagecopyresampled($this->dstFile, $this->srcFile, 0, 0, 0, 0,
@@ -122,7 +121,44 @@ final class Image extends FileBase
      */
     final public function crop(int $width, int $height): bool
     {
-        // @todo
+        if ($width == 0 && $height == 0) {
+            return false;
+        }
+
+        // ensure file info
+        $this->fillInfo();
+
+        // do not crop original width/height dims
+        if ($width == $this->info[0] && $height == $this->info[1]) {
+            return $this->resize($width, $height);
+        }
+
+        $origWidth = $this->info[0];
+        $origHeight = $this->info[1];
+        $size = ($origWidth > $origHeight) ? $origWidth : $origHeight;
+        $percent = .5;
+        $cropWidth = (int) ($size * $percent);
+        $cropHeight = (int) ($size * $percent);
+        $x = (int) (($origWidth - $cropWidth) / 2);
+        $y = (int) (($origHeight - $cropHeight) / 2);
+
+        $this->srcFile = $this->createImageFile();
+        if ($this->srcFile == null) {
+            return false;
+        }
+
+        $this->dstFile = imagecreatetruecolor($width, $height);
+
+        // handle png's
+        if ($this->info[2] == IMAGETYPE_PNG) {
+            imagealphablending($this->dstFile, false);
+            $transparent = imagecolorallocatealpha($this->dstFile, 0, 0, 0, 127);
+            imagefill($this->dstFile, 0, 0, $transparent);
+            imagesavealpha($this->dstFile, true);
+        }
+
+        return imagecopyresampled($this->dstFile, $this->srcFile, 0, 0, $x, $y, $width, $height,
+            $cropWidth, $cropHeight);
     }
 
     /**
