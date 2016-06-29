@@ -64,8 +64,7 @@ final class Image extends FileBase
      * @param  bool     $proportional
      * @return bool
      */
-    final public function resize(int $width = null, int $height = null,
-        bool $proportional = true): bool
+    final public function resize(int $width = null, int $height = null, bool $proportional = true): bool
     {
         // ensure file info
         $this->fillInfo();
@@ -112,10 +111,10 @@ final class Image extends FileBase
      * Crop.
      * @param  int  $width
      * @param  int  $height
-     * @param  bool $calcSize
+     * @param  bool $proportional
      * @return bool
      */
-    final public function crop(int $width, int $height, bool $calcSize = true): bool
+    final public function crop(int $width, int $height, bool $proportional = true): bool
     {
         // ensure file info
         $this->fillInfo();
@@ -127,7 +126,7 @@ final class Image extends FileBase
 
         $origWidth = $this->info[0];
         $origHeight = $this->info[1];
-        if ($calcSize) {
+        if ($proportional) {
             $size = ($origWidth > $origHeight) ? $origWidth : $origHeight;
             $percent = .5;
             $cropWidth = (int) ($size * $percent);
@@ -164,10 +163,10 @@ final class Image extends FileBase
      * @param  int  $height
      * @param  int  $x
      * @param  int  $y
-     * @param  bool $calcSize
+     * @param  bool $proportional
      * @return bool
      */
-    final public function cropBy(int $width, int $height, int $x, int $y, bool $calcSize = true): bool
+    final public function cropBy(int $width, int $height, int $x, int $y, bool $proportional = true): bool
     {
         // ensure file info
         $this->fillInfo();
@@ -179,7 +178,7 @@ final class Image extends FileBase
 
         $origWidth = $this->info[0];
         $origHeight = $this->info[1];
-        if ($calcSize) {
+        if ($proportional) {
             $size = ($origWidth > $origHeight) ? $origWidth : $origHeight;
             $percent = .5;
             $cropWidth = (int) ($size * $percent);
