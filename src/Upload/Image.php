@@ -103,8 +103,8 @@ final class Image extends FileBase
             imagesavealpha($this->dstFile, true);
         }
 
-        return imagecopyresampled($this->dstFile, $this->srcFile, 0, 0, 0, 0,
-            $newWidth, $newHeight, $origWidth, $origHeight);
+        return imagecopyresampled($this->dstFile, $this->srcFile, 0, 0, 0, 0, $newWidth, $newHeight,
+            $origWidth, $origHeight);
     }
 
     /**
