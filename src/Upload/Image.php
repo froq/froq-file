@@ -236,6 +236,25 @@ final class Image extends FileBase
     }
 
     /**
+     * Move.
+     * @return bool
+     */
+    final public function move(): bool
+    {
+        return move_uploaded_file($this->getSourceFile(), $this->getTargetFile());
+    }
+
+    /**
+     * Move as.
+     * @param  string $name
+     * @return bool
+     */
+    final public function moveAs(string $name): bool
+    {
+        return move_uploaded_file($this->getSourceFile(), "{$this->dir}/{$name}.{$this->extension}");
+    }
+
+    /**
      * Clear.
      * @return void
      */
