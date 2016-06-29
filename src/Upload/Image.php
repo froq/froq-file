@@ -160,11 +160,11 @@ final class Image extends FileBase
 
     /**
      * Crop by.
-     * @param  int    $width
-     * @param  int    $height
-     * @param  int    $x
-     * @param  int    $y
-     * @param  bool   $calcSize
+     * @param  int  $width
+     * @param  int  $height
+     * @param  int  $x
+     * @param  int  $y
+     * @param  bool $calcSize
      * @return bool
      */
     final public function cropBy(int $width, int $height, int $x, int $y, bool $calcSize = true): bool
