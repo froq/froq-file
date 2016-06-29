@@ -67,10 +67,6 @@ final class Image extends FileBase
     final public function resize(int $width = null, int $height = null,
         bool $proportional = true): bool
     {
-        if ($width == 0 && $height == 0) {
-            return false;
-        }
-
         // ensure file info
         $this->fillInfo();
 
@@ -115,16 +111,12 @@ final class Image extends FileBase
 
     /**
      * Crop.
-     * @param  int    $width
-     * @param  int    $height
+     * @param  int $width
+     * @param  int $height
      * @return bool
      */
     final public function crop(int $width, int $height): bool
     {
-        if ($width == 0 && $height == 0) {
-            return false;
-        }
-
         // ensure file info
         $this->fillInfo();
 
