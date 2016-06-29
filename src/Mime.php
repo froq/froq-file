@@ -190,13 +190,11 @@ final class Mime
      * @param  int    $i
      * @return string
      */
-    final public static function getExtension(string $type, int $i = null): string
+    final public static function getExtension(string $type, int $i = 0): string
     {
         $type = strtolower($type);
         if (array_key_exists($type, self::$types)) {
-            return ($i !== null && isset(self::$types[$type][$i]))
-                ? self::$types[$type][$i]
-                : self::$types[$type][0];
+            return self::$types[$type][$i] ?? self::$types[$type][0];
         }
 
         return self::EXTENSION_UNKNOWN;
