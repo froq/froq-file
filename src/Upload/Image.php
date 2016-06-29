@@ -71,13 +71,8 @@ final class Image extends FileBase
             return false;
         }
 
-        if (empty($this->info)) {
-            $this->info = @getimagesize($this->nameTmp);
-        }
-
-        if (!isset($this->info[0], $this->info[1])) {
-            throw new FileException('Could not get file info!');
-        }
+        // ensure file info
+        $this->fillInfo();
 
         $newWidth = 0;
         $newHeight = 0;
@@ -196,6 +191,26 @@ final class Image extends FileBase
     final public function getJpegQuality(): int
     {
         return $this->jpegQuality;
+    }
+
+    /**
+     * Fill info.
+     * @return void
+     * @throws Froq\File\FileException
+     */
+    final public function fillInfo()
+    {
+        if ($this->nameTmp == null) {
+            throw new FileException('tmp_name is empty yet!');
+        }
+
+        if (empty($this->info)) {
+            $this->info = @getimagesize($this->nameTmp);
+        }
+
+        if (!isset($this->info[0], $this->info[1])) {
+            throw new FileException('Could not get file info!');
+        }
     }
 
     /**
