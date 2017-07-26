@@ -69,9 +69,8 @@ final class Image extends FileBase
         // ensure file info
         $this->fillInfo();
 
-        $newWidth = 0;
-        $newHeight = 0;
-        list($origWidth, $origHeight) = $this->info;
+        $newWidth = $newHeight = 0;
+        [$origWidth, $origHeight] = $this->info;
 
         if ($proportional) {
             if ($width == 0) {
