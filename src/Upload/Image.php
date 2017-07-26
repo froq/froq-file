@@ -64,7 +64,7 @@ final class Image extends FileBase
      * @param  bool     $proportional
      * @return bool
      */
-    final public function resize(int $width = null, int $height = null, bool $proportional = true): bool
+    public final function resize(int $width = null, int $height = null, bool $proportional = true): bool
     {
         // ensure file info
         $this->fillInfo();
@@ -114,7 +114,7 @@ final class Image extends FileBase
      * @param  bool $proportional
      * @return bool
      */
-    final public function crop(int $width, int $height, bool $proportional = true): bool
+    public final function crop(int $width, int $height, bool $proportional = true): bool
     {
         // ensure file info
         $this->fillInfo();
@@ -166,7 +166,7 @@ final class Image extends FileBase
      * @param  bool $proportional
      * @return bool
      */
-    final public function cropBy(int $width, int $height, int $x, int $y, bool $proportional = true): bool
+    public final function cropBy(int $width, int $height, int $x, int $y, bool $proportional = true): bool
     {
         // ensure file info
         $this->fillInfo();
@@ -211,7 +211,7 @@ final class Image extends FileBase
      * Save.
      * @return bool
      */
-    final public function save(): bool
+    public final function save(): bool
     {
         return (bool) $this->outputFile($this->getTargetFile());
     }
@@ -221,16 +221,16 @@ final class Image extends FileBase
      * @param  string $name
      * @return bool
      */
-    final public function saveAs(string $name): bool
+    public final function saveAs(string $name): bool
     {
-        return (bool) $this->outputFile("{$this->dir}/{$name}.{$this->extension}");
+        return (bool) $this->outputFile("{$this->directory}/{$name}.{$this->extension}");
     }
 
     /**
      * Move.
      * @return bool
      */
-    final public function move(): bool
+    public final function move(): bool
     {
         return move_uploaded_file($this->getSourceFile(), $this->getTargetFile());
     }
@@ -240,16 +240,16 @@ final class Image extends FileBase
      * @param  string $name
      * @return bool
      */
-    final public function moveAs(string $name): bool
+    public final function moveAs(string $name): bool
     {
-        return move_uploaded_file($this->getSourceFile(), "{$this->dir}/{$name}.{$this->extension}");
+        return move_uploaded_file($this->getSourceFile(), "{$this->directory}/{$name}.{$this->extension}");
     }
 
     /**
      * Display.
      * @return bool
      */
-    final public function display(): bool
+    public final function display(): bool
     {
         return (bool) $this->output($this->getTargetFile());
     }
@@ -258,7 +258,7 @@ final class Image extends FileBase
      * Clear.
      * @return void
      */
-    final public function clear()
+    public final function clear()
     {
         if (is_resource($this->srcFile)) {
             imagedestroy($this->srcFile);
@@ -278,7 +278,7 @@ final class Image extends FileBase
      * @param  int $jpegQuality
      * @return self
      */
-    final public function setJpegQuality(int $jpegQuality): self
+    public final function setJpegQuality(int $jpegQuality): self
     {
         $this->jpegQuality = $jpegQuality;
 
@@ -289,7 +289,7 @@ final class Image extends FileBase
      * Get jpeg quality.
      * @return int
      */
-    final public function getJpegQuality(): int
+    public final function getJpegQuality(): int
     {
         return $this->jpegQuality;
     }
@@ -299,14 +299,14 @@ final class Image extends FileBase
      * @return void
      * @throws Froq\File\FileException
      */
-    final public function fillInfo()
+    public final function fillInfo()
     {
         if ($this->nameTmp == null) {
             throw new FileException('tmp_name is empty yet!');
         }
 
         if ($this->info == null) {
-            $this->info = @getimagesize($this->nameTmp);
+            $this->info =@ getimagesize($this->nameTmp);
         }
 
         if (!isset($this->info[0], $this->info[1])) {
@@ -315,10 +315,19 @@ final class Image extends FileBase
     }
 
     /**
+     * Get info.
+     * @return ?array
+     */
+    public final function getInfo(): ?array
+    {
+        return $this->info;
+    }
+
+    /**
      * Create image file.
      * @return resource|null
      */
-    final private function createImageFile()
+    private final function createImageFile()
     {
         if ($this->nameTmp) {
             switch ($this->info[2]) {
@@ -336,9 +345,9 @@ final class Image extends FileBase
      * Output.
      * @return bool|null
      */
-    final private function output()
+    private final function output()
     {
-        if ($this->dstFile && $this->dir) {
+        if ($this->dstFile && $this->directory) {
             switch ($this->info[2]) {
                 case IMAGETYPE_JPEG:
                     return imagejpeg($this->dstFile, null, $this->jpegQuality);
@@ -355,9 +364,9 @@ final class Image extends FileBase
      * @param  string $file
      * @return bool|null
      */
-    final private function outputFile(string $file)
+    private final function outputFile(string $file)
     {
-        if ($this->dstFile && $this->dir) {
+        if ($this->dstFile && $this->directory) {
             switch ($this->info[2]) {
                 case IMAGETYPE_JPEG:
                     return imagejpeg($this->dstFile, $file, $this->jpegQuality);
