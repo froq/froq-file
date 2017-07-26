@@ -27,7 +27,7 @@ use Froq\File\{File as FileBase, FileException};
 
 /**
  * @package    Froq
- * @subpackage Froq\File\Upload
+ * @subpackage Froq\File
  * @object     Froq\File\Upload\File
  * @author     Kerem Güneş <k-gun@mail.com>
  */
