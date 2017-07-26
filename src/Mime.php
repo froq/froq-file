@@ -35,17 +35,17 @@ final class Mime
      * Types.
      * @const string
      */
-    const TYPE_DEFAULT   = 'application/octet-stream',
-          TYPE_UNKNOWN   = 'application/unknown',
-          TYPE_DIRECTORY = 'directory';
+    public const TYPE_DEFAULT        = 'application/octet-stream',
+                 TYPE_UNKNOWN        = 'application/unknown',
+                 TYPE_DIRECTORY      = 'directory';
 
     /**
      * Extensions.
      * @const string
      */
-    const EXTENSION_UNKNOWN   = 'unknown',
-          EXTENSION_DEFAULT   = 'txt',
-          EXTENSION_DIRECTORY = 'directory';
+    public const EXTENSION_UNKNOWN   = 'unknown',
+                 EXTENSION_DEFAULT   = 'txt',
+                 EXTENSION_DIRECTORY = 'directory';
 
     /**
      * MIME types.
