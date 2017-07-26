@@ -111,6 +111,10 @@ abstract class File
     public final function setDirectory(string $directory): self
     {
         $this->directory = $directory;
+        if (empty($this->directory)) {
+            throw new FileException('File directory cannot be empty!');
+        }
+
         if (!is_dir($this->directory)) {
             $ok =@ mkdir($directory, 0644, true);
             if (!$ok) {
