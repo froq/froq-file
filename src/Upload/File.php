@@ -37,7 +37,7 @@ final class File extends FileBase
      * Save.
      * @return bool
      */
-    public final function save(): bool
+    public function save(): bool
     {
         return copy($this->getSourceFile(), $this->getTargetFile());
     }
@@ -47,7 +47,7 @@ final class File extends FileBase
      * @param  string $name
      * @return bool
      */
-    public final function saveAs(string $name): bool
+    public function saveAs(string $name): bool
     {
         return copy($this->getSourceFile(), "{$this->directory}/{$name}.{$this->extension}");
     }
@@ -56,7 +56,7 @@ final class File extends FileBase
      * Clear.
      * @return void
      */
-    public final function clear()
+    public function clear()
     {
         @unlink($this->getSourceFile());
     }
