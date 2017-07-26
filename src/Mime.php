@@ -168,16 +168,12 @@ final class Mime
      * @param  string $file
      * @return string
      */
-    final public static function getType(string $file): string
+    public static final function getType(string $file): string
     {
-        try {
-            $info = finfo_open(FILEINFO_MIME_TYPE);
-            $type =@ finfo_file($info, $file);
-            finfo_close($info);
-            if (!$type) {
-                throw new FileException("Could not open file `{$file}`!");
-            }
-        } catch (FileException $e) {
+        $info = finfo_open(FILEINFO_MIME_TYPE);
+        $type =@ finfo_file($info, $file);
+        finfo_close($info);
+        if (!$type) {
             $type = self::TYPE_UNKNOWN;
         }
 
@@ -190,7 +186,7 @@ final class Mime
      * @param  int    $i
      * @return string
      */
-    final public static function getExtension(string $type, int $i = 0): string
+    public static final function getExtensionByType(string $type, int $i = 0): string
     {
         $type = strtolower($type);
         if (array_key_exists($type, self::$types)) {
