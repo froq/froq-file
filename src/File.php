@@ -32,10 +32,10 @@ namespace Froq\File;
 abstract class File
 {
     /**
-     * Dir.
+     * Directory.
      * @var string
      */
-    protected $dir;
+    protected $directory;
 
     /**
      * Name.
@@ -75,12 +75,12 @@ abstract class File
 
     /**
      * Construct.
-     * @param string|null $dir
+     * @param string|null $directory
      * @param array|null  $data
      */
-    public function __construct(string $dir = null, array $data = null)
+    public function __construct(string $directory = null, array $data = null)
     {
-        $dir && $this->setDir($dir);
+        $directory && $this->setDirectory($directory);
         if (!empty($data)) {
             isset($data['name']) &&
                 $this->setName($data['name']);
@@ -104,27 +104,31 @@ abstract class File
     }
 
     /**
-     * Set dir.
-     * @param  string $dir
+     * Set directory.
+     * @param  string $directory
      * @return self
      */
-    final public function setDir(string $dir): self
+    public final function setDirectory(string $directory): self
     {
-        $this->dir = $dir;
-        if (!is_dir($this->dir)) {
-            mkdir($dir, 0644, true);
+        $this->directory = $directory;
+        if (!is_dir($this->directory)) {
+            $ok =@ mkdir($directory, 0644, true);
+            if (!$ok) {
+                throw new FileException(sprintf('Cannot make directory [%s]!',
+                    strtolower(error_get_last()['message'] ?? '')));
+            }
         }
 
         return $this;
     }
 
     /**
-     * Get dir.
+     * Get directory.
      * @return string|null
      */
-    final public function getDir()
+    public final function getDirectory()
     {
-        return $this->dir;
+        return $this->directory;
     }
 
     /**
@@ -132,7 +136,7 @@ abstract class File
      * @param  string $name
      * @return self
      */
-    final public function setName(string $name): self
+    public final function setName(string $name): self
     {
         $this->name = pathinfo($name, PATHINFO_FILENAME);
 
@@ -143,7 +147,7 @@ abstract class File
      * Get name.
      * @return string|null
      */
-    final public function getName()
+    public final function getName()
     {
         return $this->name;
     }
@@ -153,7 +157,7 @@ abstract class File
      * @param  string $nameTmp
      * @return self
      */
-    final public function setNameTmp(string $nameTmp): self
+    public final function setNameTmp(string $nameTmp): self
     {
         $this->nameTmp = $nameTmp;
 
@@ -164,7 +168,7 @@ abstract class File
      * Get name tmp.
      * @return string|null
      */
-    final public function getNameTmp()
+    public final function getNameTmp()
     {
         return $this->nameTmp;
     }
@@ -174,7 +178,7 @@ abstract class File
      * @param  string $type
      * @return self
      */
-    final public function setType(string $type): self
+    public final function setType(string $type): self
     {
         $this->type = $type;
 
@@ -185,7 +189,7 @@ abstract class File
      * Get type.
      * @return string|null
      */
-    final public function getType()
+    public final function getType()
     {
         return $this->type;
     }
@@ -195,9 +199,9 @@ abstract class File
      * @param  string $type
      * @return self
      */
-    final public function setExtension(string $type): self
+    public final function setExtension(string $type): self
     {
-        $this->extension = Mime::getExtension($type);
+        $this->extension = Mime::getExtensionByType($type);
 
         return $this;
     }
@@ -206,7 +210,7 @@ abstract class File
      * Get extension.
      * @return string|null
      */
-    final public function getExtension()
+    public final function getExtension()
     {
         return $this->extension;
     }
@@ -216,7 +220,7 @@ abstract class File
      * @param  int $size
      * @return self
      */
-    final public function setSize(int $size): self
+    public final function setSize(int $size): self
     {
         $this->size = $size;
 
@@ -225,40 +229,40 @@ abstract class File
 
     /**
      * Get size.
-     * @return int
+     * @return int|null
      */
-    final public function getSize()
+    public final function getSize()
     {
         return $this->size;
-    }
-
-    /**
-     * Is ok.
-     * @return bool
-     */
-    final public function isOK(): bool
-    {
-        return ($this->error == UPLOAD_ERR_OK);
     }
 
     /**
      * Get source file.
      * @return string|null
      */
-    final public function getSourceFile()
+    public final function getSourceFile()
     {
         return $this->nameTmp;
+    }
+
+    /**
+     * Ok.
+     * @return bool
+     */
+    public final function ok(): bool
+    {
+        return $this->error === UPLOAD_ERR_OK;
     }
 
     /**
      * Get target file.
      * @return string|null
      */
-    final public function getTargetFile()
+    public final function getTargetFile()
     {
-        $src = $this->getSourceFile();
-        if ($src) {
-            return sprintf('%s/%s.%s', $this->dir, $this->name, $this->extension);
+        $getSourceFile = $this->getSourceFile();
+        if ($getSourceFile != null) {
+            return sprintf('%s/%s.%s', $this->directory, $this->name, $this->extension);
         }
     }
 
