@@ -32,22 +32,6 @@ namespace Froq\File;
 final class Mime
 {
     /**
-     * Types.
-     * @const string
-     */
-    public const TYPE_DEFAULT        = 'application/octet-stream',
-                 TYPE_UNKNOWN        = 'application/unknown',
-                 TYPE_DIRECTORY      = 'directory';
-
-    /**
-     * Extensions.
-     * @const string
-     */
-    public const EXTENSION_UNKNOWN   = 'unknown',
-                 EXTENSION_DEFAULT   = 'txt',
-                 EXTENSION_DIRECTORY = 'directory';
-
-    /**
      * MIME types.
      * @var array
      */
@@ -143,7 +127,7 @@ final class Mime
         'text/richtext'                      => ['rtx'],
         'text/javascript'                    => ['js'],
         'text/tab-separated-values'          => ['tsv'],
-        // 'text/x-php'                         => ['php'],
+        'text/x-php'                         => ['php'],
         'text/x-setext'                      => ['etx'],
         'text/x-sgml'                        => ['sgm', 'sgml'],
 
@@ -166,33 +150,61 @@ final class Mime
     /**
      * Get type.
      * @param  string $file
-     * @return string
+     * @return ?string
      */
-    public static function getType(string $file): string
+    public static function getType(string $file): ?string
     {
-        $info = finfo_open(FILEINFO_MIME_TYPE);
-        $type =@ finfo_file($info, $file);
-        finfo_close($info);
-        if (!$type) {
-            $type = self::TYPE_UNKNOWN;
+        $return = null;
+        if (extension_loaded('fileinfo')) {
+            $info = finfo_open(FILEINFO_MIME_TYPE);
+            $return =@ finfo_file($info, $file);
+            finfo_close($info);
         }
 
-        return $type;
+        // check error
+        if ($return === false) {
+            throw new FileException(error_get_last()['message'] ?? 'Unknown error!');
+        }
+
+        return $return;
+    }
+
+    /**
+     * Get type by extension.
+     * @param  string $file
+     * @return ?string
+     */
+    public static function getTypeByExtension(string $file): ?string
+    {
+        $return = null;
+        if (!strpos($file, '.')) {
+            return $return;
+        }
+
+        $extension =@ end(explode('.', $file));
+        foreach (self::$types as $type => $extensions) {
+            if (in_array($extension, $extensions)) {
+                $return = $type;
+                break;
+            }
+        }
+
+        return $return;
     }
 
     /**
      * Get extension.
      * @param  string $type
      * @param  int    $i
-     * @return string
+     * @return ?string
      */
-    public static function getExtensionByType(string $type, int $i = 0): string
+    public static function getExtensionByType(string $type, int $i = 0): ?string
     {
         $type = strtolower($type);
-        if (array_key_exists($type, self::$types)) {
+        if (isset(self::$types[$type])) {
             return self::$types[$type][$i] ?? self::$types[$type][0];
         }
 
-        return self::EXTENSION_UNKNOWN;
+        return null;
     }
 }
