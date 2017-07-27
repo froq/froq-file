@@ -74,23 +74,28 @@ abstract class File
     protected $error;
 
     /**
-     * Construct.
-     * @param string|null $directory
+     * Constructor.
+     * @param string $directory
      * @param array|null  $data
      */
-    public function __construct(string $directory = null, array $data = null)
+    public function __construct(string $directory, array $data = null)
     {
-        $directory && $this->setDirectory($directory);
+        $this->setDirectory($directory);
+
         if (!empty($data)) {
             isset($data['name']) &&
                 $this->setName($data['name']);
-            isset($data['tmp_name']) &&
-                $this->setNameTmp($data['tmp_name']);
             isset($data['type']) &&
-                $this->setType($data['type']) &&
-                $this->setExtension($data['type']);
+                $this->setType($data['type']) && $this->setExtension($data['type']);
             isset($data['size']) &&
                 $this->setSize($data['size']);
+
+            if (isset($data['tmp_name'])) {
+                $this->setNameTmp($data['tmp_name']);
+            } elseif (isset($data['source'])) {
+                $this->setNameTmp($data['source']);
+            }
+
             $this->error = $data['error'] ?? null;
         }
     }
@@ -250,6 +255,20 @@ abstract class File
     }
 
     /**
+     * Get target file.
+     * @return ?string
+     */
+    public final function getTargetFile(): ?string
+    {
+        $sourceFile = $this->getSourceFile();
+        if ($sourceFile != null) {
+            return sprintf('%s/%s.%s', $this->directory, $this->name, $this->extension);
+        }
+
+        return null;
+    }
+
+    /**
      * Ok.
      * @return bool
      */
@@ -259,20 +278,9 @@ abstract class File
     }
 
     /**
-     * Get target file.
-     * @return ?string
-     */
-    public final function getTargetFile(): ?string
-    {
-        $getSourceFile = $this->getSourceFile();
-        if ($getSourceFile != null) {
-            return sprintf('%s/%s.%s', $this->directory, $this->name, $this->extension);
-        }
-    }
-
-    /**
      * Save.
      * @return bool
+     * @throws Froq\File\FileException
      */
     abstract public function save(): bool;
 
@@ -280,12 +288,14 @@ abstract class File
      * Save as.
      * @param  string $name
      * @return bool
+     * @throws Froq\File\FileException
      */
     abstract public function saveAs(string $name): bool;
 
     /**
      * Move.
      * @return bool
+     * @throws Froq\File\FileException
      */
     abstract public function move(): bool;
 
@@ -293,6 +303,7 @@ abstract class File
      * Move as.
      * @param  string $name
      * @return bool
+     * @throws Froq\File\FileException
      */
     abstract public function moveAs(string $name): bool;
 

@@ -34,22 +34,34 @@ use Froq\File\{File as FileBase, FileException};
 final class File extends FileBase
 {
     /**
-     * Save.
-     * @return bool
+     * @inheritDoc Froq\File\File
      */
     public function save(): bool
     {
-        return copy($this->getSourceFile(), $this->getTargetFile());
+        $sourceFile = $this->getSourceFile();
+        if ($sourceFile == null) {
+            throw new FileException('No source file yet!');
+        }
+
+        $targetFile = $this->getTargetFile();
+        if ($targetFile == null) {
+            throw new FileException('No target file yet!');
+        }
+
+        return copy($sourceFile, $targetFile);
     }
 
     /**
-     * Save as.
-     * @param  string $name
-     * @return bool
+     * @inheritDoc Froq\File\File
      */
     public function saveAs(string $name): bool
     {
-        return copy($this->getSourceFile(), "{$this->directory}/{$name}.{$this->extension}");
+        $sourceFile = $this->getSourceFile();
+        if ($sourceFile == null) {
+            throw new FileException('No source file yet!');
+        }
+
+        return copy($sourceFile, "{$this->directory}/{$name}.{$this->extension}");
     }
 
     /**
@@ -57,7 +69,17 @@ final class File extends FileBase
      */
     public function move(): bool
     {
-        return move_uploaded_file($this->getSourceFile(), $this->getTargetFile());
+        $sourceFile = $this->getSourceFile();
+        if ($sourceFile == null) {
+            throw new FileException('No source file yet!');
+        }
+
+        $targetFile = $this->getTargetFile();
+        if ($targetFile == null) {
+            throw new FileException('No target file yet!');
+        }
+
+        return move_uploaded_file($sourceFile, $targetFile);
     }
 
     /**
@@ -65,7 +87,12 @@ final class File extends FileBase
      */
     public function moveAs(string $name): bool
     {
-        return move_uploaded_file($this->getSourceFile(), "{$this->directory}/{$name}.{$this->extension}");
+        $sourceFile = $this->getSourceFile();
+        if ($sourceFile == null) {
+            throw new FileException('No source file yet!');
+        }
+
+        return move_uploaded_file($sourceFile, "{$this->directory}/{$name}.{$this->extension}");
     }
 
     /**
@@ -73,6 +100,9 @@ final class File extends FileBase
      */
     public function clear(): void
     {
-        @unlink($this->getSourceFile());
+        $sourceFile = $this->getSourceFile();
+        if ($sourceFile != null) {
+            @unlink($sourceFile);
+        }
     }
 }

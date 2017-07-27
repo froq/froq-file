@@ -211,7 +211,12 @@ final class Image extends FileBase
      */
     public function save(): bool
     {
-        return (bool) $this->outputFile($this->getTargetFile());
+        $targetFile = $this->getTargetFile();
+        if ($targetFile == null) {
+            throw new FileException('No target file yet!');
+        }
+
+        return (bool) $this->outputFile($targetFile);
     }
 
     /**
@@ -227,7 +232,17 @@ final class Image extends FileBase
      */
     public function move(): bool
     {
-        return move_uploaded_file($this->getSourceFile(), $this->getTargetFile());
+        $sourceFile = $this->getSourceFile();
+        if ($sourceFile == null) {
+            throw new FileException('No source file yet!');
+        }
+
+        $targetFile = $this->getTargetFile();
+        if ($targetFile == null) {
+            throw new FileException('No target file yet!');
+        }
+
+        return move_uploaded_file($sourceFile, $targetFile);
     }
 
     /**
@@ -235,7 +250,12 @@ final class Image extends FileBase
      */
     public function moveAs(string $name): bool
     {
-        return move_uploaded_file($this->getSourceFile(), "{$this->directory}/{$name}.{$this->extension}");
+        $sourceFile = $this->getSourceFile();
+        if ($sourceFile == null) {
+            throw new FileException('No source file yet!');
+        }
+
+        return move_uploaded_file($sourceFile, "{$this->directory}/{$name}.{$this->extension}");
     }
 
     /**
@@ -250,10 +270,13 @@ final class Image extends FileBase
             imagedestroy($this->dstFile);
         }
 
-        @unlink($this->getSourceFile());
-
         $this->dstFile = null;
         $this->srcFile = null;
+
+        $sourceFile = $this->getSourceFile();
+        if ($sourceFile != null) {
+            @unlink($sourceFile);
+        }
     }
 
     /**
@@ -262,7 +285,7 @@ final class Image extends FileBase
      */
     public function display(): bool
     {
-        return (bool) $this->output($this->getTargetFile());
+        return (bool) $this->output();
     }
 
     /**
@@ -339,15 +362,19 @@ final class Image extends FileBase
      */
     private function output(): ?bool
     {
-        if (!empty($this->dstFile) && !empty($this->directory)) {
-            switch ($this->info[2]) {
-                case IMAGETYPE_JPEG:
-                    return imagejpeg($this->dstFile, null, $this->jpegQuality);
-                case IMAGETYPE_PNG:
-                    return imagepng($this->dstFile);
-                case IMAGETYPE_GIF:
-                    return imagegif($this->dstFile);
-            }
+        if (empty($this->dstFile)) {
+            return null;
+        }
+
+        switch ($this->info[2]) {
+            case IMAGETYPE_JPEG:
+                return imagejpeg($this->dstFile, null, $this->jpegQuality);
+            case IMAGETYPE_PNG:
+                return imagepng($this->dstFile);
+            case IMAGETYPE_GIF:
+                return imagegif($this->dstFile);
+            default:
+                return null;
         }
     }
 
@@ -358,15 +385,19 @@ final class Image extends FileBase
      */
     private function outputFile(string $file): ?bool
     {
-        if (!empty($this->dstFile) && !empty($this->directory)) {
-            switch ($this->info[2]) {
-                case IMAGETYPE_JPEG:
-                    return imagejpeg($this->dstFile, $file, $this->jpegQuality);
-                case IMAGETYPE_PNG:
-                    return imagepng($this->dstFile, $file);
-                case IMAGETYPE_GIF:
-                    return imagegif($this->dstFile, $file);
-            }
+        if (empty($this->dstFile)) {
+            return null;
+        }
+
+        switch ($this->info[2]) {
+            case IMAGETYPE_JPEG:
+                return imagejpeg($this->dstFile, $file, $this->jpegQuality);
+            case IMAGETYPE_PNG:
+                return imagepng($this->dstFile, $file);
+            case IMAGETYPE_GIF:
+                return imagegif($this->dstFile, $file);
+            default:
+                return null;
         }
     }
 }
