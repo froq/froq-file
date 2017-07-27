@@ -207,8 +207,7 @@ final class Image extends FileBase
     }
 
     /**
-     * Save.
-     * @return bool
+     * @inheritDoc Froq\File\File
      */
     public function save(): bool
     {
@@ -216,9 +215,7 @@ final class Image extends FileBase
     }
 
     /**
-     * Save as.
-     * @param  string $name
-     * @return bool
+     * @inheritDoc Froq\File\File
      */
     public function saveAs(string $name): bool
     {
@@ -226,8 +223,7 @@ final class Image extends FileBase
     }
 
     /**
-     * Move.
-     * @return bool
+     * @inheritDoc Froq\File\File
      */
     public function move(): bool
     {
@@ -235,9 +231,7 @@ final class Image extends FileBase
     }
 
     /**
-     * Move as.
-     * @param  string $name
-     * @return bool
+     * @inheritDoc Froq\File\File
      */
     public function moveAs(string $name): bool
     {
@@ -245,19 +239,9 @@ final class Image extends FileBase
     }
 
     /**
-     * Display.
-     * @return bool
+     * @inheritDoc Froq\File\File
      */
-    public function display(): bool
-    {
-        return (bool) $this->output($this->getTargetFile());
-    }
-
-    /**
-     * Clear.
-     * @return void
-     */
-    public function clear()
+    public function clear(): void
     {
         if (is_resource($this->srcFile)) {
             imagedestroy($this->srcFile);
@@ -270,6 +254,15 @@ final class Image extends FileBase
 
         $this->dstFile = null;
         $this->srcFile = null;
+    }
+
+    /**
+     * Display.
+     * @return bool
+     */
+    public function display(): bool
+    {
+        return (bool) $this->output($this->getTargetFile());
     }
 
     /**
@@ -298,7 +291,7 @@ final class Image extends FileBase
      * @return void
      * @throws Froq\File\FileException
      */
-    public function fillInfo()
+    public function fillInfo(): void
     {
         if ($this->nameTmp == null) {
             throw new FileException('tmp_name is empty yet!');
@@ -342,11 +335,11 @@ final class Image extends FileBase
 
     /**
      * Output.
-     * @return bool|null
+     * @return ?bool
      */
-    private function output()
+    private function output(): ?bool
     {
-        if ($this->dstFile && $this->directory) {
+        if (!empty($this->dstFile) && !empty($this->directory)) {
             switch ($this->info[2]) {
                 case IMAGETYPE_JPEG:
                     return imagejpeg($this->dstFile, null, $this->jpegQuality);
@@ -361,11 +354,11 @@ final class Image extends FileBase
     /**
      * Output file.
      * @param  string $file
-     * @return bool|null
+     * @return ?bool
      */
-    private function outputFile(string $file)
+    private function outputFile(string $file): ?bool
     {
-        if ($this->dstFile && $this->directory) {
+        if (!empty($this->dstFile) && !empty($this->directory)) {
             switch ($this->info[2]) {
                 case IMAGETYPE_JPEG:
                     return imagejpeg($this->dstFile, $file, $this->jpegQuality);

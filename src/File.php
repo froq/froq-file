@@ -128,9 +128,9 @@ abstract class File
 
     /**
      * Get directory.
-     * @return string|null
+     * @return ?string
      */
-    public final function getDirectory()
+    public final function getDirectory(): ?string
     {
         return $this->directory;
     }
@@ -149,9 +149,9 @@ abstract class File
 
     /**
      * Get name.
-     * @return string|null
+     * @return ?string
      */
-    public final function getName()
+    public final function getName(): ?string
     {
         return $this->name;
     }
@@ -170,9 +170,9 @@ abstract class File
 
     /**
      * Get name tmp.
-     * @return string|null
+     * @return ?string
      */
-    public final function getNameTmp()
+    public final function getNameTmp(): ?string
     {
         return $this->nameTmp;
     }
@@ -191,9 +191,9 @@ abstract class File
 
     /**
      * Get type.
-     * @return string|null
+     * @return ?string
      */
-    public final function getType()
+    public final function getType(): ?string
     {
         return $this->type;
     }
@@ -212,9 +212,9 @@ abstract class File
 
     /**
      * Get extension.
-     * @return string|null
+     * @return ?string
      */
-    public final function getExtension()
+    public final function getExtension(): ?string
     {
         return $this->extension;
     }
@@ -233,18 +233,18 @@ abstract class File
 
     /**
      * Get size.
-     * @return int|null
+     * @return ?int
      */
-    public final function getSize()
+    public final function getSize(): ?string
     {
         return $this->size;
     }
 
     /**
      * Get source file.
-     * @return string|null
+     * @return ?string
      */
-    public final function getSourceFile()
+    public final function getSourceFile(): ?string
     {
         return $this->nameTmp;
     }
@@ -260,9 +260,9 @@ abstract class File
 
     /**
      * Get target file.
-     * @return string|null
+     * @return ?string
      */
-    public final function getTargetFile()
+    public final function getTargetFile(): ?string
     {
         $getSourceFile = $this->getSourceFile();
         if ($getSourceFile != null) {
@@ -284,8 +284,21 @@ abstract class File
     abstract public function saveAs(string $name): bool;
 
     /**
+     * Move.
+     * @return bool
+     */
+    abstract public function move(): bool;
+
+    /**
+     * Move as.
+     * @param  string $name
+     * @return bool
+     */
+    abstract public function moveAs(string $name): bool;
+
+    /**
      * Clear.
      * @return void
      */
-    abstract public function clear();
+    abstract public function clear(): void;
 }

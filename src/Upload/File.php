@@ -53,10 +53,25 @@ final class File extends FileBase
     }
 
     /**
-     * Clear.
-     * @return void
+     * @inheritDoc Froq\File\File
      */
-    public function clear()
+    public function move(): bool
+    {
+        return move_uploaded_file($this->getSourceFile(), $this->getTargetFile());
+    }
+
+    /**
+     * @inheritDoc Froq\File\File
+     */
+    public function moveAs(string $name): bool
+    {
+        return move_uploaded_file($this->getSourceFile(), "{$this->directory}/{$name}.{$this->extension}");
+    }
+
+    /**
+     * @inheritDoc Froq\File\File
+     */
+    public function clear(): void
     {
         @unlink($this->getSourceFile());
     }
