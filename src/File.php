@@ -118,13 +118,13 @@ abstract class File
      */
     public final function setDirectory(string $directory): self
     {
-        $this->directory = $directory;
-        if (empty($this->directory)) {
+        if ($directory == '') {
             throw new FileException('File directory cannot be empty.');
         }
 
+        $this->directory = $directory;
         if (!is_dir($this->directory)) {
-            $ok = @mkdir($directory, 0644, true);
+            $ok = @mkdir($this->directory, 0644, true);
             if (!$ok) {
                 throw new FileException(sprintf('Cannot make directory, error[%s].',
                     error_get_last()['message'] ?? 'Unknown'));
