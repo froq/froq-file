@@ -160,13 +160,13 @@ final class Mime
         $return = null;
         if (extension_loaded('fileinfo')) {
             $info = finfo_open(FILEINFO_MIME_TYPE);
-            $return =@ finfo_file($info, $file);
+            $return = @finfo_file($info, $file);
             finfo_close($info);
         }
 
         // check error
         if ($return === false) {
-            throw new FileException(error_get_last()['message'] ?? 'Unknown error!');
+            throw new FileException(error_get_last()['message'] ?? 'Unknown');
         }
 
         return $return;
@@ -184,7 +184,7 @@ final class Mime
             return $return;
         }
 
-        $extension =@ end(explode('.', $file));
+        $extension = @end(explode('.', $file));
         foreach (self::$types as $type => $extensions) {
             if (in_array($extension, $extensions)) {
                 $return = $type;

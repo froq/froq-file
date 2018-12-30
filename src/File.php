@@ -120,14 +120,14 @@ abstract class File
     {
         $this->directory = $directory;
         if (empty($this->directory)) {
-            throw new FileException('File directory cannot be empty!');
+            throw new FileException('File directory cannot be empty.');
         }
 
         if (!is_dir($this->directory)) {
-            $ok =@ mkdir($directory, 0644, true);
+            $ok = @mkdir($directory, 0644, true);
             if (!$ok) {
-                throw new FileException(sprintf('Cannot make directory [%s]!',
-                    strtolower(error_get_last()['message'] ?? '')));
+                throw new FileException(sprintf('Cannot make directory, error[%s].',
+                    error_get_last()['message'] ?? 'Unknown'));
             }
         }
 
