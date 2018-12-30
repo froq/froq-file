@@ -216,7 +216,7 @@ final class Image extends FileBase
     {
         $targetFile = $this->getTargetFile();
         if ($targetFile == null) {
-            throw new FileException('No target file yet!');
+            throw new FileException('No target file exists yet');
         }
 
         return (bool) $this->outputFile($targetFile);
@@ -237,12 +237,12 @@ final class Image extends FileBase
     {
         $sourceFile = $this->getSourceFile();
         if ($sourceFile == null) {
-            throw new FileException('No source file yet!');
+            throw new FileException('No source file exists yet');
         }
 
         $targetFile = $this->getTargetFile();
         if ($targetFile == null) {
-            throw new FileException('No target file yet!');
+            throw new FileException('No target file exists yet');
         }
 
         return move_uploaded_file($sourceFile, $targetFile);
@@ -255,7 +255,7 @@ final class Image extends FileBase
     {
         $sourceFile = $this->getSourceFile();
         if ($sourceFile == null) {
-            throw new FileException('No source file yet!');
+            throw new FileException('No source file exists yet');
         }
 
         return move_uploaded_file($sourceFile, "{$this->directory}/{$name}.{$this->extension}");
@@ -320,15 +320,15 @@ final class Image extends FileBase
     public function fillInfo(): void
     {
         if ($this->nameTmp == null) {
-            throw new FileException('tmp_name is empty yet!');
+            throw new FileException('tmp_name is empty yet');
         }
 
         if ($this->info == null) {
-            $this->info =@ getimagesize($this->nameTmp);
+            $this->info = @getimagesize($this->nameTmp);
         }
 
         if (!isset($this->info[0], $this->info[1])) {
-            throw new FileException('Could not get file info!');
+            throw new FileException('Could not get file info');
         }
     }
 
