@@ -61,7 +61,7 @@ final class File extends FileBase
     {
         $sourceFile = $this->getSourceFile();
         if ($sourceFile == null) {
-            throw new FileException('No source file exists yet!');
+            throw new FileException('No source file exists yet');
         }
 
         return copy($sourceFile, "{$this->directory}/{$name}.{$this->extension}");
@@ -74,12 +74,12 @@ final class File extends FileBase
     {
         $sourceFile = $this->getSourceFile();
         if ($sourceFile == null) {
-            throw new FileException('No source file exists yet!');
+            throw new FileException('No source file exists yet');
         }
 
         $targetFile = $this->getTargetFile();
         if ($targetFile == null) {
-            throw new FileException('No target file exists yet!');
+            throw new FileException('No target file exists yet');
         }
 
         return move_uploaded_file($sourceFile, $targetFile);
@@ -92,7 +92,7 @@ final class File extends FileBase
     {
         $sourceFile = $this->getSourceFile();
         if ($sourceFile == null) {
-            throw new FileException('No source file exists yet!');
+            throw new FileException('No source file exists yet');
         }
 
         return move_uploaded_file($sourceFile, "{$this->directory}/{$name}.{$this->extension}");
