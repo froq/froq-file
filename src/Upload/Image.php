@@ -66,33 +66,31 @@ final class Image extends FileBase
      * @param  int|null $height
      * @param  bool     $proportional
      * @return bool
+     * @throws Froq\File\FileException
      */
     public function resize(int $width = null, int $height = null, bool $proportional = true): bool
     {
         // ensure file info
         $this->fillInfo();
 
+        $this->srcFile = $this->createImageFile();
+        if (empty($this->srcFile)) {
+            throw new FileException('Could not create source image file');
+        }
+
         $newWidth = $newHeight = 0;
         [$origWidth, $origHeight] = $this->info;
 
         if ($proportional) {
-            if ($width == 0) {
-                $factor = $height / $origHeight;
-            } elseif ($height == 0) {
-                $factor = $width / $origWidth;
-            } else {
-                $factor = min($width / $origWidth, $height / $origHeight);
-            }
+                if ($width == 0)  $factor = $height / $origHeight;
+            elseif ($height == 0) $factor = $width / $origWidth;
+            else                  $factor = min($width / $origWidth, $height / $origHeight);
+
             $newWidth = (int) round($origWidth * $factor);
             $newHeight = (int) round($origHeight * $factor);
         } else {
             $newWidth = (int) (($width <= 0) ? $origWidth : $width);
             $newHeight = (int) (($height <= 0) ? $origHeight : $height);
-        }
-
-        $this->srcFile = $this->createImageFile();
-        if ($this->srcFile == null) {
-            return false;
         }
 
         $this->dstFile = imagecreatetruecolor($newWidth, $newHeight);
@@ -115,6 +113,7 @@ final class Image extends FileBase
      * @param  int  $height
      * @param  bool $proportional
      * @return bool
+     * @throws Froq\File\FileException
      */
     public function crop(int $width, int $height, bool $proportional = true): bool
     {
@@ -124,6 +123,11 @@ final class Image extends FileBase
         // do not crop original width/height dims
         if ($width == $this->info[0] && $height == $this->info[1]) {
             return $this->resize($width, $height);
+        }
+
+        $this->srcFile = $this->createImageFile();
+        if ($this->srcFile == null) {
+            throw new FileException('Could not create source image file');
         }
 
         $origWidth = $this->info[0];
@@ -139,11 +143,6 @@ final class Image extends FileBase
         }
         $x = (int) (($origWidth - $cropWidth) / 2);
         $y = (int) (($origHeight - $cropHeight) / 2);
-
-        $this->srcFile = $this->createImageFile();
-        if ($this->srcFile == null) {
-            return false;
-        }
 
         $this->dstFile = imagecreatetruecolor($width, $height);
 
@@ -167,6 +166,7 @@ final class Image extends FileBase
      * @param  int  $y
      * @param  bool $proportional
      * @return bool
+     * @throws Froq\File\FileException
      */
     public function cropBy(int $width, int $height, int $x, int $y, bool $proportional = true): bool
     {
@@ -176,6 +176,11 @@ final class Image extends FileBase
         // do not crop original width/height dims
         if ($width == $this->info[0] && $height == $this->info[1]) {
             return $this->resize($width, $height);
+        }
+
+        $this->srcFile = $this->createImageFile();
+        if ($this->srcFile == null) {
+            throw new FileException('Could not create source image file');
         }
 
         $origWidth = $this->info[0];
@@ -188,11 +193,6 @@ final class Image extends FileBase
         } else {
             $cropWidth = $width;
             $cropHeight = $height;
-        }
-
-        $this->srcFile = $this->createImageFile();
-        if ($this->srcFile == null) {
-            return false;
         }
 
         $this->dstFile = imagecreatetruecolor($width, $height);
@@ -324,7 +324,7 @@ final class Image extends FileBase
         }
 
         if ($this->info == null) {
-            $this->info = @getimagesize($this->nameTmp);
+            @ $this->info = getimagesize($this->nameTmp);
         }
 
         if (!isset($this->info[0], $this->info[1])) {
@@ -347,7 +347,7 @@ final class Image extends FileBase
      */
     private function createImageFile()
     {
-        if ($this->nameTmp) {
+        if ($this->nameTmp != null) {
             switch ($this->info[2]) {
                 case IMAGETYPE_JPEG:
                     return imagecreatefromjpeg($this->nameTmp);
