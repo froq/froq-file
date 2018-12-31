@@ -160,7 +160,7 @@ final class Mime
         $return = null;
         if (extension_loaded('fileinfo')) {
             $info = finfo_open(FILEINFO_MIME_TYPE);
-            $return = @finfo_file($info, $file);
+            @ $return = finfo_file($info, $file);
             finfo_close($info);
         }
 
