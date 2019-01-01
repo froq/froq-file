@@ -243,7 +243,7 @@ abstract class File
      * Get size.
      * @return ?int
      */
-    public final function getSize(): ?string
+    public final function getSize(): ?int
     {
         return $this->size;
     }
