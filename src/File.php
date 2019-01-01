@@ -124,7 +124,7 @@ abstract class File
 
         $this->directory = $directory;
         if (!is_dir($this->directory)) {
-            $ok = @mkdir($this->directory, 0644, true);
+            @ $ok = mkdir($this->directory, 0644, true);
             if (!$ok) {
                 throw new FileException(sprintf('Cannot make directory, error[%s]',
                     error_get_last()['message'] ?? 'Unknown'));
