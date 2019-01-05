@@ -24,17 +24,16 @@
  */
 declare(strict_types=1);
 
-namespace Froq\File\Upload;
-
-use Froq\File\{File as FileBase, FileInterface, FileException};
+namespace Froq\File;
 
 /**
  * @package    Froq
  * @subpackage Froq\File
- * @object     Froq\File\Upload\File
+ * @object     Froq\File\FileUploader
  * @author     Kerem Güneş <k-gun@mail.com>
+ * @since      3.0
  */
-final class File extends FileBase implements FileInterface
+final class FileUploader extends File implements FileInterface
 {
     /**
      * @inheritDoc Froq\File\FileInterface
