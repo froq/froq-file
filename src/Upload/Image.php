@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace Froq\File\Upload;
 
-use Froq\File\{File as FileBase, FileException};
+use Froq\File\{File as FileBase, FileInterface, FileException};
 
 /**
  * @package    Froq
@@ -34,8 +34,14 @@ use Froq\File\{File as FileBase, FileException};
  * @object     Froq\File\Upload\Image
  * @author     Kerem Güneş <k-gun@mail.com>
  */
-final class Image extends FileBase
+final class File extends FileBase implements FileInterface
 {
+    /**
+     * Jpeg quality.
+     * @const int
+     */
+    public const JPEG_QUALITY = 80;
+
     /**
      * Info.
      * @var array
@@ -43,22 +49,16 @@ final class Image extends FileBase
     private $info;
 
     /**
-     * Src file.
+     * Resource file.
      * @var resource
      */
-    private $srcFile;
+    private $resourceFile;
 
     /**
-     * Dst file.
+     * Destination file.
      * @var resource
      */
-    private $dstFile;
-
-    /**
-     * Jpeg quality.
-     * @var int
-     */
-    private $jpegQuality = 80;
+    private $destinationFile;
 
     /**
      * Resize.
@@ -73,8 +73,8 @@ final class Image extends FileBase
         // ensure file info
         $this->fillInfo();
 
-        $this->srcFile = $this->createImageFile();
-        if (empty($this->srcFile)) {
+        $this->resourceFile = $this->createResourceFile();
+        if ($this->resourceFile == null) {
             throw new FileException('Could not create source image file');
         }
 
@@ -82,7 +82,7 @@ final class Image extends FileBase
         [$origWidth, $origHeight] = $this->info;
 
         if ($proportional) {
-                if ($width == 0)  $factor = $height / $origHeight;
+            if ($width == 0)      $factor = $height / $origHeight;
             elseif ($height == 0) $factor = $width / $origWidth;
             else                  $factor = min($width / $origWidth, $height / $origHeight);
 
@@ -93,17 +93,17 @@ final class Image extends FileBase
             $newHeight = (int) (($height <= 0) ? $origHeight : $height);
         }
 
-        $this->dstFile = imagecreatetruecolor($newWidth, $newHeight);
+        $this->destinationFile = imagecreatetruecolor($newWidth, $newHeight);
 
         // handle png's
         if ($this->info[2] == IMAGETYPE_PNG) {
-            imagealphablending($this->dstFile, false);
-            $transparent = imagecolorallocatealpha($this->dstFile, 0, 0, 0, 127);
-            imagefill($this->dstFile, 0, 0, $transparent);
-            imagesavealpha($this->dstFile, true);
+            imagealphablending($this->destinationFile, false);
+            $transparent = imagecolorallocatealpha($this->destinationFile, 0, 0, 0, 127);
+            imagefill($this->destinationFile, 0, 0, $transparent);
+            imagesavealpha($this->destinationFile, true);
         }
 
-        return imagecopyresampled($this->dstFile, $this->srcFile, 0, 0, 0, 0, $newWidth, $newHeight,
+        return imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, 0, 0, $newWidth, $newHeight,
             $origWidth, $origHeight);
     }
 
@@ -125,8 +125,8 @@ final class Image extends FileBase
             return $this->resize($width, $height);
         }
 
-        $this->srcFile = $this->createImageFile();
-        if ($this->srcFile == null) {
+        $this->resourceFile = $this->createResourceFile();
+        if ($this->resourceFile == null) {
             throw new FileException('Could not create source image file');
         }
 
@@ -144,17 +144,17 @@ final class Image extends FileBase
         $x = (int) (($origWidth - $cropWidth) / 2);
         $y = (int) (($origHeight - $cropHeight) / 2);
 
-        $this->dstFile = imagecreatetruecolor($width, $height);
+        $this->destinationFile = imagecreatetruecolor($width, $height);
 
         // handle png's
         if ($this->info[2] == IMAGETYPE_PNG) {
-            imagealphablending($this->dstFile, false);
-            $transparent = imagecolorallocatealpha($this->dstFile, 0, 0, 0, 127);
-            imagefill($this->dstFile, 0, 0, $transparent);
-            imagesavealpha($this->dstFile, true);
+            imagealphablending($this->destinationFile, false);
+            $transparent = imagecolorallocatealpha($this->destinationFile, 0, 0, 0, 127);
+            imagefill($this->destinationFile, 0, 0, $transparent);
+            imagesavealpha($this->destinationFile, true);
         }
 
-        return imagecopyresampled($this->dstFile, $this->srcFile, 0, 0, $x, $y, $width, $height,
+        return imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y, $width, $height,
             $cropWidth, $cropHeight);
     }
 
@@ -178,8 +178,8 @@ final class Image extends FileBase
             return $this->resize($width, $height);
         }
 
-        $this->srcFile = $this->createImageFile();
-        if ($this->srcFile == null) {
+        $this->resourceFile = $this->createResourceFile();
+        if ($this->resourceFile == null) {
             throw new FileException('Could not create source image file');
         }
 
@@ -195,70 +195,62 @@ final class Image extends FileBase
             $cropHeight = $height;
         }
 
-        $this->dstFile = imagecreatetruecolor($width, $height);
+        $this->destinationFile = imagecreatetruecolor($width, $height);
 
         // handle png's
         if ($this->info[2] == IMAGETYPE_PNG) {
-            imagealphablending($this->dstFile, false);
-            $transparent = imagecolorallocatealpha($this->dstFile, 0, 0, 0, 127);
-            imagefill($this->dstFile, 0, 0, $transparent);
-            imagesavealpha($this->dstFile, true);
+            imagealphablending($this->destinationFile, false);
+            $transparent = imagecolorallocatealpha($this->destinationFile, 0, 0, 0, 127);
+            imagefill($this->destinationFile, 0, 0, $transparent);
+            imagesavealpha($this->destinationFile, true);
         }
 
-        return imagecopyresampled($this->dstFile, $this->srcFile, 0, 0, $x, $y, $width, $height,
+        return imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y, $width, $height,
             $cropWidth, $cropHeight);
     }
 
     /**
      * @inheritDoc Froq\File\File
      */
-    public function save(): bool
+    public function save(): void
     {
-        $targetFile = $this->getTargetFile();
-        if ($targetFile == null) {
-            throw new FileException('No target file exists yet');
+        $ok = $this->outputTo($this->getDestinationPath());
+        if (!$ok) {
+            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
-
-        return (bool) $this->outputFile($targetFile);
     }
 
     /**
      * @inheritDoc Froq\File\File
      */
-    public function saveAs(string $name): bool
+    public function saveAs(string $name): void
     {
-        return (bool) $this->outputFile("{$this->directory}/{$name}.{$this->extension}");
+        $ok = $this->outputTo($this->getDestinationPath($name));
+        if (!$ok) {
+            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
+        }
     }
 
     /**
      * @inheritDoc Froq\File\File
      */
-    public function move(): bool
+    public function move(): void
     {
-        $sourceFile = $this->getSourceFile();
-        if ($sourceFile == null) {
-            throw new FileException('No source file exists yet');
+        @ $ok = move_uploaded_file($this->getSourcePath(), $this->getDestinationPath());
+        if (!$ok) {
+            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
-
-        $targetFile = $this->getTargetFile();
-        if ($targetFile == null) {
-            throw new FileException('No target file exists yet');
-        }
-
-        return move_uploaded_file($sourceFile, $targetFile);
     }
 
     /**
      * @inheritDoc Froq\File\File
      */
-    public function moveAs(string $name): bool
+    public function moveAs(string $name): void
     {
-        $sourceFile = $this->getSourceFile();
-        if ($sourceFile == null) {
-            throw new FileException('No source file exists yet');
+        @ $ok = move_uploaded_file($this->getSourcePath(), $this->getDestinationPath($name));
+        if (!$ok) {
+            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
-
-        return move_uploaded_file($sourceFile, "{$this->directory}/{$name}.{$this->extension}");
     }
 
     /**
@@ -266,70 +258,22 @@ final class Image extends FileBase
      */
     public function clear(): void
     {
-        if (is_resource($this->srcFile)) {
-            imagedestroy($this->srcFile);
-        }
-        if (is_resource($this->dstFile)) {
-            imagedestroy($this->dstFile);
-        }
+        is_resource($this->resourceFile) && imagedestroy($this->resourceFile);
+        is_resource($this->destinationFile) && imagedestroy($this->destinationFile);
 
-        $this->dstFile = null;
-        $this->srcFile = null;
+        $this->destinationFile = null;
+        $this->resourceFile = null;
 
-        $sourceFile = $this->getSourceFile();
-        if ($sourceFile != null) {
-            @unlink($sourceFile);
-        }
+        @ unlink($this->getSourcePath());
     }
 
     /**
      * Display.
-     * @return bool
-     */
-    public function display(): bool
-    {
-        return (bool) $this->output();
-    }
-
-    /**
-     * Set jpeg quality.
-     * @param  int $jpegQuality
-     * @return self
-     */
-    public function setJpegQuality(int $jpegQuality): self
-    {
-        $this->jpegQuality = $jpegQuality;
-
-        return $this;
-    }
-
-    /**
-     * Get jpeg quality.
-     * @return int
-     */
-    public function getJpegQuality(): int
-    {
-        return $this->jpegQuality;
-    }
-
-    /**
-     * Fill info.
      * @return void
-     * @throws Froq\File\FileException
      */
-    public function fillInfo(): void
+    public function display(): void
     {
-        if ($this->nameTmp == null) {
-            throw new FileException('tmp_name is empty yet');
-        }
-
-        if ($this->info == null) {
-            @ $this->info = getimagesize($this->nameTmp);
-        }
-
-        if (!isset($this->info[0], $this->info[1])) {
-            throw new FileException('Could not get file info');
-        }
+        $this->output();
     }
 
     /**
@@ -342,65 +286,78 @@ final class Image extends FileBase
     }
 
     /**
-     * Create image file.
-     * @return resource|null
+     * Fill info.
+     * @return void
+     * @throws Froq\File\FileException
      */
-    private function createImageFile()
+    public function fillInfo(): void
     {
-        if ($this->nameTmp != null) {
-            switch ($this->info[2]) {
-                case IMAGETYPE_JPEG:
-                    return imagecreatefromjpeg($this->nameTmp);
-                case IMAGETYPE_PNG:
-                    return imagecreatefrompng($this->nameTmp);
-                case IMAGETYPE_GIF:
-                    return imagecreatefromgif($this->nameTmp);
+        if ($this->info == null) {
+            @ $this->info = getimagesize($this->getSourcePath());
+            if (!isset($this->info[0], $this->info[1])) {
+                throw new FileException('Could not get file info');
             }
         }
     }
 
     /**
-     * Output.
-     * @return ?bool
+     * Create resource file.
+     * @return resource|null
      */
-    private function output(): ?bool
+    private function createResourceFile()
     {
-        if (empty($this->dstFile)) {
-            return null;
+        if (!empty($this->info[2])) {
+            switch ($this->info[2]) {
+                case IMAGETYPE_JPEG:
+                    return imagecreatefromjpeg($this->getSourcePath());
+                case IMAGETYPE_PNG:
+                    return imagecreatefrompng($this->getSourcePath());
+                case IMAGETYPE_GIF:
+                    return imagecreatefromgif($this->getSourcePath());
+            }
         }
-
-        switch ($this->info[2]) {
-            case IMAGETYPE_JPEG:
-                return imagejpeg($this->dstFile, null, $this->jpegQuality);
-            case IMAGETYPE_PNG:
-                return imagepng($this->dstFile);
-            case IMAGETYPE_GIF:
-                return imagegif($this->dstFile);
-            default:
-                return null;
-        }
+        return null;
     }
 
     /**
-     * Output file.
-     * @param  string $file
+     * Output.
+     * @return ?bool
+     * @throws Froq\File\FileException
+     */
+    private function output(): ?bool
+    {
+        if (!empty($this->info[2]) && !empty($this->destinationFile)) {
+            switch ($this->info[2]) {
+                case IMAGETYPE_JPEG:
+                    return imagejpeg($this->destinationFile, null,
+                        $this->options['jpegQuality'] ?? self::JPEG_QUALITY);
+                case IMAGETYPE_PNG:
+                    return imagepng($this->destinationFile);
+                case IMAGETYPE_GIF:
+                    return imagegif($this->destinationFile);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Output to.
+     * @param  string $to
      * @return ?bool
      */
-    private function outputFile(string $file): ?bool
+    private function outputTo(string $to): ?bool
     {
-        if (empty($this->dstFile)) {
-            return null;
+        if (!empty($this->info[2]) && !empty($this->destinationFile)) {
+            switch ($this->info[2]) {
+                case IMAGETYPE_JPEG:
+                    return imagejpeg($this->destinationFile, $to,
+                        $this->options['jpegQuality'] ?? self::JPEG_QUALITY);
+                case IMAGETYPE_PNG:
+                    return imagepng($this->destinationFile, $to);
+                case IMAGETYPE_GIF:
+                    return imagegif($this->destinationFile, $to);
+            }
         }
-
-        switch ($this->info[2]) {
-            case IMAGETYPE_JPEG:
-                return imagejpeg($this->dstFile, $file, $this->jpegQuality);
-            case IMAGETYPE_PNG:
-                return imagepng($this->dstFile, $file);
-            case IMAGETYPE_GIF:
-                return imagegif($this->dstFile, $file);
-            default:
-                return null;
-        }
+        return null;
     }
 }
