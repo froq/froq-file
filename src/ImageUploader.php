@@ -75,7 +75,7 @@ final class File extends FileBase implements FileInterface
 
         $this->resourceFile = $this->createResourceFile();
         if ($this->resourceFile == null) {
-            throw new FileException('Could not create source image file');
+            throw new FileException('Could not create resource file');
         }
 
         $newWidth = $newHeight = 0;
@@ -127,7 +127,7 @@ final class File extends FileBase implements FileInterface
 
         $this->resourceFile = $this->createResourceFile();
         if ($this->resourceFile == null) {
-            throw new FileException('Could not create source image file');
+            throw new FileException('Could not create resource file');
         }
 
         $origWidth = $this->info[0];
@@ -180,7 +180,7 @@ final class File extends FileBase implements FileInterface
 
         $this->resourceFile = $this->createResourceFile();
         if ($this->resourceFile == null) {
-            throw new FileException('Could not create source image file');
+            throw new FileException('Could not create resource file');
         }
 
         $origWidth = $this->info[0];
