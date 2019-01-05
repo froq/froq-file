@@ -53,6 +53,12 @@ abstract class File
     protected $tmpName;
 
     /**
+     * New name.
+     * @var string
+     */
+    protected $newName;
+
+    /**
      * Type.
      * @var string
      */
@@ -117,10 +123,6 @@ abstract class File
      */
     public function __construct(array $file, string $directory, array $options = [])
     {
-        if (!ini_get('file_uploads')) {
-            throw new FileException('File uploads now allowed by php.ini');
-        }
-
         // all these stuff are needed
         if (!isset($file['tmp_name'], $file['name'], $file['type'], $file['size'], $file['error'])) {
             throw new FileException("No valid file given, 'tmp_name,name,type,size,error' are required");
@@ -191,6 +193,25 @@ abstract class File
     }
 
     /**
+     * Set new name.
+     * @param  string $newName
+     * @return void
+     */
+    public final function setNewName($newName): void
+    {
+        $this->newName = self::prepareName($newName);
+    }
+
+    /**
+     * Get new name.
+     * @return ?string
+     */
+    public final function getNewName(): ?string
+    {
+        return $this->newName;
+    }
+
+    /**
      * Get type.
      * @return string
      */
@@ -230,7 +251,7 @@ abstract class File
      * Get error string.
      * @return ?string
      */
-    public function getErrorString(): ?string
+    public final function getErrorString(): ?string
     {
         return $this->errorString;
     }
@@ -288,11 +309,12 @@ abstract class File
      * To array.
      * @return array
      */
-    public function toArray(): array
+    public final function toArray(): array
     {
         return [
             'name'        => $this->name,
             'tmp_name'    => $this->tmpName,
+            'new_name'    => $this->newName,
             'type'        => $this->type,
             'size'        => $this->size,
             'error'       => $this->error,
@@ -307,7 +329,7 @@ abstract class File
      * @return string
      * @throws Froq\File\FileException
      */
-    public static function prepareName(string $name, bool $hash = null): string
+    protected final function prepareName(string $name, bool $hash = null): string
     {
         // some security stuff
         $name = preg_replace('~[^\w-.]~u', '', pathinfo($name, PATHINFO_FILENAME));
@@ -334,11 +356,11 @@ abstract class File
     }
 
     /**
-     * Conver bytes.
+     * Convert bytes.
      * @param  string $value
      * @return int
      */
-    public static function convertBytes(string $value): int
+    protected final function convertBytes(string $value): int
     {
         if (!is_numeric($value)) {
             $scan = sscanf($value, '%d%s');
