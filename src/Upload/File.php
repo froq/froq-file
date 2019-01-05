@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace Froq\File\Upload;
 
-use Froq\File\{File as FileBase, FileException};
+use Froq\File\{File as FileBase, FileInterface, FileException};
 
 /**
  * @package    Froq
@@ -34,78 +34,57 @@ use Froq\File\{File as FileBase, FileException};
  * @object     Froq\File\Upload\File
  * @author     Kerem Güneş <k-gun@mail.com>
  */
-final class File extends FileBase
+final class File extends FileBase implements FileInterface
 {
     /**
-     * @inheritDoc Froq\File\File
+     * @inheritDoc Froq\File\FileInterface
      */
-    public function save(): bool
+    public function save(): void
     {
-        $sourceFile = $this->getSourceFile();
-        if ($sourceFile == null) {
-            throw new FileException('No source file exists yet');
+        @ $ok = copy($this->getSourcePath(), $this->getDestinationPath());
+        if (!$ok) {
+            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
-
-        $targetFile = $this->getTargetFile();
-        if ($targetFile == null) {
-            throw new FileException('No target file exists yet');
-        }
-
-        return copy($sourceFile, $targetFile);
     }
 
     /**
-     * @inheritDoc Froq\File\File
+     * @inheritDoc Froq\File\FileInterface
      */
-    public function saveAs(string $name): bool
+    public function saveAs(string $name): void
     {
-        $sourceFile = $this->getSourceFile();
-        if ($sourceFile == null) {
-            throw new FileException('No source file exists yet');
+        @ $ok = copy($this->getSourcePath(), $this->getDestinationPath($name));
+        if (!$ok) {
+            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
-
-        return copy($sourceFile, "{$this->directory}/{$name}.{$this->extension}");
     }
 
     /**
-     * @inheritDoc Froq\File\File
+     * @inheritDoc Froq\File\FileInterface
      */
-    public function move(): bool
+    public function move(): void
     {
-        $sourceFile = $this->getSourceFile();
-        if ($sourceFile == null) {
-            throw new FileException('No source file exists yet');
+        @ $ok = move_uploaded_file($this->getSourcePath(), $this->getDestinationPath());
+        if (!$ok) {
+            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
-
-        $targetFile = $this->getTargetFile();
-        if ($targetFile == null) {
-            throw new FileException('No target file exists yet');
-        }
-
-        return move_uploaded_file($sourceFile, $targetFile);
     }
 
     /**
-     * @inheritDoc Froq\File\File
+     * @inheritDoc Froq\File\FileInterface
      */
-    public function moveAs(string $name): bool
+    public function moveAs(string $name): void
     {
-        $sourceFile = $this->getSourceFile();
-        if ($sourceFile == null) {
-            throw new FileException('No source file exists yet');
+        @ $ok = move_uploaded_file($this->getSourcePath(), $this->getDestinationPath($name));
+        if (!$ok) {
+            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
-
-        return move_uploaded_file($sourceFile, "{$this->directory}/{$name}.{$this->extension}");
     }
 
     /**
-     * @inheritDoc Froq\File\File
+     * @inheritDoc Froq\File\FileInterface
      */
     public function clear(): void
     {
-        $sourceFile = $this->getSourceFile();
-        if ($sourceFile != null) {
-            @unlink($sourceFile);
-        }
+        @ unlink($this->getSourcePath());
     }
 }
