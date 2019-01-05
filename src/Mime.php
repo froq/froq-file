@@ -129,10 +129,11 @@ final class Mime
         'text/plain'                         => ['txt', 'c', 'cc', 'h'],
         'text/richtext'                      => ['rtx'],
         'text/javascript'                    => ['js'],
-        'text/tab-separated-values'          => ['tsv'],
         'text/x-php'                         => ['php'],
         'text/x-setext'                      => ['etx'],
         'text/x-sgml'                        => ['sgm', 'sgml'],
+        'text/csv'                           => ['csv'],
+        'text/tsv'                           => ['tsv'],
 
         'video/flv'                          => ['flv'],
         'video/mpeg'                         => ['mpe', 'mpeg', 'mpg'],
@@ -153,16 +154,18 @@ final class Mime
     /**
      * Get type.
      * @param  string $file
-     * @return ?string
+     * @return string
+     * @throws Froq\File\FileException
      */
-    public static function getType(string $file): ?string
+    public static function getType(string $file): string
     {
-        $return = null;
-        if (extension_loaded('fileinfo')) {
-            $info = finfo_open(FILEINFO_MIME_TYPE);
-            @ $return = finfo_file($info, $file);
-            finfo_close($info);
+        if (!extension_loaded('fileinfo')) {
+            throw new FileException('fileinfo module not found');
         }
+
+        $info = finfo_open(FILEINFO_MIME_TYPE);
+        @ $return = finfo_file($info, $file);
+        finfo_close($info);
 
         // check error
         if ($return === false) {
@@ -174,21 +177,20 @@ final class Mime
 
     /**
      * Get type by extension.
-     * @param  string $file
+     * @param  string $path
      * @return ?string
      */
-    public static function getTypeByExtension(string $file): ?string
+    public static function getTypeByExtension(string $path): ?string
     {
         $return = null;
-        if (!strpos($file, '.')) {
-            return $return;
-        }
-
-        $extension = @end(explode('.', $file));
-        foreach (self::$types as $type => $extensions) {
-            if (in_array($extension, $extensions)) {
-                $return = $type;
-                break;
+        if (strpos($path, '.')) {
+            @ $extension = end(explode('.', $path));
+            error_clear_last();
+            foreach (self::$types as $type => $extensions) {
+                if (in_array($extension, $extensions)) {
+                    $return = $type;
+                    break;
+                }
             }
         }
 
