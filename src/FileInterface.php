@@ -34,37 +34,35 @@ namespace Froq\File;
  */
 interface FileInterface
 {
-
-
     /**
      * Save.
-     * @return void
+     * @return string
      * @throws Froq\File\FileException
      */
-    public function save(): void;
+    public function save(): string;
 
     /**
      * Save as.
      * @param  string|null $name
-     * @return void
+     * @return string
      * @throws Froq\File\FileException
      */
-    public function saveAs(string $name = null): void;
+    public function saveAs(string $name = null): string;
 
     /**
      * Move.
-     * @return void
+     * @return string
      * @throws Froq\File\FileException
      */
-    public function move(): void;
+    public function move(): string;
 
     /**
      * Move as.
      * @param  string|null $name
-     * @return void
+     * @return string
      * @throws Froq\File\FileException
      */
-    public function moveAs(string $name = null): void;
+    public function moveAs(string $name = null): string;
 
     /**
      * Clear.

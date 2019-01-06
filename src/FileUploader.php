@@ -38,55 +38,63 @@ final class FileUploader extends File implements FileInterface
     /**
      * @inheritDoc Froq\File\FileInterface
      */
-    public function save(): void
+    public function save(): string
     {
-        @ $ok = copy($this->getSourcePath(), $this->getDestinationPath());
+        @ $ok = copy($this->getSourcePath(), $destinationPath = $this->getDestinationPath());
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
+
+        return $destinationPath;
     }
 
     /**
      * @inheritDoc Froq\File\FileInterface
      */
-    public function saveAs(string $name = null): void
+    public function saveAs(string $name = null): string
     {
         $name = $name ?? $this->getNewName();
         if ($name == null) {
             throw new FileException('New name cannot be empty');
         }
 
-        @ $ok = copy($this->getSourcePath(), $this->getDestinationPath($name));
+        @ $ok = copy($this->getSourcePath(), $destinationPath = $this->getDestinationPath($name));
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
+
+        return $destinationPath;
     }
 
     /**
      * @inheritDoc Froq\File\FileInterface
      */
-    public function move(): void
+    public function move(): string
     {
-        @ $ok = move_uploaded_file($this->getSourcePath(), $this->getDestinationPath());
+        @ $ok = move_uploaded_file($this->getSourcePath(), $destinationPath = $this->getDestinationPath());
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
+
+        return $destinationPath;
     }
 
     /**
      * @inheritDoc Froq\File\FileInterface
      */
-    public function moveAs(string $name = null): void
+    public function moveAs(string $name = null): string
     {
         $name = $name ?? $this->getNewName();
         if ($name == null) {
             throw new FileException('New name cannot be empty');
         }
 
-        @ $ok = move_uploaded_file($this->getSourcePath(), $this->getDestinationPath($name));
+        @ $ok = move_uploaded_file($this->getSourcePath(), $destinationPath = $this->getDestinationPath($name));
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
+
+        return $destinationPath;
     }
 
     /**
