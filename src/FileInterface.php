@@ -43,11 +43,11 @@ interface FileInterface
 
     /**
      * Save as.
-     * @param  string|null $name
+     * @param  string $name
      * @return string
      * @throws Froq\File\FileException
      */
-    public function saveAs(string $name = null): string;
+    public function saveAs(string $name): string;
 
     /**
      * Move.
@@ -58,11 +58,11 @@ interface FileInterface
 
     /**
      * Move as.
-     * @param  string|null $name
+     * @param  string $name
      * @return string
      * @throws Froq\File\FileException
      */
-    public function moveAs(string $name = null): string;
+    public function moveAs(string $name): string;
 
     /**
      * Clear.

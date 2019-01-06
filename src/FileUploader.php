@@ -40,7 +40,10 @@ final class FileUploader extends File implements FileInterface
      */
     public function save(): string
     {
-        @ $ok = copy($this->getSourcePath(), $destinationPath = $this->getDestinationPath());
+        $sourcePath = $this->getSourcePath();
+        $destinationPath = $this->getDestinationPath();
+
+        @ $ok = copy($sourcePath, $destinationPath);
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
@@ -53,12 +56,14 @@ final class FileUploader extends File implements FileInterface
      */
     public function saveAs(string $name = null): string
     {
-        $name = $name ?? $this->getNewName();
-        if ($name == null) {
-            throw new FileException('New name cannot be empty');
+        if ($name == '') {
+            throw new FileException('Name cannot be empty');
         }
 
-        @ $ok = copy($this->getSourcePath(), $destinationPath = $this->getDestinationPath($name));
+        $sourcePath = $this->getSourcePath();
+        $destinationPath = $this->getDestinationPath($this->prepareName($name));
+
+        @ $ok = copy($sourcePath, $destinationPath);
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
@@ -71,7 +76,10 @@ final class FileUploader extends File implements FileInterface
      */
     public function move(): string
     {
-        @ $ok = move_uploaded_file($this->getSourcePath(), $destinationPath = $this->getDestinationPath());
+        $sourcePath = $this->getSourcePath();
+        $destinationPath = $this->getDestinationPath();
+
+        @ $ok = move_uploaded_file($sourcePath, $destinationPath);
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
@@ -82,14 +90,16 @@ final class FileUploader extends File implements FileInterface
     /**
      * @inheritDoc Froq\File\FileInterface
      */
-    public function moveAs(string $name = null): string
+    public function moveAs(string $name): string
     {
-        $name = $name ?? $this->getNewName();
-        if ($name == null) {
-            throw new FileException('New name cannot be empty');
+        if ($name == '') {
+            throw new FileException('Name cannot be empty');
         }
 
-        @ $ok = move_uploaded_file($this->getSourcePath(), $destinationPath = $this->getDestinationPath($name));
+        $sourcePath = $this->getSourcePath();
+        $destinationPath = $this->getDestinationPath($this->prepareName($name));
+
+        @ $ok = move_uploaded_file($sourcePath, $destinationPath);
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }

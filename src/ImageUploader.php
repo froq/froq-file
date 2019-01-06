@@ -67,9 +67,9 @@ final class ImageUploader extends File implements FileInterface
      * @return bool
      * @throws Froq\File\FileException
      */
-    public function resize(int $width = null, int $height = null, bool $proportional = true): bool
+    public function resize(int $width, int $height, bool $proportional = true): bool
     {
-        // ensure file info
+        // ensure info
         $this->fillInfo();
 
         $this->resourceFile = $this->createResourceFile();
@@ -77,9 +77,11 @@ final class ImageUploader extends File implements FileInterface
             throw new FileException('Could not create resource file');
         }
 
-        $newWidth = $newHeight = 0;
+        $width = $width ?? $this->info[0];
+        $height = $height ?? $this->info[1];
         [$origWidth, $origHeight] = $this->info;
 
+        $newWidth = $newHeight = 0;
         if ($proportional) {
             if ($width == 0)      $factor = $height / $origHeight;
             elseif ($height == 0) $factor = $width / $origWidth;
@@ -116,7 +118,7 @@ final class ImageUploader extends File implements FileInterface
      */
     public function crop(int $width, int $height, bool $proportional = true): bool
     {
-        // ensure file info
+        // ensure info
         $this->fillInfo();
 
         // do not crop original width/height dims
@@ -169,7 +171,7 @@ final class ImageUploader extends File implements FileInterface
      */
     public function cropBy(int $width, int $height, int $x, int $y, bool $proportional = true): bool
     {
-        // ensure file info
+        // ensure info
         $this->fillInfo();
 
         // do not crop original width/height dims
@@ -209,11 +211,18 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc Froq\File\File
+     * @inheritDoc Froq\File\FileInterface
      */
     public function save(): string
     {
-        $ok = $this->outputTo($destinationPath = $this->getDestinationPath());
+        if ($this->destinationFile == null) {
+            throw new FileException("No destination file created yet, call one of these method ".
+                "first: 'resample,resize,crop,cropBy'");
+        }
+
+        $destinationPath = $this->getDestinationPath();
+
+        $ok = $this->outputTo($destinationPath);
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
@@ -222,16 +231,22 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc Froq\File\File
+     * @inheritDoc Froq\File\FileInterface
      */
-    public function saveAs(string $name = null): string
+    public function saveAs(string $name): string
     {
-        $name = $name ?? $this->getNewName();
-        if ($name == null) {
-            throw new FileException('New name cannot be empty');
+        if ($name == '') {
+            throw new FileException('Name cannot be empty');
         }
 
-        $ok = $this->outputTo($destinationPath = $this->getDestinationPath($name));
+        if ($this->destinationFile == null) {
+            throw new FileException("No destination file created yet, call one of these method ".
+                "first: 'resample,resize,crop,cropBy'");
+        }
+
+        $destinationPath = $this->getDestinationPath($this->prepareName($name));
+
+        $ok = $this->outputTo($destinationPath);
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
@@ -240,11 +255,14 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc Froq\File\File
+     * @inheritDoc Froq\File\FileInterface
      */
     public function move(): string
     {
-        @ $ok = move_uploaded_file($this->getSourcePath(), $destinationPath = $this->getDestinationPath());
+        $sourcePath = $this->getSourcePath();
+        $destinationPath = $this->getDestinationPath();
+
+        @ $ok = move_uploaded_file($sourcePath, $destinationPath);
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
@@ -253,16 +271,18 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc Froq\File\File
+     * @inheritDoc Froq\File\FileInterface
      */
-    public function moveAs(string $name = null): string
+    public function moveAs(string $name): string
     {
-        $name = $name ?? $this->getNewName();
-        if ($name == null) {
-            throw new FileException('New name cannot be empty');
+        if ($name == '') {
+            throw new FileException('Name cannot be empty');
         }
 
-        @ $ok = move_uploaded_file($this->getSourcePath(), $destinationPath = $this->getDestinationPath($name));
+        $sourcePath = $this->getSourcePath();
+        $destinationPath = $this->getDestinationPath($this->prepareName($name));
+
+        @ $ok = move_uploaded_file($sourcePath, $destinationPath);
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
@@ -347,7 +367,7 @@ final class ImageUploader extends File implements FileInterface
             switch ($this->info[2]) {
                 case IMAGETYPE_JPEG:
                     return imagejpeg($this->destinationFile, null,
-                        $this->options['jpegQuality'] ?? self::JPEG_QUALITY);
+                        intval($this->options['jpegQuality'] ?? self::JPEG_QUALITY));
                 case IMAGETYPE_PNG:
                     return imagepng($this->destinationFile);
                 case IMAGETYPE_GIF:
@@ -368,7 +388,7 @@ final class ImageUploader extends File implements FileInterface
             switch ($this->info[2]) {
                 case IMAGETYPE_JPEG:
                     return imagejpeg($this->destinationFile, $to,
-                        $this->options['jpegQuality'] ?? self::JPEG_QUALITY);
+                        intval($this->options['jpegQuality'] ?? self::JPEG_QUALITY));
                 case IMAGETYPE_PNG:
                     return imagepng($this->destinationFile, $to);
                 case IMAGETYPE_GIF:
