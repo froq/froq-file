@@ -100,8 +100,8 @@ final class ImageUploader extends File implements FileInterface
             $newWidth = (int) round($origWidth * $factor);
             $newHeight = (int) round($origHeight * $factor);
         } else {
-            $newWidth = (int) (($width <= 0) ? $origWidth : $width);
-            $newHeight = (int) (($height <= 0) ? $origHeight : $height);
+            $newWidth = (int) ($width <= 0 ? $origWidth : $width);
+            $newHeight = (int) ($height <= 0 ? $origHeight : $height);
         }
 
         $this->destinationFile = imagecreatetruecolor($newWidth, $newHeight);
