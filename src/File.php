@@ -82,6 +82,12 @@ abstract class File
     ];
 
     /**
+     * Error.
+     * @var string
+     */
+    protected static $error;
+
+    /**
      * Errors.
      * @var array
      */
@@ -95,18 +101,6 @@ abstract class File
         7 => 'Failed to write file to disk.',
         8 => 'A PHP extension stopped the file upload.',
     ];
-
-    /**
-     * Error code.
-     * @var int
-     */
-    protected $errorCode;
-
-    /**
-     * Error string.
-     * @var string
-     */
-    protected $errorString;
 
     /**
      * Constructor.
@@ -147,8 +141,7 @@ abstract class File
         $this->type = $file['type'];
         $this->size = $file['size'];
         $this->extension = $extension;
-        $this->error = $file['error'] ?: null;
-        $this->errorString = ($this->error != null) ? self::$errors[$this->error] ?? 'Unknown.' : null;
+        $this->error = $file['error'] ? self::$errors[$file['error']] ?? 'Unknown' : null;
 
         if ($directory == '') {
             throw new FileException('Directory cannot be empty');
@@ -261,20 +254,11 @@ abstract class File
 
     /**
      * Get error.
-     * @return ?int
-     */
-    public final function getError(): ?int
-    {
-        return $this->error;
-    }
-
-    /**
-     * Get error string.
      * @return ?string
      */
-    public final function getErrorString(): ?string
+    public final function getError(): ?string
     {
-        return $this->errorString;
+        return $this->error;
     }
 
     /**
@@ -304,7 +288,7 @@ abstract class File
             'extension'   => $this->extension,
             'source'      => $this->source,
             'error'       => $this->error,
-            'errorString' => $this->errorString
+            'directory'   => $this->directory
         ];
     }
 
