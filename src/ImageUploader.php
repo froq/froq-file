@@ -66,7 +66,7 @@ final class ImageUploader extends File implements FileInterface
      */
     public function resample(): bool
     {
-        return $this->resize(-1, -1, false);
+        return $this->resize(0, 0, false);
     }
 
     /**
