@@ -108,11 +108,11 @@ abstract class File
      * @var array
      */
     protected $options = [
-        'hash' => null, // 'file' or 'fileName'
-        'hashAlgo' => null, // 'md5' or 'sha1' (default='md5')
-        'maxFileSize' => null, // no limit (default=php.ini)
+        'hash' => null,            // 'file' or 'fileName'
+        'hashAlgo' => null,        // 'md5' or 'sha1' (default='md5')
+        'maxFileSize' => null,     // no limit (default=php.ini)
         'allowedExtensions' => [], // all allowed
-        'jpegQuality' => 80, // for image files
+        'jpegQuality' => 80,       // for image files
     ];
 
     /**
