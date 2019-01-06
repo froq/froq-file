@@ -268,6 +268,10 @@ abstract class File
      */
     public final function getDestinationPath(string $name = null): string
     {
+        // update name
+        if ($name != null) {
+            $this->name = $name = $this->prepareName($name);
+        }
         return sprintf('%s/%s.%s', $this->directory, $name ?? $this->name, $this->extension);
     }
 

@@ -61,7 +61,7 @@ final class FileUploader extends File implements FileInterface
         }
 
         $sourcePath = $this->getSourcePath();
-        $destinationPath = $this->getDestinationPath($this->prepareName($name));
+        $destinationPath = $this->getDestinationPath($name);
 
         @ $ok = copy($sourcePath, $destinationPath);
         if (!$ok) {
@@ -97,7 +97,7 @@ final class FileUploader extends File implements FileInterface
         }
 
         $sourcePath = $this->getSourcePath();
-        $destinationPath = $this->getDestinationPath($this->prepareName($name));
+        $destinationPath = $this->getDestinationPath($name);
 
         @ $ok = move_uploaded_file($sourcePath, $destinationPath);
         if (!$ok) {

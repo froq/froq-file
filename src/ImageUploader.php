@@ -254,7 +254,7 @@ final class ImageUploader extends File implements FileInterface
                 "first: 'resample,resize,crop,cropBy'");
         }
 
-        $destinationPath = $this->getDestinationPath($this->prepareName($name));
+        $destinationPath = $this->getDestinationPath($name);
 
         $ok = $this->outputTo($destinationPath);
         if (!$ok) {
@@ -290,7 +290,7 @@ final class ImageUploader extends File implements FileInterface
         }
 
         $sourcePath = $this->getSourcePath();
-        $destinationPath = $this->getDestinationPath($this->prepareName($name));
+        $destinationPath = $this->getDestinationPath($name);
 
         @ $ok = move_uploaded_file($sourcePath, $destinationPath);
         if (!$ok) {
