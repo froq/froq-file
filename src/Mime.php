@@ -177,15 +177,15 @@ final class Mime
 
     /**
      * Get type by extension.
-     * @param  string $path
+     * @param  string $fileName
      * @return ?string
      */
-    public static function getTypeByExtension(string $path): ?string
+    public static function getTypeByExtension(string $fileName): ?string
     {
         $return = null;
-        if (strpos($path, '.')) {
-            @ $extension = end(explode('.', $path));
-            error_clear_last();
+        if (strpos($fileName, '.')) {
+            @ $extension = end(explode('.', $fileName));
+            error_get_last() && error_clear_last();
             foreach (self::$types as $type => $extensions) {
                 if (in_array($extension, $extensions)) {
                     $return = $type;

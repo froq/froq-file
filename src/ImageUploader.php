@@ -114,8 +114,8 @@ final class ImageUploader extends File implements FileInterface
             imagesavealpha($this->destinationFile, true);
         }
 
-        return imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, 0, 0, $newWidth, $newHeight,
-            $origWidth, $origHeight);
+        return imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, 0, 0,
+            $newWidth, $newHeight, $origWidth, $origHeight);
     }
 
     /**
@@ -165,8 +165,8 @@ final class ImageUploader extends File implements FileInterface
             imagesavealpha($this->destinationFile, true);
         }
 
-        return imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y, $width, $height,
-            $cropWidth, $cropHeight);
+        return imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
+            $width, $height, $cropWidth, $cropHeight);
     }
 
     /**
@@ -216,8 +216,8 @@ final class ImageUploader extends File implements FileInterface
             imagesavealpha($this->destinationFile, true);
         }
 
-        return imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y, $width, $height,
-            $cropWidth, $cropHeight);
+        return imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
+            $width, $height, $cropWidth, $cropHeight);
     }
 
     /**
@@ -225,19 +225,19 @@ final class ImageUploader extends File implements FileInterface
      */
     public function save(): string
     {
-        if ($this->destinationFile == null) {
-            throw new FileException("No destination file created yet, call one of these method ".
+        if ($this->resourceFile == null || $this->destinationFile == null) {
+            throw new FileException("No resource/destination file created yet, call one of these method ".
                 "first: 'resample,resize,crop,cropBy'");
         }
 
-        $destinationPath = $this->getDestinationPath();
+        $destination = $this->getDestination();
 
-        $ok = $this->outputTo($destinationPath);
+        $ok = $this->outputTo($destination);
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
 
-        return $destinationPath;
+        return $destination;
     }
 
     /**
@@ -249,19 +249,19 @@ final class ImageUploader extends File implements FileInterface
             throw new FileException('Name cannot be empty');
         }
 
-        if ($this->destinationFile == null) {
-            throw new FileException("No destination file created yet, call one of these method ".
+        if ($this->resourceFile == null || $this->destinationFile == null) {
+            throw new FileException("No resource/destination file created yet, call one of these method ".
                 "first: 'resample,resize,crop,cropBy'");
         }
 
-        $destinationPath = $this->getDestinationPath($name);
+        $destination = $this->getDestination($name);
 
-        $ok = $this->outputTo($destinationPath);
+        $ok = $this->outputTo($destination);
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
 
-        return $destinationPath;
+        return $destination;
     }
 
     /**
@@ -269,15 +269,15 @@ final class ImageUploader extends File implements FileInterface
      */
     public function move(): string
     {
-        $sourcePath = $this->getSourcePath();
-        $destinationPath = $this->getDestinationPath();
+        $source = $this->getSource();
+        $destination = $this->getDestination();
 
-        @ $ok = move_uploaded_file($sourcePath, $destinationPath);
+        @ $ok = move_uploaded_file($source, $destination);
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
 
-        return $destinationPath;
+        return $destination;
     }
 
     /**
@@ -289,15 +289,15 @@ final class ImageUploader extends File implements FileInterface
             throw new FileException('Name cannot be empty');
         }
 
-        $sourcePath = $this->getSourcePath();
-        $destinationPath = $this->getDestinationPath($name);
+        $source = $this->getSource();
+        $destination = $this->getDestination($name);
 
-        @ $ok = move_uploaded_file($sourcePath, $destinationPath);
+        @ $ok = move_uploaded_file($source, $destination);
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
         }
 
-        return $destinationPath;
+        return $destination;
     }
 
     /**
@@ -308,10 +308,10 @@ final class ImageUploader extends File implements FileInterface
         is_resource($this->resourceFile) && imagedestroy($this->resourceFile);
         is_resource($this->destinationFile) && imagedestroy($this->destinationFile);
 
-        $this->destinationFile = null;
         $this->resourceFile = null;
+        $this->destinationFile = null;
 
-        @ unlink($this->getSourcePath());
+        @ unlink($this->getSource());
     }
 
     /**
@@ -340,7 +340,7 @@ final class ImageUploader extends File implements FileInterface
     public function fillInfo(): void
     {
         if ($this->info == null) {
-            @ $this->info = getimagesize($this->getSourcePath());
+            @ $this->info = getimagesize($this->getSource());
             if (!isset($this->info[0], $this->info[1])) {
                 throw new FileException('Could not get file info');
             }
@@ -356,24 +356,24 @@ final class ImageUploader extends File implements FileInterface
         if (!empty($this->info[2])) {
             switch ($this->info[2]) {
                 case IMAGETYPE_JPEG:
-                    return imagecreatefromjpeg($this->getSourcePath());
+                    return imagecreatefromjpeg($this->getSource());
                 case IMAGETYPE_PNG:
-                    return imagecreatefrompng($this->getSourcePath());
+                    return imagecreatefrompng($this->getSource());
                 case IMAGETYPE_GIF:
-                    return imagecreatefromgif($this->getSourcePath());
+                    return imagecreatefromgif($this->getSource());
             }
         }
+
         return null;
     }
 
     /**
      * Output.
      * @return ?bool
-     * @throws Froq\File\FileException
      */
     private function output(): ?bool
     {
-        if (!empty($this->info[2]) && !empty($this->destinationFile)) {
+        if (!empty($this->info[2]) && $this->destinationFile != null) {
             switch ($this->info[2]) {
                 case IMAGETYPE_JPEG:
                     return imagejpeg($this->destinationFile, null,
@@ -384,6 +384,7 @@ final class ImageUploader extends File implements FileInterface
                     return imagegif($this->destinationFile);
             }
         }
+
         return null;
     }
 
@@ -394,7 +395,7 @@ final class ImageUploader extends File implements FileInterface
      */
     private function outputTo(string $to): ?bool
     {
-        if (!empty($this->info[2]) && !empty($this->destinationFile)) {
+        if (!empty($this->info[2]) && $this->destinationFile != null) {
             switch ($this->info[2]) {
                 case IMAGETYPE_JPEG:
                     return imagejpeg($this->destinationFile, $to,
@@ -405,6 +406,7 @@ final class ImageUploader extends File implements FileInterface
                     return imagegif($this->destinationFile, $to);
             }
         }
+
         return null;
     }
 }

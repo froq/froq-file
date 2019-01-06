@@ -35,22 +35,10 @@ namespace Froq\File;
 abstract class File
 {
     /**
-     * Directory.
-     * @var string
-     */
-    protected $directory;
-
-    /**
      * Name.
      * @var string
      */
     protected $name;
-
-    /**
-     * Tmp name.
-     * @var string
-     */
-    protected $tmpName;
 
     /**
      * Type.
@@ -69,6 +57,29 @@ abstract class File
      * @var string
      */
     protected $extension;
+
+    /**
+     * Directory.
+     * @var string
+     */
+    protected $directory;
+
+    /**
+     * Source.
+     * @var string
+     */
+    protected $source;
+
+    /**
+     * Options.
+     * @var array
+     */
+    protected $options = [
+        'hash' => null,              // 'file' or 'fileName'
+        'hashAlgo' => null,          // 'md5' or 'sha1' (default='md5')
+        'allowedExtensions' => null, // null (all allowed) or 'jpg,jpeg' etc.
+        'jpegQuality' => 80,         // for image files
+    ];
 
     /**
      * Errors.
@@ -98,17 +109,6 @@ abstract class File
     protected $errorString;
 
     /**
-     * Options.
-     * @var array
-     */
-    protected $options = [
-        'hash' => null,              // 'file' or 'fileName'
-        'hashAlgo' => null,          // 'md5' or 'sha1' (default='md5')
-        'allowedExtensions' => null, // null (all allowed) or 'jpg,jpeg'
-        'jpegQuality' => 80,         // for image files
-    ];
-
-    /**
      * Constructor.
      * @param array  $file
      * @param string $directory
@@ -122,15 +122,16 @@ abstract class File
         }
 
         // check file exists
-        $this->tmpName = $file['tmp_name'];
-        if (!is_file($this->tmpName)) {
-            throw new FileException("No file '{$this->tmpName}' found by 'tmp_name'");
+        $this->source = $file['tmp_name'];
+        if (!is_file($this->source)) {
+            throw new FileException("No file '{$this->source}' found by 'tmp_name'");
         }
 
         // check file size
-        $maxFileSize = $this->convertBytes((string) ini_get('upload_max_filesize'));
-        if ($file['size'] > $maxFileSize) {
-            throw new FileException("File size exceeded, fileSize={$file['size']} maxFileSize={$maxFileSize}");
+        $maxFileSize = ini_get('upload_max_filesize');
+        $maxFileSizeBytes = $this->convertBytes((string) $maxFileSize);
+        if ($file['size'] > $maxFileSizeBytes) {
+            throw new FileException("File size exceeded, ini upload_max_filesize is '{$maxFileSize}'");
         }
 
         $this->options = array_merge($this->options, $options);
@@ -181,30 +182,12 @@ abstract class File
     }
 
     /**
-     * Get tmp name.
-     * @return string
-     */
-    public final function getTmpName(): string
-    {
-        return $this->tmpName;
-    }
-
-    /**
      * Get type.
      * @return string
      */
     public final function getType(): string
     {
         return $this->type;
-    }
-
-    /**
-     * Get extension.
-     * @return string
-     */
-    public final function getExtension(): string
-    {
-        return $this->extension;
     }
 
     /**
@@ -217,21 +200,12 @@ abstract class File
     }
 
     /**
-     * Get error.
-     * @return ?int
+     * Get extension.
+     * @return string
      */
-    public final function getError(): ?int
+    public final function getExtension(): string
     {
-        return $this->error;
-    }
-
-    /**
-     * Get error string.
-     * @return ?string
-     */
-    public final function getErrorString(): ?string
-    {
-        return $this->errorString;
+        return $this->extension;
     }
 
     /**
@@ -253,35 +227,54 @@ abstract class File
     }
 
     /**
-     * Get source path.
+     * Get source.
      * @return string
      */
-    public final function getSourcePath(): string
+    public final function getSource(): string
     {
-        return $this->tmpName;
+        return $this->source;
     }
 
     /**
-     * Get destination path.
+     * Get destination.
      * @param  string|null $name
      * @return string
      */
-    public final function getDestinationPath(string $name = null): string
+    public final function getDestination(string $name = null): string
     {
         // update name
         if ($name != null) {
             $this->name = $name = $this->prepareName($name);
         }
+
         return sprintf('%s/%s.%s', $this->directory, $name ?? $this->name, $this->extension);
     }
 
     /**
-     * Ok.
+     * Has error.
      * @return bool
      */
-    public final function ok(): bool
+    public final function hasError(): bool
     {
-        return $this->error === null;
+        return $this->error != null;
+    }
+
+    /**
+     * Get error.
+     * @return ?int
+     */
+    public final function getError(): ?int
+    {
+        return $this->error;
+    }
+
+    /**
+     * Get error string.
+     * @return ?string
+     */
+    public final function getErrorString(): ?string
+    {
+        return $this->errorString;
     }
 
     /**
@@ -306,10 +299,10 @@ abstract class File
     {
         return [
             'name'        => $this->name,
-            'tmp_name'    => $this->tmpName,
             'type'        => $this->type,
             'size'        => $this->size,
             'extension'   => $this->extension,
+            'source'      => $this->source,
             'error'       => $this->error,
             'errorString' => $this->errorString
         ];
@@ -341,7 +334,7 @@ abstract class File
             if ($hash === 'fileName') {
                 $name = call_user_func($hashAlgo, $name);
             } elseif ($hash === 'file') {
-                $name = call_user_func($hashAlgo .'_file', $this->tmpName);
+                $name = call_user_func($hashAlgo .'_file', $this->source);
             }
         }
 
