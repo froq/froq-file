@@ -53,12 +53,6 @@ abstract class File
     protected $tmpName;
 
     /**
-     * New name.
-     * @var string
-     */
-    protected $newName;
-
-    /**
      * Type.
      * @var string
      */
@@ -134,27 +128,27 @@ abstract class File
         }
 
         // check file size
-        $maxFileSize = self::convertBytes((string) ini_get('upload_max_filesize'));
+        $maxFileSize = $this->convertBytes((string) ini_get('upload_max_filesize'));
         if ($file['size'] > $maxFileSize) {
             throw new FileException("File size exceeded, fileSize={$file['size']} maxFileSize={$maxFileSize}");
         }
 
-        // prepare options
         $this->options = array_merge($this->options, $options);
 
-        $this->name = self::prepareName($file['name']);
+        // check extension
+        $extension = Mime::getExtensionByType($file['type']);
+        if ($this->options['allowedExtensions'] != null &&
+            !in_array($extension, (array) explode(',', (string) $this->options['allowedExtensions']))) {
+            throw new FileException("Extension '{$extension}' is not allowed");
+        }
+
+        $this->name = $this->prepareName($file['name']);
         $this->type = $file['type'];
         $this->size = $file['size'];
+        $this->extension = $extension;
         $this->error = $file['error'] ?: null;
         $this->errorString = ($this->error != null) ? self::$errors[$this->error] ?? 'Unknown.' : null;
 
-        $this->extension = Mime::getExtensionByType($this->type);
-        if (!empty($this->options['allowedExtensions'])
-            && !in_array($this->extension, (array) explode(',', $this->options['allowedExtensions']))) {
-            throw new FileException("Extension '{$this->extension}' is not allowed");
-        }
-
-        // directory stuff
         if ($directory == '') {
             throw new FileException('Directory cannot be empty');
         }
@@ -193,25 +187,6 @@ abstract class File
     public final function getTmpName(): string
     {
         return $this->tmpName;
-    }
-
-    /**
-     * Set new name.
-     * @param  string $newName
-     * @return void
-     */
-    public final function setNewName($newName): void
-    {
-        $this->newName = self::prepareName($newName);
-    }
-
-    /**
-     * Get new name.
-     * @return ?string
-     */
-    public final function getNewName(): ?string
-    {
-        return $this->newName;
     }
 
     /**
@@ -293,10 +268,7 @@ abstract class File
      */
     public final function getDestinationPath(string $name = null): string
     {
-        // safe name if provided
-        $name = ($name === null) ? $this->name : self::prepareName($name, false);
-
-        return sprintf('%s/%s.%s', $this->directory, $name, $this->extension);
+        return sprintf('%s/%s.%s', $this->directory, $name ?? $this->name, $this->extension);
     }
 
     /**
@@ -331,9 +303,9 @@ abstract class File
         return [
             'name'        => $this->name,
             'tmp_name'    => $this->tmpName,
-            'new_name'    => $this->newName,
             'type'        => $this->type,
             'size'        => $this->size,
+            'extension'   => $this->extension,
             'error'       => $this->error,
             'errorString' => $this->errorString
         ];
@@ -357,14 +329,14 @@ abstract class File
         // hash name if option set
         $hash = $hash ?? $this->options['hash'];
         if ($hash) {
-            $hashAlgo = $this->options['hashAlgo'] ?? 'sha1';
+            $hashAlgo = $this->options['hashAlgo'] ?? 'md5';
             if (!in_array($hashAlgo, ['md5', 'sha1'])) {
                 throw new FileException("Only 'md5,sha1' algos accepted");
             }
 
-            if ($hash == 'fileName') {
-                $name = call_user_func($hashAlgo, $this->tmpName);
-            } elseif ($hash == 'file') {
+            if ($hash === 'fileName') {
+                $name = call_user_func($hashAlgo, $name);
+            } elseif ($hash === 'file') {
                 $name = call_user_func($hashAlgo .'_file', $this->tmpName);
             }
         }
