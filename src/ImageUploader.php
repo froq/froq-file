@@ -222,8 +222,13 @@ final class ImageUploader extends File implements FileInterface
     /**
      * @inheritDoc Froq\File\File
      */
-    public function saveAs(string $name): void
+    public function saveAs(string $name = null): void
     {
+        $name = $name ?? $this->getNewName();
+        if ($name == null) {
+            throw new FileException('New name cannot be empty');
+        }
+
         $ok = $this->outputTo($this->getDestinationPath($name));
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
@@ -244,8 +249,13 @@ final class ImageUploader extends File implements FileInterface
     /**
      * @inheritDoc Froq\File\File
      */
-    public function moveAs(string $name): void
+    public function moveAs(string $name = null): void
     {
+        $name = $name ?? $this->getNewName();
+        if ($name == null) {
+            throw new FileException('New name cannot be empty');
+        }
+
         @ $ok = move_uploaded_file($this->getSourcePath(), $this->getDestinationPath($name));
         if (!$ok) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown error');
