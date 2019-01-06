@@ -144,10 +144,10 @@ final class ImageUploader extends File implements FileInterface
             throw new FileException($this->prepareErrorMessage('Could not create resource file'));
         }
 
-        $origWidth = $this->info[0];
-        $origHeight = $this->info[1];
+        [$origWidth, $origHeight] = $this->info;
+
         if ($proportional) {
-            $size = ($origWidth > $origHeight) ? $origWidth : $origHeight;
+            $size = $origWidth > $origHeight ? $origWidth : $origHeight;
             $percent = .5;
             $cropWidth = (int) ($size * $percent);
             $cropHeight = (int) ($size * $percent);
@@ -155,6 +155,7 @@ final class ImageUploader extends File implements FileInterface
             $cropWidth = $width;
             $cropHeight = $height;
         }
+
         $x = (int) (($origWidth - $cropWidth) / 2);
         $y = (int) (($origHeight - $cropHeight) / 2);
 
@@ -200,8 +201,8 @@ final class ImageUploader extends File implements FileInterface
             throw new FileException($this->prepareErrorMessage('Could not create resource file'));
         }
 
-        $origWidth = $this->info[0];
-        $origHeight = $this->info[1];
+        [$origWidth, $origHeight] = $this->info;
+
         if ($proportional) {
             $size = ($origWidth > $origHeight) ? $origWidth : $origHeight;
             $percent = .5;
