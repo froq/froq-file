@@ -85,7 +85,7 @@ abstract class File
      * Error.
      * @var string
      */
-    protected static $error;
+    protected $error;
 
     /**
      * Errors.
