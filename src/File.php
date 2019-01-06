@@ -110,7 +110,6 @@ abstract class File
     protected $options = [
         'hash' => null,            // 'file' or 'fileName'
         'hashAlgo' => null,        // 'md5' or 'sha1' (default='md5')
-        'maxFileSize' => null,     // no limit (default=php.ini)
         'allowedExtensions' => [], // all allowed
         'jpegQuality' => 80,       // for image files
     ];
@@ -134,10 +133,14 @@ abstract class File
             throw new FileException("No file '{$this->tmpName}' found by 'tmp_name'");
         }
 
+        // check file size
+        $maxFileSize = self::convertBytes((string) ini_get('upload_max_filesize'));
+        if ($file['size'] > $maxFileSize) {
+            throw new FileException("File size exceeded, fileSize={$file['size']} maxFileSize={$maxFileSize}");
+        }
+
         // prepare options
-        $this->options = array_merge($this->options, $options + [
-            'maxFileSize' => self::convertBytes((string) ini_get('upload_max_filesize'))
-        ]);
+        $this->options = array_merge($this->options, $options);
 
         $this->name = self::prepareName($file['name']);
         $this->type = $file['type'];
@@ -291,7 +294,7 @@ abstract class File
     public final function getDestinationPath(string $name = null): string
     {
         // safe name if provided
-        $name = $name === null ? $this->name : self::prepareName($name, false);
+        $name = ($name === null) ? $this->name : self::prepareName($name, false);
 
         return sprintf('%s/%s.%s', $this->directory, $name, $this->extension);
     }
