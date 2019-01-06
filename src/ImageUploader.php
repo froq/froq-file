@@ -82,9 +82,9 @@ final class ImageUploader extends File implements FileInterface
         // ensure info
         $this->fillInfo();
 
-        $this->resourceFile = $this->createResourceFile();
-        if ($this->resourceFile == null) {
-            throw new FileException('Could not create resource file');
+        @ $this->resourceFile = $this->createResourceFile();
+        if (!$this->resourceFile) {
+            throw new FileException($this->prepareErrorMessage('Could not create resource file'));
         }
 
         $width = $width ?? $this->info[0];
@@ -104,7 +104,10 @@ final class ImageUploader extends File implements FileInterface
             $newHeight = (int) ($height <= 0 ? $origHeight : $height);
         }
 
-        $this->destinationFile = imagecreatetruecolor($newWidth, $newHeight);
+        @ $this->destinationFile = imagecreatetruecolor($newWidth, $newHeight);
+        if (!$this->destinationFile) {
+            throw new FileException($this->prepareErrorMessage('Could not create destination file'));
+        }
 
         // handle png's
         if ($this->info[2] == IMAGETYPE_PNG) {
@@ -136,9 +139,9 @@ final class ImageUploader extends File implements FileInterface
             return $this->resize($width, $height);
         }
 
-        $this->resourceFile = $this->createResourceFile();
-        if ($this->resourceFile == null) {
-            throw new FileException('Could not create resource file');
+        @ $this->resourceFile = $this->createResourceFile();
+        if (!$this->resourceFile) {
+            throw new FileException($this->prepareErrorMessage('Could not create resource file'));
         }
 
         $origWidth = $this->info[0];
@@ -155,7 +158,10 @@ final class ImageUploader extends File implements FileInterface
         $x = (int) (($origWidth - $cropWidth) / 2);
         $y = (int) (($origHeight - $cropHeight) / 2);
 
-        $this->destinationFile = imagecreatetruecolor($width, $height);
+        @ $this->destinationFile = imagecreatetruecolor($width, $height);
+        if (!$this->destinationFile) {
+            throw new FileException($this->prepareErrorMessage('Could not create destination file'));
+        }
 
         // handle png's
         if ($this->info[2] == IMAGETYPE_PNG) {
@@ -189,9 +195,9 @@ final class ImageUploader extends File implements FileInterface
             return $this->resize($width, $height);
         }
 
-        $this->resourceFile = $this->createResourceFile();
-        if ($this->resourceFile == null) {
-            throw new FileException('Could not create resource file');
+        @ $this->resourceFile = $this->createResourceFile();
+        if (!$this->resourceFile) {
+            throw new FileException($this->prepareErrorMessage('Could not create resource file'));
         }
 
         $origWidth = $this->info[0];
@@ -206,7 +212,10 @@ final class ImageUploader extends File implements FileInterface
             $cropHeight = $height;
         }
 
-        $this->destinationFile = imagecreatetruecolor($width, $height);
+        @ $this->destinationFile = imagecreatetruecolor($width, $height);
+        if ($this->destinationFile === false) {
+            throw new FileException($this->prepareErrorMessage('Could not create destination file'));
+        }
 
         // handle png's
         if ($this->info[2] == IMAGETYPE_PNG) {
@@ -232,9 +241,9 @@ final class ImageUploader extends File implements FileInterface
 
         $destination = $this->getDestination();
 
-        $ok = $this->outputTo($destination);
+        @ $ok = $this->outputTo($destination);
         if (!$ok) {
-            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
+            throw new FileException($this->prepareErrorMessage('Cannot save file'));
         }
 
         return $destination;
@@ -256,9 +265,9 @@ final class ImageUploader extends File implements FileInterface
 
         $destination = $this->getDestination($name, $nameAppendix);
 
-        $ok = $this->outputTo($destination);
+        @ $ok = $this->outputTo($destination);
         if (!$ok) {
-            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
+            throw new FileException($this->prepareErrorMessage('Cannot save file'));
         }
 
         return $destination;
@@ -274,7 +283,7 @@ final class ImageUploader extends File implements FileInterface
 
         @ $ok = move_uploaded_file($source, $destination);
         if (!$ok) {
-            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
+            throw new FileException($this->prepareErrorMessage('Cannot move file'));
         }
 
         return $destination;
@@ -294,7 +303,7 @@ final class ImageUploader extends File implements FileInterface
 
         @ $ok = move_uploaded_file($source, $destination);
         if (!$ok) {
-            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
+            throw new FileException($this->prepareErrorMessage('Cannot move file'));
         }
 
         return $destination;
@@ -342,7 +351,7 @@ final class ImageUploader extends File implements FileInterface
         if ($this->info == null) {
             @ $this->info = getimagesize($this->getSource());
             if (!isset($this->info[0], $this->info[1])) {
-                throw new FileException('Could not get file info');
+                throw new FileException($this->prepareErrorMessage('Could not get file info'));
             }
         }
     }

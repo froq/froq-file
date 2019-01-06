@@ -151,8 +151,7 @@ abstract class File
         if (!is_dir($this->directory)) {
             @ $ok = mkdir($this->directory, 0644, true);
             if (!$ok) {
-                throw new FileException(sprintf('Cannot make directory, error[%s]',
-                    error_get_last()['message'] ?? 'Unknown'));
+                throw new FileException($this->prepareErrorMessage('Cannot make directory'));
             }
         }
     }
@@ -271,8 +270,7 @@ abstract class File
     {
         @ $ok = unlink($file);
         if (!$ok) {
-            throw new FileException(sprintf("Cannot delete file '{$file}', error[%s]",
-                error_get_last()['message'] ?? 'Unknown'));
+            throw new FileException($this->prepareErrorMessage("Cannot delete file '{$file}'"));
         }
     }
 
@@ -330,6 +328,16 @@ abstract class File
         $name .= $nameAppendix;
 
         return $name;
+    }
+
+    /**
+     * Prepare error message.
+     * @param  string $message
+     * @return string
+     */
+    protected final function prepareErrorMessage(string $message): string
+    {
+        return sprintf("{$message}, error[%s]", error_get_last()['message'] ?? 'Unknown');
     }
 
     /**

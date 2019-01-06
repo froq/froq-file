@@ -45,7 +45,7 @@ final class FileUploader extends File implements FileInterface
 
         @ $ok = copy($source, $destination);
         if (!$ok) {
-            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
+            throw new FileException($this->prepareErrorMessage('Cannot save file'));
         }
 
         return $destination;
@@ -65,7 +65,7 @@ final class FileUploader extends File implements FileInterface
 
         @ $ok = copy($source, $destination);
         if (!$ok) {
-            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
+            throw new FileException($this->prepareErrorMessage('Cannot save file'));
         }
 
         return $destination;
@@ -81,7 +81,7 @@ final class FileUploader extends File implements FileInterface
 
         @ $ok = move_uploaded_file($source, $destination);
         if (!$ok) {
-            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
+            throw new FileException($this->prepareErrorMessage('Cannot move file'));
         }
 
         return $destination;
@@ -101,7 +101,7 @@ final class FileUploader extends File implements FileInterface
 
         @ $ok = move_uploaded_file($source, $destination);
         if (!$ok) {
-            throw new FileException(error_get_last()['message'] ?? 'Unknown error');
+            throw new FileException($this->prepareErrorMessage('Cannot move file'));
         }
 
         return $destination;
