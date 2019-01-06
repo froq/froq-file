@@ -146,7 +146,7 @@ abstract class File
         $this->type = $file['type'];
         $this->size = $file['size'];
         $this->error = $file['error'] ?: null;
-        $this->errorString = $this->error != null ? self::$errors[$this->error] ?? 'Unknown.' : null;
+        $this->errorString = ($this->error != null) ? self::$errors[$this->error] ?? 'Unknown.' : null;
 
         $this->extension = Mime::getExtensionByType($this->type);
         if (!empty($this->options['allowedExtensions'])
@@ -305,7 +305,21 @@ abstract class File
      */
     public final function ok(): bool
     {
-        return $this->error === UPLOAD_ERR_OK;
+        return $this->error === null;
+    }
+
+    /**
+     * Delete.
+     * @param  string $file
+     * @return void
+     */
+    public final function delete(string $file): void
+    {
+        @ $ok = unlink($file);
+        if (!$ok) {
+            throw new FileException(sprintf("Cannot delete file '{$file}', error[%s]",
+                error_get_last()['message'] ?? 'Unknown'));
+        }
     }
 
     /**
