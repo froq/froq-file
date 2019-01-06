@@ -76,9 +76,9 @@ abstract class File
      */
     protected $options = [
         'hash' => null,              // 'file' or 'fileName'
-        'hashAlgo' => null,          // 'md5' or 'sha1' (default='md5')
+        'hashAlgo' => null,          // 16, 32 or 40 (default=16)
         'allowedExtensions' => null, // null (all allowed) or 'jpg,jpeg' etc.
-        'jpegQuality' => 80,         // for image files
+        'jpegQuality' => 85,         // for image files
     ];
 
     /**
@@ -231,13 +231,14 @@ abstract class File
     /**
      * Get destination.
      * @param  string|null $name
+     * @param  string      $nameAppendix
      * @return string
      */
-    public final function getDestination(string $name = null): string
+    public final function getDestination(string $name = null, string $nameAppendix = ''): string
     {
         // update name
         if ($name != null) {
-            $this->name = $name = $this->prepareName($name);
+            $this->name = $name = $this->prepareName($name, $nameAppendix);
         }
 
         return sprintf('%s/%s.%s', $this->directory, $name ?? $this->name, $this->extension);
@@ -299,10 +300,11 @@ abstract class File
      * @return string
      * @throws Froq\File\FileException
      */
-    protected final function prepareName(string $name, bool $hash = null): string
+    protected final function prepareName(string $name, string $nameAppendix = '', bool $hash = null): string
     {
         // some security stuff
-        $name = preg_replace('~[^\w-.]~u', '', pathinfo($name, PATHINFO_FILENAME));
+        $name = preg_replace('~[^\w-.]~', '', pathinfo($name, PATHINFO_FILENAME));
+        $nameAppendix = preg_replace('~[^\w-.]~', '', $nameAppendix);
         if (strlen($name) > 250) {
             $name = substr($name, 0, 250);
         }
@@ -310,17 +312,22 @@ abstract class File
         // hash name if option set
         $hash = $hash ?? $this->options['hash'];
         if ($hash) {
-            $hashAlgo = $this->options['hashAlgo'] ?? 'md5';
-            if (!in_array($hashAlgo, ['md5', 'sha1'])) {
-                throw new FileException("Only 'md5,sha1' algos accepted");
+            static $hashAlgos = [16 => 'fnv164', 32 => 'md5', 40 => 'sha1'];
+            @ $hashAlgo = $hashAlgos[$this->options['hashAlgo'] ?? 16];
+            if ($hashAlgo == null) {
+                throw new FileException("Only '16,32,40' are accepted");
             }
 
             if ($hash === 'fileName') {
-                $name = call_user_func($hashAlgo, $name);
+                $name = hash($hashAlgo, $name);
             } elseif ($hash === 'file') {
-                $name = call_user_func($hashAlgo .'_file', $this->source);
+                $name = hash($hashAlgo, file_get_contents($this->source));
             }
+
         }
+
+        // appendix like '-50x50-crop' (ie: abc123-50x50-crop.jpg)
+        $name .= $nameAppendix;
 
         return $name;
     }
