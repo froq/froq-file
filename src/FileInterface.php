@@ -44,10 +44,11 @@ interface FileInterface
     /**
      * Save as.
      * @param  string $name
+     * @param  string $nameAppendix
      * @return string
      * @throws Froq\File\FileException
      */
-    public function saveAs(string $name): string;
+    public function saveAs(string $name, string $nameAppendix = ''): string;
 
     /**
      * Move.
@@ -59,10 +60,11 @@ interface FileInterface
     /**
      * Move as.
      * @param  string $name
+     * @param  string $nameAppendix
      * @return string
      * @throws Froq\File\FileException
      */
-    public function moveAs(string $name): string;
+    public function moveAs(string $name, string $nameAppendix = ''): string;
 
     /**
      * Clear.

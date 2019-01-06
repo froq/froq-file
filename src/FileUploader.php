@@ -54,14 +54,14 @@ final class FileUploader extends File implements FileInterface
     /**
      * @inheritDoc Froq\File\FileInterface
      */
-    public function saveAs(string $name): string
+    public function saveAs(string $name, string $nameAppendix = ''): string
     {
         if ($name == '') {
             throw new FileException('Name cannot be empty');
         }
 
         $source = $this->getSource();
-        $destination = $this->getDestination($name);
+        $destination = $this->getDestination($name, $nameAppendix);
 
         @ $ok = copy($source, $destination);
         if (!$ok) {
@@ -90,14 +90,14 @@ final class FileUploader extends File implements FileInterface
     /**
      * @inheritDoc Froq\File\FileInterface
      */
-    public function moveAs(string $name): string
+    public function moveAs(string $name, string $nameAppendix = ''): string
     {
         if ($name == '') {
             throw new FileException('Name cannot be empty');
         }
 
         $source = $this->getSource();
-        $destination = $this->getDestination($name);
+        $destination = $this->getDestination($name, $nameAppendix);
 
         @ $ok = move_uploaded_file($source, $destination);
         if (!$ok) {

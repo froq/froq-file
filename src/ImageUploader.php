@@ -39,7 +39,7 @@ final class ImageUploader extends File implements FileInterface
      * Jpeg quality.
      * @const int
      */
-    public const JPEG_QUALITY = 80;
+    public const JPEG_QUALITY = 85;
 
     /**
      * Info.
@@ -243,7 +243,7 @@ final class ImageUploader extends File implements FileInterface
     /**
      * @inheritDoc Froq\File\FileInterface
      */
-    public function saveAs(string $name): string
+    public function saveAs(string $name, string $nameAppendix = ''): string
     {
         if ($name == '') {
             throw new FileException('Name cannot be empty');
@@ -254,7 +254,7 @@ final class ImageUploader extends File implements FileInterface
                 "first: 'resample,resize,crop,cropBy'");
         }
 
-        $destination = $this->getDestination($name);
+        $destination = $this->getDestination($name, $nameAppendix);
 
         $ok = $this->outputTo($destination);
         if (!$ok) {
@@ -283,14 +283,14 @@ final class ImageUploader extends File implements FileInterface
     /**
      * @inheritDoc Froq\File\FileInterface
      */
-    public function moveAs(string $name): string
+    public function moveAs(string $name, string $nameAppendix = ''): string
     {
         if ($name == '') {
             throw new FileException('Name cannot be empty');
         }
 
         $source = $this->getSource();
-        $destination = $this->getDestination($name);
+        $destination = $this->getDestination($name, $nameAppendix);
 
         @ $ok = move_uploaded_file($source, $destination);
         if (!$ok) {
