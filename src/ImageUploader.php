@@ -60,6 +60,16 @@ final class ImageUploader extends File implements FileInterface
     private $destinationFile;
 
     /**
+     * Resample.
+     * @return bool
+     * @throws Froq\File\FileException
+     */
+    public function resample(): bool
+    {
+        return $this->resize(-1, -1, false);
+    }
+
+    /**
      * Resize.
      * @param  int|null $width
      * @param  int|null $height
