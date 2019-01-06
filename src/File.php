@@ -108,10 +108,10 @@ abstract class File
      * @var array
      */
     protected $options = [
-        'hash' => null,            // 'file' or 'fileName'
-        'hashAlgo' => null,        // 'md5' or 'sha1' (default='md5')
-        'allowedExtensions' => [], // all allowed
-        'jpegQuality' => 80,       // for image files
+        'hash' => null,              // 'file' or 'fileName'
+        'hashAlgo' => null,          // 'md5' or 'sha1' (default='md5')
+        'allowedExtensions' => null, // null (all allowed) or 'jpg,jpeg'
+        'jpegQuality' => 80,         // for image files
     ];
 
     /**
@@ -150,7 +150,7 @@ abstract class File
 
         $this->extension = Mime::getExtensionByType($this->type);
         if (!empty($this->options['allowedExtensions'])
-            && !in_array($this->extension, (array) $this->options['allowedExtensions'])) {
+            && !in_array($this->extension, (array) explode(',', $this->options['allowedExtensions']))) {
             throw new FileException("Extension '{$this->extension}' is not allowed");
         }
 
