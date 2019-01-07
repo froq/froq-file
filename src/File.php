@@ -100,14 +100,14 @@ abstract class File
 
         $error = $file['error'] ? FileError::all()[$file['error']] ?? 'Unknown' : null;
         if ($error != null) {
-            // throw new FileException($error, FileError::INTERNAL);
+            throw new FileException($error, FileError::INTERNAL);
         }
 
         // check file exists
         $this->source = $file['tmp_name'];
         if (!is_file($this->source)) {
-            // throw new FileException("No valid source '{$this->source}' found by 'tmp_name'",
-            //     FileError::NO_VALID_SOURCE);
+            throw new FileException("No valid source '{$this->source}' found by 'tmp_name'",
+                FileError::NO_VALID_SOURCE);
         }
 
         $this->options = array_merge($this->options, $options);
