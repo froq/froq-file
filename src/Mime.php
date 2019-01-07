@@ -38,17 +38,17 @@ final /* static */ class Mime
      * Get type.
      * @param  string $file
      * @return string
-     * @throws Froq\File\FileException
+     * @throws Froq\File\MimeException
      */
     public static function getType(string $file): string
     {
         if (!extension_loaded('fileinfo')) {
-            throw new FileException('fileinfo module not found');
+            throw new MimeException('fileinfo module not found');
         }
 
         @ $return = mime_content_type($file);
         if ($return === false) {
-            throw new FileException(error_get_last()['message'] ?? 'Unknown');
+            throw new MimeException(error_get_last()['message'] ?? 'Unknown');
         }
 
         return $return;
