@@ -77,23 +77,11 @@ abstract class File
     protected $options = [
         'hash' => null,                  // 'file' or 'fileName'
         'hashAlgo' => null,              // 16, 32 or 40 (default=16)
-        'allowedExtensions' => null,     // * (all allowed) or 'jpg,jpeg' etc.
+        'maxFileSize' => null,           // in binary mode: for 2 megabytes 2048, 2048k or 2m
+        'allowedTypes' => null,          // * means all allowed or 'image/jpeg,image/png' etc.
+        'allowedExtensions' => null,     // * means all allowed or 'jpg,jpeg' etc.
         'allowEmptyExtensions' => null,  // allow empty extension
         'jpegQuality' => 85,             // for image files
-    ];
-
-    /**
-     * Errors.
-     * @var array
-     */
-    private static $errors = [
-        1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
-        2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
-        3 => 'The uploaded file was only partially uploaded',
-        4 => 'No file was uploaded',
-        6 => 'Missing a temporary folder',
-        7 => 'Failed to write file to disk',
-        8 => 'A PHP extension stopped the file upload'
     ];
 
     /**
@@ -106,45 +94,58 @@ abstract class File
     {
         // all these stuff are needed
         if (!isset($file['error'], $file['tmp_name'], $file['name'], $file['type'], $file['size'])) {
-            throw new FileException("No valid file given, 'tmp_name,name,type,size,error' are required");
+            throw new FileException("No valid file given, 'tmp_name,name,type,size,error' are ".
+                "required", FileError::NO_VALID_FILE);
         }
 
-        $error = $file['error'] ? self::$errors[$file['error']] ?? 'Unknown' : null;
+        $error = $file['error'] ? FileError::all()[$file['error']] ?? 'Unknown' : null;
         if ($error != null) {
-            throw new FileException($error);
+            // throw new FileException($error, FileError::INTERNAL);
         }
 
         // check file exists
         $this->source = $file['tmp_name'];
         if (!is_file($this->source)) {
-            throw new FileException("No file '{$this->source}' found by 'tmp_name'");
-        }
-
-        // check file size
-        $maxFileSize = ini_get('upload_max_filesize');
-        $maxFileSizeBytes = $this->convertBytes((string) $maxFileSize);
-        if ($file['size'] > $maxFileSizeBytes) {
-            throw new FileException("File size exceeded, ini upload_max_filesize = '{$maxFileSize}'");
+            // throw new FileException("No valid source '{$this->source}' found by 'tmp_name'",
+            //     FileError::NO_VALID_SOURCE);
         }
 
         $this->options = array_merge($this->options, $options);
 
-        { // extension stuff
-            if (empty($this->options['allowedExtensions'])) {
-                throw new FileException("Option 'allowedExtensions' cannot be empty for security, ".
-                    "please pass extensions you allow (ie: 'jpg,jpeg' etc. or '*' to allow all)");
+        // check file size
+        $maxFileSize = self::convertBytes($this->options['maxFileSize']);
+        if ($maxFileSize && $file['size'] > $maxFileSize or 1) {
+            throw new FileException("File size exceeded, options maxFileSize is ".
+                "'{$this->options['maxFileSize']}' ({$maxFileSize} bytes)",
+                FileError::OPTION_SIZE_EXCEEDED);
+        }
+
+        { // type & extension stuff
+            if (empty($this->options['allowedTypes']) || empty($this->options['allowedExtensions'])) {
+                throw new FileException("'allowedTypes' and 'allowedExtensions' options cannot be ".
+                    "empty for security, please provide types and extensions you allow (ie: for types ".
+                    "'image/jpeg,image/png' and for extensions 'jpg,jpeg', or use '*' to allow all)",
+                FileError::OPTION_EMPTY);
             }
 
             $fileExtension = pathinfo($file['name'], PATHINFO_EXTENSION);
             if ($this->options['allowEmptyExtensions'] === false && $fileExtension === '') {
-                throw new FileException("Empty extensions not allowed");
+                throw new FileException("Empty extensions not allowed by options",
+                    FileError::OPTION_EMPTY_EXTENSION);
             }
 
             $type = Mime::getType($this->source);
+            if ($this->options['allowedTypes'] !== '*'
+                && !in_array($type, explode(',', (string) $this->options['allowedTypes']))) {
+                throw new FileException("Type '{$type}' not allowed by options, allowed ".
+                    "types: '{$this->options['allowedTypes']}'", FileError::OPTION_NOT_ALLOWED_TYPE);
+            }
+
             $extension = ($fileExtension !== '') ? $fileExtension : Mime::getExtensionByType($type);
             if ($this->options['allowedExtensions'] !== '*'
                 && !in_array($extension, explode(',', (string) $this->options['allowedExtensions']))) {
-                throw new FileException("Extension '{$extension}' not allowed");
+                throw new FileException("Extension '{$extension}' not allowed by options, allowed ".
+                    "extensions: '{$this->options['allowedExtensions']}'", FileError::OPTION_NOT_ALLOWED_EXTENSION);
             }
         }
 
@@ -155,14 +156,15 @@ abstract class File
 
         { // directory stuff
             if ($directory == '') {
-                throw new FileException('Directory cannot be empty');
+                throw new FileException('Directory cannot be empty', FileError::DIRECTORY_EMPTY);
             }
 
             $this->directory = $directory;
             if (!is_dir($this->directory)) {
                 @ $ok = mkdir($this->directory, 0644, true);
                 if (!$ok) {
-                    throw new FileException($this->prepareErrorMessage('Cannot make directory'));
+                    throw new FileException($this->prepareErrorMessage('Cannot make directory'),
+                        FileError::DIRECTORY_ERROR);
                 }
             }
         }
@@ -299,11 +301,15 @@ abstract class File
     protected final function prepareName(string $name, string $nameAppendix = ''): string
     {
         // some security & standard stuff
-        $name = preg_replace(['~[\s-_]+~', '~[^a-z0-9-]~i'], ['-', ''], pathinfo($name, PATHINFO_FILENAME));
+        $name = preg_replace(['~[\s_-]+~', '~[^a-z0-9-]~i'], ['-', ''], pathinfo($name, PATHINFO_FILENAME));
         $nameAppendix = preg_replace('~[^a-z0-9-]~i', '', $nameAppendix);
         if (strlen($name) > 250) {
             $name = substr($name, 0, 250);
         }
+
+        // all names lower-cased
+        $name = strtolower($name);
+        $nameAppendix = strtolower($nameAppendix);
 
         // hash name if option set
         $hash = $this->options['hash'];
@@ -340,19 +346,19 @@ abstract class File
 
     /**
      * Convert bytes.
-     * @param  string $value
+     * @param  int|string $value
      * @return int
      */
-    protected final function convertBytes(string $value): int
+    public static final function convertBytes($value): int
     {
-        if (!is_numeric($value)) {
-            $scan = sscanf($value, '%d%s');
+        if ($value && !is_numeric($value)) {
+            $scan = sscanf($value, '%d%2s');
             if (isset($scan[1])) {
                 $value = (int) $value;
                 switch (strtoupper($scan[1])) {
-                    case 'K'; $value *= 1024; break;
-                    case 'M'; $value *= 1048576; break;
-                    case 'G'; $value *= 1073741824; break;
+                    case 'K': case 'KB': $value *= 1024; break;
+                    case 'M': case 'MB': $value *= 1048576; break;
+                    case 'G': case 'GB': $value *= 1073741824; break;
                 }
             }
         }
