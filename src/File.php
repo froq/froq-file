@@ -114,7 +114,7 @@ abstract class File
 
         // check file size
         $maxFileSize = self::convertBytes($this->options['maxFileSize']);
-        if ($maxFileSize && $file['size'] > $maxFileSize or 1) {
+        if ($maxFileSize && $file['size'] > $maxFileSize) {
             throw new FileException("File size exceeded, options maxFileSize is ".
                 "'{$this->options['maxFileSize']}' ({$maxFileSize} bytes)",
                 FileError::OPTION_SIZE_EXCEEDED);
