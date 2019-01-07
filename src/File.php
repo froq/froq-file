@@ -75,10 +75,11 @@ abstract class File
      * @var array
      */
     protected $options = [
-        'hash' => null,              // 'file' or 'fileName'
-        'hashAlgo' => null,          // 16, 32 or 40 (default=16)
-        'allowedExtensions' => null, // null (all allowed) or 'jpg,jpeg' etc.
-        'jpegQuality' => 85,         // for image files
+        'hash' => null,                  // 'file' or 'fileName'
+        'hashAlgo' => null,              // 16, 32 or 40 (default=16)
+        'allowedExtensions' => null,     // * (all allowed) or 'jpg,jpeg' etc.
+        'allowEmptyExtensions' => null,  // allow empty extension
+        'jpegQuality' => 85,             // for image files
     ];
 
     /**
@@ -91,15 +92,14 @@ abstract class File
      * Errors.
      * @var array
      */
-    protected static $errors = [
-        0 => null,
-        1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini.',
-        2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.',
-        3 => 'The uploaded file was only partially uploaded.',
-        4 => 'No file was uploaded.',
-        6 => 'Missing a temporary folder.',
-        7 => 'Failed to write file to disk.',
-        8 => 'A PHP extension stopped the file upload.',
+    private static $errors = [
+        1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
+        2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
+        3 => 'The uploaded file was only partially uploaded',
+        4 => 'No file was uploaded',
+        6 => 'Missing a temporary folder',
+        7 => 'Failed to write file to disk',
+        8 => 'A PHP extension stopped the file upload'
     ];
 
     /**
@@ -111,8 +111,13 @@ abstract class File
     public function __construct(array $file, string $directory, array $options = [])
     {
         // all these stuff are needed
-        if (!isset($file['tmp_name'], $file['name'], $file['type'], $file['size'], $file['error'])) {
+        if (!isset($file['error'], $file['tmp_name'], $file['name'], $file['type'], $file['size'])) {
             throw new FileException("No valid file given, 'tmp_name,name,type,size,error' are required");
+        }
+
+        $error = $file['error'] ? self::$errors[$file['error']] ?? 'Unknown' : null;
+        if ($error != null) {
+            throw new FileException($error);
         }
 
         // check file exists
@@ -125,33 +130,46 @@ abstract class File
         $maxFileSize = ini_get('upload_max_filesize');
         $maxFileSizeBytes = $this->convertBytes((string) $maxFileSize);
         if ($file['size'] > $maxFileSizeBytes) {
-            throw new FileException("File size exceeded, ini upload_max_filesize is '{$maxFileSize}'");
+            throw new FileException("File size exceeded, ini upload_max_filesize = '{$maxFileSize}'");
         }
 
         $this->options = array_merge($this->options, $options);
 
-        // check extension
-        $extension = Mime::getExtensionByType($file['type']);
-        if ($this->options['allowedExtensions'] != null &&
-            !in_array($extension, (array) explode(',', (string) $this->options['allowedExtensions']))) {
-            throw new FileException("Extension '{$extension}' is not allowed");
+        { // extension stuff
+            if (empty($this->options['allowedExtensions'])) {
+                throw new FileException("Option 'allowedExtensions' cannot be empty for security, ".
+                    "please pass extensions you allow (ie: 'jpg,jpeg' etc. or '*' to allow all)");
+            }
+
+            $fileExtension = pathinfo($file['name'], PATHINFO_EXTENSION);
+            if ($this->options['allowEmptyExtensions'] === false && $fileExtension === '') {
+                throw new FileException("Empty extensions not allowed");
+            }
+
+            $type = Mime::getType($this->source);
+            $extension = ($fileExtension !== '') ? $fileExtension : Mime::getExtensionByType($type);
+            if ($this->options['allowedExtensions'] !== '*'
+                && !in_array($extension, explode(',', (string) $this->options['allowedExtensions']))) {
+                throw new FileException("Extension '{$extension}' not allowed");
+            }
         }
 
         $this->name = $this->prepareName($file['name']);
-        $this->type = $file['type'];
+        $this->type = $type;
         $this->size = $file['size'];
-        $this->extension = $extension;
-        $this->error = $file['error'] ? self::$errors[$file['error']] ?? 'Unknown' : null;
+        $this->extension = ($fileExtension !== '') ? $fileExtension : null;
 
-        if ($directory == '') {
-            throw new FileException('Directory cannot be empty');
-        }
+        { // directory stuff
+            if ($directory == '') {
+                throw new FileException('Directory cannot be empty');
+            }
 
-        $this->directory = $directory;
-        if (!is_dir($this->directory)) {
-            @ $ok = mkdir($this->directory, 0644, true);
-            if (!$ok) {
-                throw new FileException($this->prepareErrorMessage('Cannot make directory'));
+            $this->directory = $directory;
+            if (!is_dir($this->directory)) {
+                @ $ok = mkdir($this->directory, 0644, true);
+                if (!$ok) {
+                    throw new FileException($this->prepareErrorMessage('Cannot make directory'));
+                }
             }
         }
     }
@@ -193,9 +211,9 @@ abstract class File
 
     /**
      * Get extension.
-     * @return string
+     * @return ?string
      */
-    public final function getExtension(): string
+    public final function getExtension(): ?string
     {
         return $this->extension;
     }
@@ -240,25 +258,12 @@ abstract class File
             $this->name = $name = $this->prepareName($name, $nameAppendix);
         }
 
-        return sprintf('%s/%s.%s', $this->directory, $name ?? $this->name, $this->extension);
-    }
+        $return = $this->directory .'/'. ($name ?? $this->name);
+        if ($this->extension != null) {
+            $return .= '.'. $this->extension;
+        }
 
-    /**
-     * Has error.
-     * @return bool
-     */
-    public final function hasError(): bool
-    {
-        return $this->error != null;
-    }
-
-    /**
-     * Get error.
-     * @return ?string
-     */
-    public final function getError(): ?string
-    {
-        return $this->error;
+        return $return;
     }
 
     /**
@@ -286,7 +291,6 @@ abstract class File
             'size'        => $this->size,
             'extension'   => $this->extension,
             'source'      => $this->source,
-            'error'       => $this->error,
             'directory'   => $this->directory
         ];
     }
@@ -294,22 +298,22 @@ abstract class File
     /**
      * Prepare name.
      * @param  string $name
-     * @param  bool   $hash @internal
+     * @param  string $nameAppendix
      * @return string
      * @throws Froq\File\FileException
      */
-    protected final function prepareName(string $name, string $nameAppendix = '', bool $hash = null): string
+    protected final function prepareName(string $name, string $nameAppendix = ''): string
     {
-        // some security stuff
-        $name = preg_replace('~[^\w-.]~', '', pathinfo($name, PATHINFO_FILENAME));
-        $nameAppendix = preg_replace('~[^\w-.]~', '', $nameAppendix);
+        // some security & standard stuff
+        $name = preg_replace(['~[\s-_]+~', '~[^a-z0-9-]~i'], ['-', ''], pathinfo($name, PATHINFO_FILENAME));
+        $nameAppendix = preg_replace('~[^a-z0-9-]~i', '', $nameAppendix);
         if (strlen($name) > 250) {
             $name = substr($name, 0, 250);
         }
 
         // hash name if option set
-        $hash = $hash ?? $this->options['hash'];
-        if ($hash) {
+        $hash = $this->options['hash'];
+        if ($hash != '') {
             static $hashAlgos = [16 => 'fnv164', 32 => 'md5', 40 => 'sha1'];
             @ $hashAlgo = $hashAlgos[$this->options['hashAlgo'] ?? 16];
             if ($hashAlgo == null) {
