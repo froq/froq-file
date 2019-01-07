@@ -31,6 +31,7 @@ namespace Froq\File;
  * @subpackage Froq\File
  * @object     Froq\File\MimeException
  * @author     Kerem Güneş <k-gun@mail.com>
+ * @since      3.0
  */
 final class MimeException extends \Exception
 {}
