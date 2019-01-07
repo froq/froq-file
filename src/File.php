@@ -83,12 +83,6 @@ abstract class File
     ];
 
     /**
-     * Error.
-     * @var string
-     */
-    protected $error;
-
-    /**
      * Errors.
      * @var array
      */
