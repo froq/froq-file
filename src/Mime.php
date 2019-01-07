@@ -32,125 +32,8 @@ namespace Froq\File;
  * @object     Froq\File\Mime
  * @author     Kerem Güneş <k-gun@mail.com>
  */
-final class Mime
+final /* static */ class Mime
 {
-    /**
-     * MIME types.
-     * @var array
-     */
-    private static $types = [
-        'application/octet-stream'           => ['bin'],
-        'application/java-archive'           => ['jar'],
-        'application/mac-binhex40'           => ['hqx'],
-        'application/msaccess'               => ['mdb'],
-        'application/msexcel'                => ['xls', 'xmlx', 'xlt', 'xla', 'xlm', 'xlw'],
-        'application/mspowerpoint'           => ['pot', 'pps', 'ppt'],
-        'application/msproject'              => ['mpp'],
-        'application/msword'                 => ['doc', 'docx', 'word', 'w6w'],
-        'application/mswrite'                => ['wri'],
-        'application/oda'                    => ['oda'],
-        'application/pdf'                    => ['pdf'],
-        'application/postscript'             => ['ai', 'eps', 'ps'],
-        'application/rtf'                    => ['rtf'],
-        'application/set'                    => ['set'],
-        'application/sla'                    => ['stl'],
-        'application/solids'                 => ['sol'],
-        'application/step'                   => ['st', 'step', 'stp'],
-        'application/vda'                    => ['vda'],
-        'application/x-bcpio'                => ['bcpio'],
-        'application/x-cpio'                 => ['cpio'],
-        'application/x-csh'                  => ['csh'],
-        'application/x-director'             => ['dcr', 'dir', 'dxr'],
-        'application/x-dvi'                  => ['dvi'],
-        'application/x-dwf'                  => ['dwf'],
-        'application/x-gtar'                 => ['gtar'],
-        'application/x-gzip'                 => ['gz', 'gzip'],
-        'application/x-hdf'                  => ['hdf'],
-        'application/x-javascript'           => ['js'],
-        'application/x-latex'                => ['latex'],
-        'application/x-midi'                 => ['mid'],
-        'application/x-mif'                  => ['mif'],
-        'application/x-netcdf'               => ['cdf', 'nc'],
-        'application/x-sh'                   => ['sh'],
-        'application/x-shar'                 => ['shar'],
-        'application/x-shockwave-flash'      => ['swf'],
-        'application/x-stuffit'              => ['sit'],
-        'application/x-sv4cpio'              => ['sv4cpio'],
-        'application/x-sv4crc'               => ['sv4crc'],
-        'application/x-tar'                  => ['tar'],
-        'application/x-tcl'                  => ['tcl'],
-        'application/x-tex'                  => ['tex'],
-        'application/x-texinfo'              => ['texi', 'texinfo'],
-        'application/x-ustar'                => ['ustar'],
-        'application/x-wais-source'          => ['src'],
-        'application/x-winhelp'              => ['hlp'],
-        'application/x-rar-compressed'       => ['rar'],
-        'application/zip'                    => ['zip'],
-        'application/atom+xml'               => ['atom'],
-        'application/rss+xml'                => ['rss'],
-        'application/json'                   => ['json'],
-        'application/jsonml+json'            => ['jsonml'],
-
-        'audio/basic'                        => ['au', 'snd'],
-        'audio/midi'                         => ['mid', 'midi'],
-        'audio/x-aiff'                       => ['aif', 'aifc', 'aiff'],
-        'audio/x-mpeg'                       => ['mp3'],
-        'audio/x-pn-realaudio'               => ['ra', 'ram'],
-        'audio/x-pn-realaudio-plugin'        => ['rpm'],
-        'audio/x-voice'                      => ['voc'],
-        'audio/x-wav'                        => ['wav'],
-
-        'image/bmp'                          => ['bmp'],
-        'image/gif'                          => ['gif'],
-        'image/ief'                          => ['ief'],
-        'image/jpeg'                         => ['jpg', 'jpeg', 'jpe'],
-        'image/pjpeg'                        => ['jpg', 'jpeg', 'jpe'],
-        'image/pict'                         => ['pict'],
-        'image/png'                          => ['png'],
-        'image/tiff'                         => ['tif', 'tiff'],
-        'image/vnd.microsoft.icon'           => ['ico'],
-        'image/x-cmu-raster'                 => ['ras'],
-        'image/x-portable-anymap'            => ['pnm'],
-        'image/x-portable-bitmap'            => ['pbm'],
-        'image/x-portable-graymap'           => ['pgm'],
-        'image/x-portable-pixmap'            => ['ppm'],
-        'image/x-rgb'                        => ['rgb'],
-        'image/svg+xml'                      => ['svg', 'svgz'],
-        'image/x-xbitmap'                    => ['xbm'],
-        'image/x-xpixmap'                    => ['xpm'],
-        'image/x-xwindowdump'                => ['xwd'],
-
-        'multipart/x-gzip'                   => ['gzip'],
-        'multipart/x-zip'                    => ['zip'],
-
-        'text/css'                           => ['css'],
-        'text/xml'                           => ['xml'],
-        'text/html'                          => ['htm', 'html'],
-        'text/plain'                         => ['txt', 'c', 'cc', 'h'],
-        'text/richtext'                      => ['rtx'],
-        'text/javascript'                    => ['js'],
-        'text/x-php'                         => ['php'],
-        'text/x-setext'                      => ['etx'],
-        'text/x-sgml'                        => ['sgm', 'sgml'],
-        'text/csv'                           => ['csv'],
-        'text/tsv'                           => ['tsv'],
-
-        'video/flv'                          => ['flv'],
-        'video/mpeg'                         => ['mpe', 'mpeg', 'mpg'],
-        'video/msvideo'                      => ['avi'],
-        'video/quicktime'                    => ['mov', 'qt'],
-        'video/vdo'                          => ['vdo'],
-        'video/vivo'                         => ['viv', 'vivo'],
-        'video/x-sgi-movie'                  => ['movie'],
-
-        'x-conference/x-cooltalk'            => ['ice'],
-        'x-world/x-svr'                      => ['svr'],
-        'x-world/x-vrml'                     => ['wrl'],
-        'x-world/x-vrt'                      => ['vrt'],
-
-        'directory'                          => ['directory']
-    ];
-
     /**
      * Get type.
      * @param  string $file
@@ -163,16 +46,22 @@ final class Mime
             throw new FileException('fileinfo module not found');
         }
 
-        $info = finfo_open(FILEINFO_MIME_TYPE);
-        @ $return = finfo_file($info, $file);
-        finfo_close($info);
-
-        // check error
+        @ $return = mime_content_type($file);
         if ($return === false) {
             throw new FileException(error_get_last()['message'] ?? 'Unknown');
         }
 
         return $return;
+    }
+
+    /**
+     * Get extension.
+     * @param  string $fileName
+     * @return ?string
+     */
+    public static function getExtension(string $fileName): ?string
+    {
+        return strchr($fileName, '.') ? pathinfo($fileName, PATHINFO_EXTENSION) : null;
     }
 
     /**
@@ -182,19 +71,14 @@ final class Mime
      */
     public static function getTypeByExtension(string $fileName): ?string
     {
-        $return = null;
-        if (strpos($fileName, '.')) {
-            @ $extension = end(explode('.', $fileName));
-            error_get_last() && error_clear_last();
-            foreach (self::$types as $type => $extensions) {
-                if (in_array($extension, $extensions)) {
-                    $return = $type;
-                    break;
-                }
+        $extension = self::getExtension($fileName);
+        foreach (MimeTypes::all() as $type => $extensions) {
+            if (in_array($extension, $extensions)) {
+                return $type;
             }
         }
 
-        return $return;
+        return null;
     }
 
     /**
@@ -206,10 +90,8 @@ final class Mime
     public static function getExtensionByType(string $type, int $i = 0): ?string
     {
         $type = strtolower($type);
-        if (isset(self::$types[$type])) {
-            return self::$types[$type][$i] ?? self::$types[$type][0];
-        }
+        $types = MimeTypes::all();
 
-        return null;
+        return isset($types[$type]) ? $types[$type][$i] ?? $types[$type][0] : null;
     }
 }
