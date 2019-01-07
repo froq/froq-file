@@ -82,7 +82,7 @@ final /* static */ class Mime
     }
 
     /**
-     * Get extension.
+     * Get extension by type.
      * @param  string $type
      * @param  int    $i
      * @return ?string
