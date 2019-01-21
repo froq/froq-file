@@ -31,6 +31,7 @@ namespace Froq\File;
  * @subpackage Froq\File
  * @object     Froq\File\File
  * @author     Kerem Güneş <k-gun@mail.com>
+ * @since      1.0
  */
 abstract class File
 {
@@ -266,6 +267,7 @@ abstract class File
      * Delete.
      * @param  string $file
      * @return void
+     * @since  3.0
      */
     public final function delete(string $file): void
     {
@@ -297,6 +299,7 @@ abstract class File
      * @param  string $nameAppendix
      * @return string
      * @throws Froq\File\FileException
+     * @since  1.0
      */
     protected final function prepareName(string $name, string $nameAppendix = ''): string
     {
@@ -338,6 +341,7 @@ abstract class File
      * Prepare error message.
      * @param  string $message
      * @return string
+     * @since  3.0
      */
     protected final function prepareErrorMessage(string $message): string
     {
@@ -348,6 +352,7 @@ abstract class File
      * Convert bytes.
      * @param  int|string $value
      * @return int
+     * @since  3.0
      */
     public static final function convertBytes($value): int
     {

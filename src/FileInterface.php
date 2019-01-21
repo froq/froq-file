@@ -31,6 +31,7 @@ namespace Froq\File;
  * @subpackage Froq\File
  * @object     Froq\File\FileInterface
  * @author     Kerem Güneş <k-gun@mail.com>
+ * @since      1.0
  */
 interface FileInterface
 {

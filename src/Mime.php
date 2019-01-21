@@ -31,6 +31,7 @@ namespace Froq\File;
  * @subpackage Froq\File
  * @object     Froq\File\Mime
  * @author     Kerem Güneş <k-gun@mail.com>
+ * @since      1.0
  */
 final /* static */ class Mime
 {
@@ -58,6 +59,7 @@ final /* static */ class Mime
      * Get extension.
      * @param  string $fileName
      * @return ?string
+     * @since  3.0
      */
     public static function getExtension(string $fileName): ?string
     {
