@@ -24,14 +24,14 @@
  */
 declare(strict_types=1);
 
-namespace Froq\File;
+namespace froq\file;
 
 /**
- * @package    Froq
- * @subpackage Froq\File
- * @object     Froq\File\Mime
- * @author     Kerem Güneş <k-gun@mail.com>
- * @since      1.0
+ * Mime.
+ * @package froq\file
+ * @object  froq\file\Mime
+ * @author  Kerem Güneş <k-gun@mail.com>
+ * @since   1.0
  */
 final /* static */ class Mime
 {
@@ -39,7 +39,7 @@ final /* static */ class Mime
      * Get type.
      * @param  string $file
      * @return string
-     * @throws Froq\File\MimeException
+     * @throws froq\file\MimeException
      */
     public static function getType(string $file): string
     {

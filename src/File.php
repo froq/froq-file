@@ -24,14 +24,14 @@
  */
 declare(strict_types=1);
 
-namespace Froq\File;
+namespace froq\file;
 
 /**
- * @package    Froq
- * @subpackage Froq\File
- * @object     Froq\File\File
- * @author     Kerem Güneş <k-gun@mail.com>
- * @since      1.0
+ * File.
+ * @package froq\file
+ * @object  froq\file\File
+ * @author  Kerem Güneş <k-gun@mail.com>
+ * @since   1.0
  */
 abstract class File
 {
@@ -298,7 +298,7 @@ abstract class File
      * @param  string $name
      * @param  string $nameAppendix
      * @return string
-     * @throws Froq\File\FileException
+     * @throws froq\file\FileException
      * @since  1.0
      */
     protected final function prepareName(string $name, string $nameAppendix = ''): string

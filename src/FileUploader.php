@@ -24,19 +24,19 @@
  */
 declare(strict_types=1);
 
-namespace Froq\File;
+namespace froq\file;
 
 /**
- * @package    Froq
- * @subpackage Froq\File
- * @object     Froq\File\FileUploader
- * @author     Kerem Güneş <k-gun@mail.com>
- * @since      3.0
+ * File uploader.
+ * @package froq\file
+ * @object  froq\file\FileUploader
+ * @author  Kerem Güneş <k-gun@mail.com>
+ * @since   3.0
  */
 final class FileUploader extends File implements FileInterface
 {
     /**
-     * @inheritDoc Froq\File\FileInterface
+     * @inheritDoc froq\file\FileInterface
      */
     public function save(): string
     {
@@ -52,7 +52,7 @@ final class FileUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc Froq\File\FileInterface
+     * @inheritDoc froq\file\FileInterface
      */
     public function saveAs(string $name, string $nameAppendix = ''): string
     {
@@ -72,7 +72,7 @@ final class FileUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc Froq\File\FileInterface
+     * @inheritDoc froq\file\FileInterface
      */
     public function move(): string
     {
@@ -88,7 +88,7 @@ final class FileUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc Froq\File\FileInterface
+     * @inheritDoc froq\file\FileInterface
      */
     public function moveAs(string $name, string $nameAppendix = ''): string
     {
@@ -108,7 +108,7 @@ final class FileUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc Froq\File\FileInterface
+     * @inheritDoc froq\file\FileInterface
      */
     public function clear(): void
     {

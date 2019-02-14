@@ -24,21 +24,21 @@
  */
 declare(strict_types=1);
 
-namespace Froq\File;
+namespace froq\file;
 
 /**
- * @package    Froq
- * @subpackage Froq\File
- * @object     Froq\File\FileInterface
- * @author     Kerem Güneş <k-gun@mail.com>
- * @since      1.0
+ * File interface.
+ * @package froq\file
+ * @object  froq\file\FileInterface
+ * @author  Kerem Güneş <k-gun@mail.com>
+ * @since   1.0
  */
 interface FileInterface
 {
     /**
      * Save.
      * @return string
-     * @throws Froq\File\FileException
+     * @throws froq\file\FileException
      */
     public function save(): string;
 
@@ -47,14 +47,14 @@ interface FileInterface
      * @param  string $name
      * @param  string $nameAppendix
      * @return string
-     * @throws Froq\File\FileException
+     * @throws froq\file\FileException
      */
     public function saveAs(string $name, string $nameAppendix = ''): string;
 
     /**
      * Move.
      * @return string
-     * @throws Froq\File\FileException
+     * @throws froq\file\FileException
      */
     public function move(): string;
 
@@ -63,7 +63,7 @@ interface FileInterface
      * @param  string $name
      * @param  string $nameAppendix
      * @return string
-     * @throws Froq\File\FileException
+     * @throws froq\file\FileException
      */
     public function moveAs(string $name, string $nameAppendix = ''): string;
 

@@ -24,14 +24,14 @@
  */
 declare(strict_types=1);
 
-namespace Froq\File;
+namespace froq\file;
 
 /**
- * @package    Froq
- * @subpackage Froq\File
- * @object     Froq\File\ImageUploader
- * @author     Kerem Güneş <k-gun@mail.com>
- * @since      3.0
+ * Image uploader.
+ * @package froq\file
+ * @object  froq\file\ImageUploader
+ * @author  Kerem Güneş <k-gun@mail.com>
+ * @since   3.0
  */
 final class ImageUploader extends File implements FileInterface
 {
@@ -62,7 +62,7 @@ final class ImageUploader extends File implements FileInterface
     /**
      * Resample.
      * @return bool
-     * @throws Froq\File\FileException
+     * @throws froq\file\FileException
      */
     public function resample(): bool
     {
@@ -75,7 +75,7 @@ final class ImageUploader extends File implements FileInterface
      * @param  int|null $height
      * @param  bool     $proportional
      * @return bool
-     * @throws Froq\File\FileException
+     * @throws froq\file\FileException
      */
     public function resize(int $width, int $height, bool $proportional = true): bool
     {
@@ -127,7 +127,7 @@ final class ImageUploader extends File implements FileInterface
      * @param  int  $height
      * @param  bool $proportional
      * @return bool
-     * @throws Froq\File\FileException
+     * @throws froq\file\FileException
      */
     public function crop(int $width, int $height, bool $proportional = true): bool
     {
@@ -184,7 +184,7 @@ final class ImageUploader extends File implements FileInterface
      * @param  int  $y
      * @param  bool $proportional
      * @return bool
-     * @throws Froq\File\FileException
+     * @throws froq\file\FileException
      */
     public function cropBy(int $width, int $height, int $x, int $y, bool $proportional = true): bool
     {
@@ -231,7 +231,7 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc Froq\File\FileInterface
+     * @inheritDoc froq\file\FileInterface
      */
     public function save(): string
     {
@@ -251,7 +251,7 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc Froq\File\FileInterface
+     * @inheritDoc froq\file\FileInterface
      */
     public function saveAs(string $name, string $nameAppendix = ''): string
     {
@@ -275,7 +275,7 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc Froq\File\FileInterface
+     * @inheritDoc froq\file\FileInterface
      */
     public function move(): string
     {
@@ -291,7 +291,7 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc Froq\File\FileInterface
+     * @inheritDoc froq\file\FileInterface
      */
     public function moveAs(string $name, string $nameAppendix = ''): string
     {
@@ -311,7 +311,7 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc Froq\File\File
+     * @inheritDoc froq\file\File
      */
     public function clear(): void
     {
@@ -345,7 +345,7 @@ final class ImageUploader extends File implements FileInterface
     /**
      * Fill info.
      * @return void
-     * @throws Froq\File\FileException
+     * @throws froq\file\FileException
      */
     public function fillInfo(): void
     {

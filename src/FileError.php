@@ -24,14 +24,14 @@
  */
 declare(strict_types=1);
 
-namespace Froq\File;
+namespace froq\file;
 
 /**
- * @package    Froq
- * @subpackage Froq\File
- * @object     Froq\File\FileError
- * @author     Kerem Güneş <k-gun@mail.com>
- * @since      3.0
+ * File error.
+ * @package froq\file
+ * @object  froq\file\FileError
+ * @author  Kerem Güneş <k-gun@mail.com>
+ * @since   3.0
  */
 final /* static */ class FileError
 {
