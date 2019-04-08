@@ -76,8 +76,8 @@ abstract class File
      * @var array
      */
     protected $options = [
-        'hash' => null,                  // 'file' or 'fileName'
-        'hashAlgo' => null,              // 16, 32 or 40 (default=16)
+        'hash' => null,                  // rand, file, fileName
+        'hashLength' => null,            // 8, 16, 32 or 40 (default=16)
         'maxFileSize' => null,           // in binary mode: for 2 megabytes 2048, 2048k or 2m
         'allowedTypes' => null,          // * means all allowed or 'image/jpeg,image/png' etc.
         'allowedExtensions' => null,     // * means all allowed or 'jpg,jpeg' etc.
@@ -317,16 +317,18 @@ abstract class File
         // hash name if option set
         $hash = $this->options['hash'];
         if ($hash != '') {
-            static $hashAlgos = [16 => 'fnv164', 32 => 'md5', 40 => 'sha1'];
-            @ $hashAlgo = $hashAlgos[$this->options['hashAlgo'] ?? 16];
+            static $hashAlgos = [8 => 'fnv1a32', 16 => 'fnv1a64', 32 => 'md5', 40 => 'sha1'];
+            @ $hashAlgo = $hashAlgos[$this->options['hashLength'] ?? 16];
             if ($hashAlgo == null) {
-                throw new FileException("Only '16,32,40' are accepted");
+                throw new FileException("Only '8,16,32,40' are accepted");
             }
 
-            if ($hash === 'fileName') {
-                $name = hash($hashAlgo, $name);
-            } elseif ($hash === 'file') {
+            if ($hash == 'rand') {
+                $name = hash($hashAlgo, uniqid(microtime(), true));
+            } elseif ($hash == 'file') {
                 $name = hash($hashAlgo, file_get_contents($this->source));
+            } elseif ($hash == 'fileName') {
+                $name = hash($hashAlgo, $name);
             }
 
         }

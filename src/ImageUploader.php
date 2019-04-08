@@ -60,24 +60,30 @@ final class ImageUploader extends File implements FileInterface
     private $destinationFile;
 
     /**
+     * New dimensions.
+     * @var array[int]
+     */
+    private $newDimensions;
+
+    /**
      * Resample.
-     * @return bool
+     * @return self
      * @throws froq\file\FileException
      */
-    public function resample(): bool
+    public function resample(): self
     {
         return $this->resize(0, 0, false);
     }
 
     /**
      * Resize.
-     * @param  int|null $width
-     * @param  int|null $height
-     * @param  bool     $proportional
-     * @return bool
+     * @param  int  $width
+     * @param  int  $height
+     * @param  bool $proportional
+     * @return self
      * @throws froq\file\FileException
      */
-    public function resize(int $width, int $height, bool $proportional = true): bool
+    public function resize(int $width, int $height, bool $proportional = true): self
     {
         // ensure info
         $this->fillInfo();
@@ -87,8 +93,6 @@ final class ImageUploader extends File implements FileInterface
             throw new FileException($this->prepareErrorMessage('Could not create resource file'));
         }
 
-        $width = $width ?? $this->info[0];
-        $height = $height ?? $this->info[1];
         [$origWidth, $origHeight] = $this->info;
 
         $newWidth = $newHeight = 0;
@@ -117,8 +121,15 @@ final class ImageUploader extends File implements FileInterface
             imagesavealpha($this->destinationFile, true);
         }
 
-        return imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, 0, 0,
+        @ $ok = imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, 0, 0,
             $newWidth, $newHeight, $origWidth, $origHeight);
+        if (!$ok) {
+            throw new FileException($this->prepareErrorMessage('Could not resample file'));
+        }
+
+        $this->newDimensions = [$newWidth, $newHeight];
+
+        return $this;
     }
 
     /**
@@ -126,10 +137,10 @@ final class ImageUploader extends File implements FileInterface
      * @param  int  $width
      * @param  int  $height
      * @param  bool $proportional
-     * @return bool
+     * @return self
      * @throws froq\file\FileException
      */
-    public function crop(int $width, int $height, bool $proportional = true): bool
+    public function crop(int $width, int $height, bool $proportional = true): self
     {
         // ensure info
         $this->fillInfo();
@@ -172,8 +183,15 @@ final class ImageUploader extends File implements FileInterface
             imagesavealpha($this->destinationFile, true);
         }
 
-        return imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
+        @ $ok = imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
             $width, $height, $cropWidth, $cropHeight);
+        if (!$ok) {
+            throw new FileException($this->prepareErrorMessage('Could not resample file'));
+        }
+
+        $this->newDimensions = [$width, $height];
+
+        return $this;
     }
 
     /**
@@ -186,7 +204,7 @@ final class ImageUploader extends File implements FileInterface
      * @return bool
      * @throws froq\file\FileException
      */
-    public function cropBy(int $width, int $height, int $x, int $y, bool $proportional = true): bool
+    public function cropBy(int $width, int $height, int $x, int $y, bool $proportional = true): self
     {
         // ensure info
         $this->fillInfo();
@@ -226,8 +244,15 @@ final class ImageUploader extends File implements FileInterface
             imagesavealpha($this->destinationFile, true);
         }
 
-        return imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
+        @ $ok = imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
             $width, $height, $cropWidth, $cropHeight);
+        if (!$ok) {
+            throw new FileException($this->prepareErrorMessage('Could not resample file'));
+        }
+
+        $this->newDimensions = [$width, $height];
+
+        return $this;
     }
 
     /**
@@ -237,7 +262,7 @@ final class ImageUploader extends File implements FileInterface
     {
         if ($this->resourceFile == null || $this->destinationFile == null) {
             throw new FileException("No resource/destination file created yet, call one of these method ".
-                "first: 'resample,resize,crop,cropBy'");
+                "first: resample, resize, crop or cropBy");
         }
 
         $destination = $this->getDestination();
@@ -253,7 +278,7 @@ final class ImageUploader extends File implements FileInterface
     /**
      * @inheritDoc froq\file\FileInterface
      */
-    public function saveAs(string $name, string $nameAppendix = ''): string
+    public function saveAs(string $name, string $nameAppendix = '', bool $useNewDimensionssAsNameAppendix = false): string
     {
         if ($name == '') {
             throw new FileException('Name cannot be empty');
@@ -261,7 +286,11 @@ final class ImageUploader extends File implements FileInterface
 
         if ($this->resourceFile == null || $this->destinationFile == null) {
             throw new FileException("No resource/destination file created yet, call one of these method ".
-                "first: 'resample,resize,crop,cropBy'");
+                "first: resample, resize, crop or cropBy");
+        }
+
+        if ($useNewDimensionssAsNameAppendix) {
+            $nameAppendix = vsprintf('%s-%dx%d', array_merge([$nameAppendix], $this->newDimensions));
         }
 
         $destination = $this->getDestination($name, $nameAppendix);
