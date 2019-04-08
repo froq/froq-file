@@ -278,7 +278,7 @@ final class ImageUploader extends File implements FileInterface
     /**
      * @inheritDoc froq\file\FileInterface
      */
-    public function saveAs(string $name, string $nameAppendix = '', bool $useNewDimensionssAsNameAppendix = false): string
+    public function saveAs(string $name, string $nameAppendix = '', bool $useNewDimensionsAsNameAppendix = false): string
     {
         if ($name == '') {
             throw new FileException('Name cannot be empty');
@@ -289,7 +289,7 @@ final class ImageUploader extends File implements FileInterface
                 "first: resample, resize, crop or cropBy");
         }
 
-        if ($useNewDimensionssAsNameAppendix) {
+        if ($useNewDimensionsAsNameAppendix) {
             $nameAppendix = vsprintf('%s-%dx%d', array_merge([$nameAppendix], $this->newDimensions));
         }
 
