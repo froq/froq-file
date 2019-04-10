@@ -305,14 +305,12 @@ abstract class File
     {
         // some security & standard stuff
         $name = preg_replace(['~[\s_-]+~', '~[^a-z0-9-]~i'], ['-', ''], pathinfo($name, PATHINFO_FILENAME));
-        $nameAppendix = preg_replace('~[^a-z0-9-]~i', '', $nameAppendix);
         if (strlen($name) > 250) {
             $name = substr($name, 0, 250);
         }
 
         // all names lower-cased
         $name = strtolower($name);
-        $nameAppendix = strtolower($nameAppendix);
 
         // hash name if option set
         $hash = $this->options['hash'];
@@ -330,11 +328,12 @@ abstract class File
             } elseif ($hash == 'fileName') {
                 $name = hash($hashAlgo, $name);
             }
-
         }
 
-        // appendix like '-50x50-crop' (ie: abc123-50x50-crop.jpg)
-        $name .= $nameAppendix;
+        // appendix like 'crop' (ie: abc123-crop.jpg)
+        if ($nameAppendix != '') {
+            $name .= '-'. strtolower(preg_replace('~[^a-z0-9-]~i', '', $nameAppendix));
+        }
 
         return $name;
     }

@@ -39,7 +39,7 @@ final class ImageUploader extends File implements FileInterface
      * Jpeg quality.
      * @const int
      */
-    public const JPEG_QUALITY = 85;
+    public const JPEG_QUALITY = -1; // use default quality
 
     /**
      * Info.
@@ -134,13 +134,15 @@ final class ImageUploader extends File implements FileInterface
 
     /**
      * Crop.
-     * @param  int  $width
-     * @param  int  $height
-     * @param  bool $proportional
+     * @param  int      $width
+     * @param  int      $height
+     * @param  bool     $proportional
+     * @param  int|null $x
+     * @param  int|null $x
      * @return self
      * @throws froq\file\FileException
      */
-    public function crop(int $width, int $height, bool $proportional = true): self
+    public function crop(int $width, int $height, bool $proportional = true, int $x = null, int $y = null): self
     {
         // ensure info
         $this->fillInfo();
@@ -158,8 +160,8 @@ final class ImageUploader extends File implements FileInterface
         [$origWidth, $origHeight] = $this->info;
 
         if ($proportional) {
-            $size = $origWidth > $origHeight ? $origWidth : $origHeight;
-            $percent = .5;
+            $size = ($origWidth > $origHeight) ? $origWidth : $origHeight;
+            $percent = 0.5;
             $cropWidth = (int) ($size * $percent);
             $cropHeight = (int) ($size * $percent);
         } else {
@@ -167,8 +169,8 @@ final class ImageUploader extends File implements FileInterface
             $cropHeight = $height;
         }
 
-        $x = (int) (($origWidth - $cropWidth) / 2);
-        $y = (int) (($origHeight - $cropHeight) / 2);
+        $x = $x ?? (int) (($origWidth - $cropWidth) / 2);
+        $y = $y ?? (int) (($origHeight - $cropHeight) / 2);
 
         @ $this->destinationFile = imagecreatetruecolor($width, $height);
         if (!$this->destinationFile) {
@@ -206,53 +208,7 @@ final class ImageUploader extends File implements FileInterface
      */
     public function cropBy(int $width, int $height, int $x, int $y, bool $proportional = true): self
     {
-        // ensure info
-        $this->fillInfo();
-
-        // do not crop original width/height dims
-        if ($width == $this->info[0] && $height == $this->info[1]) {
-            return $this->resize($width, $height);
-        }
-
-        @ $this->resourceFile = $this->createResourceFile();
-        if (!$this->resourceFile) {
-            throw new FileException($this->prepareErrorMessage('Could not create resource file'));
-        }
-
-        [$origWidth, $origHeight] = $this->info;
-
-        if ($proportional) {
-            $size = ($origWidth > $origHeight) ? $origWidth : $origHeight;
-            $percent = .5;
-            $cropWidth = (int) ($size * $percent);
-            $cropHeight = (int) ($size * $percent);
-        } else {
-            $cropWidth = $width;
-            $cropHeight = $height;
-        }
-
-        @ $this->destinationFile = imagecreatetruecolor($width, $height);
-        if ($this->destinationFile === false) {
-            throw new FileException($this->prepareErrorMessage('Could not create destination file'));
-        }
-
-        // handle png's
-        if ($this->info[2] == IMAGETYPE_PNG) {
-            imagealphablending($this->destinationFile, false);
-            $transparent = imagecolorallocatealpha($this->destinationFile, 0, 0, 0, 127);
-            imagefill($this->destinationFile, 0, 0, $transparent);
-            imagesavealpha($this->destinationFile, true);
-        }
-
-        @ $ok = imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
-            $width, $height, $cropWidth, $cropHeight);
-        if (!$ok) {
-            throw new FileException($this->prepareErrorMessage('Could not resample file'));
-        }
-
-        $this->newDimensions = [$width, $height];
-
-        return $this;
+        return $this->crop($width, $height, $proportional, $x, $y);
     }
 
     /**
@@ -290,7 +246,9 @@ final class ImageUploader extends File implements FileInterface
         }
 
         if ($useNewDimensionsAsNameAppendix) {
-            $nameAppendix = vsprintf('%s-%dx%d', array_merge([$nameAppendix], $this->newDimensions));
+            $nameAppendix = ($nameAppendix == '')
+                ? vsprintf('%dx%d', $this->newDimensions)
+                : vsprintf('%s-%dx%d', array_merge([$nameAppendix], $this->newDimensions));
         }
 
         $destination = $this->getDestination($name, $nameAppendix);
@@ -369,6 +327,19 @@ final class ImageUploader extends File implements FileInterface
     public function getInfo(): ?array
     {
         return $this->info;
+    }
+
+    /**
+     * Get new dimensions.
+     * @param  bool $x
+     * @return array|string|null
+     */
+    public function getNewDimensions(bool $x = false)
+    {
+        if ($this->newDimensions != null) {
+            return !$x ? $this->newDimensions : vsprintf('%dx%d', $this->newDimensions);
+        }
+        return null;
     }
 
     /**
