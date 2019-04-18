@@ -248,7 +248,7 @@ final class ImageUploader extends File implements FileInterface
         if ($useNewDimensionsAsNameAppendix) {
             $nameAppendix = ($nameAppendix == '')
                 ? vsprintf('%dx%d', $this->newDimensions)
-                : vsprintf('%s-%dx%d', array_merge([$nameAppendix], $this->newDimensions));
+                : vsprintf('%dx%d-%s', array_merge($this->newDimensions, [$nameAppendix]));
         }
 
         $destination = $this->getDestination($name, $nameAppendix);
