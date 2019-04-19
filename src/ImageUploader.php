@@ -80,10 +80,11 @@ final class ImageUploader extends File implements FileInterface
      * @param  int  $width
      * @param  int  $height
      * @param  bool $proportional
+     * @param  bool $fixExcessiveDimensions
      * @return self
      * @throws froq\file\FileException
      */
-    public function resize(int $width, int $height, bool $proportional = true): self
+    public function resize(int $width, int $height, bool $proportional = true, bool $fixExcessiveDimensions = true): self
     {
         // ensure info
         $this->fillInfo();
@@ -95,17 +96,22 @@ final class ImageUploader extends File implements FileInterface
 
         [$origWidth, $origHeight] = $this->info;
 
+        if ($fixExcessiveDimensions) {
+            if ($width > $origWidth) $width = $origWidth;
+            if ($height > $origHeight) $height = $origHeight;
+        }
+
         $newWidth = $newHeight = 0;
         if ($proportional) {
             if ($width == 0)      $factor = $height / $origHeight;
             elseif ($height == 0) $factor = $width / $origWidth;
             else                  $factor = min($width / $origWidth, $height / $origHeight);
 
-            $newWidth = (int) round($origWidth * $factor);
-            $newHeight = (int) round($origHeight * $factor);
+            $newWidth = (int) ($origWidth * $factor);
+            $newHeight = (int) ($origHeight * $factor);
         } else {
-            $newWidth = (int) ($width <= 0 ? $origWidth : $width);
-            $newHeight = (int) ($height <= 0 ? $origHeight : $height);
+            $newWidth = (int) ($width > 0 ? $width : $origWidth);
+            $newHeight = (int) ($height > 0 ? $height : $origHeight);
         }
 
         @ $this->destinationFile = imagecreatetruecolor($newWidth, $newHeight);
