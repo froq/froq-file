@@ -329,12 +329,45 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
+     * Fill info.
+     * @return void
+     * @throws froq\file\FileException
+     */
+    public function fillInfo(): void
+    {
+        if ($this->info == null) {
+            @ $this->info = getimagesize($this->getSource());
+            if (!isset($this->info[0], $this->info[1])) {
+                throw new FileException($this->prepareErrorMessage('Could not get file info'));
+            }
+        }
+    }
+
+    /**
      * Get info.
      * @return ?array
      */
     public function getInfo(): ?array
     {
         return $this->info;
+    }
+
+    /**
+     * Get resource file.
+     * @return resource|null
+     */
+    public function getResourceFile()
+    {
+        return $this->resourceFile;
+    }
+
+    /**
+     * Get destination file.
+     * @return resource|null
+     */
+    public function getDestinationFile()
+    {
+        return $this->destinationFile;
     }
 
     /**
@@ -351,18 +384,20 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
-     * Fill info.
-     * @return void
+     * Get output buffer.
+     * @return string
      * @throws froq\file\FileException
      */
-    public function fillInfo(): void
+    public function getOutputBuffer(): string
     {
-        if ($this->info == null) {
-            @ $this->info = getimagesize($this->getSource());
-            if (!isset($this->info[0], $this->info[1])) {
-                throw new FileException($this->prepareErrorMessage('Could not get file info'));
-            }
+        if ($this->destinationFile == null) {
+            throw new FileException("No destination file created yet, call one of these method ".
+                "first: resample, resize, crop or cropBy");
         }
+
+        ob_start();
+        $this->output();
+        return ob_get_clean();
     }
 
     /**

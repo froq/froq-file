@@ -95,10 +95,13 @@ abstract class File
     public function __construct(array $file, string $directory, array $options = [])
     {
         // all these stuff are needed
-        if (!isset($file['error'], $file['tmp_name'], $file['name'], $file['type'], $file['size'])) {
-            throw new FileException("No valid file given, 'tmp_name,name,type,size,error' are ".
+        if (!isset($file['tmp_name'], $file['name'], $file['type'])) {
+            throw new FileException("No valid file given, 'tmp_name,name,type' are ".
                 "required", FileError::NO_VALID_FILE);
         }
+
+        $file['size'] = $file['size'] ?? filesize($file['tmp_name']);
+        $file['error'] = $file['error'] ?? 0;
 
         $error = $file['error'] ? FileError::all()[$file['error']] ?? 'Unknown' : null;
         if ($error != null) {
