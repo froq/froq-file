@@ -112,6 +112,8 @@ final class FileUploader extends File implements FileInterface
      */
     public function clear(): void
     {
-        @ unlink($this->getSource());
+        if ($this->options['deleteSourceFile']) {
+            @ unlink($this->getSource());
+        }
     }
 }

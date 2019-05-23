@@ -83,6 +83,7 @@ abstract class File
         'allowedExtensions' => null,     // * means all allowed or 'jpg,jpeg' etc.
         'allowEmptyExtensions' => null,  // allow empty extension
         'jpegQuality' => 85,             // for image files
+        'deleteSourceFile' => true,      // useful for displaying crops etc.
     ];
 
     /**

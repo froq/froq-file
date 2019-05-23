@@ -314,7 +314,9 @@ final class ImageUploader extends File implements FileInterface
         $this->resourceFile = null;
         $this->destinationFile = null;
 
-        @ unlink($this->getSource());
+        if ($this->options['deleteSourceFile']) {
+            @ unlink($this->getSource());
+        }
     }
 
     /**
