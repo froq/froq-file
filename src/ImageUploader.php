@@ -372,13 +372,13 @@ final class ImageUploader extends File implements FileInterface
 
     /**
      * Get new dimensions.
-     * @param  bool $x
+     * @param  bool $format
      * @return array|string|null
      */
-    public function getNewDimensions(bool $x = false)
+    public function getNewDimensions(bool $format = false)
     {
         if ($this->newDimensions != null) {
-            return !$x ? $this->newDimensions : vsprintf('%dx%d', $this->newDimensions);
+            return !$format ? $this->newDimensions : vsprintf('%dx%d', $this->newDimensions);
         }
         return null;
     }
