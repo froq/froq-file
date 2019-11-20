@@ -27,19 +27,20 @@ declare(strict_types=1);
 namespace froq\file;
 
 /**
- * Mime types.
+ * Mime Types.
  * @package froq\file
  * @object  froq\file\MimeTypes
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   3.0
+ * @static
  */
-final /* static */ class MimeTypes
+final class MimeTypes
 {
     /**
      * All.
      * @var array
      */
-    private static $all;
+    private static array $all;
 
     /**
      * All.
@@ -48,9 +49,8 @@ final /* static */ class MimeTypes
     public static function all(): array
     {
         if (self::$all == null) {
-            self::$all = include __dir__. '/data/mimes.php';
+            self::$all = include __dir__ .'/data/mimes.php';
         }
-
         return self::$all;
     }
 }
