@@ -26,56 +26,92 @@ declare(strict_types=1);
 
 namespace froq\file;
 
+use froq\file\{MimeException, MimeTypes, Util as FileUtil};
+use Error;
+
 /**
  * Mime.
  * @package froq\file
  * @object  froq\file\Mime
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   1.0
+ * @static
  */
-final /* static */ class Mime
+final class Mime
 {
     /**
      * Get type.
      * @param  string $file
-     * @return string
+     * @param  bool   $errorCheck
+     * @return ?string
      * @throws froq\file\MimeException
      */
-    public static function getType(string $file): string
+    public static function getType(string $file, bool $errorCheck = true): ?string
     {
-        if (!extension_loaded('fileinfo')) {
-            throw new MimeException('fileinfo module not found');
+        if ($errorCheck) {
+            FileUtil::errorCheck($file, $error);
+            if ($error != null) {
+                throw new MimeException($error->getMessage(), $error->getCode());
+            }
         }
 
-        @ $return = mime_content_type($file);
-        if ($return === false) {
-            throw new MimeException(error_get_last()['message'] ?? 'Unknown');
+        $type = null;
+
+        try {
+            // This function could be not exists.
+            $type =@ mime_content_type($file);
+            if ($type === false) {
+                throw new MimeException(error());
+            }
+        } catch (Error $e) {
+            try {
+                // This function could be not exists.
+                $exec = exec('file -i '. escapeshellarg($file));
+                if (preg_match('~: ([^/ ]+/[^; ]+)~', $exec, $match)) {
+                    $type = $match[1];
+                    if ($type == 'inode/directory') {
+                        $type = 'directory';
+                    }
+                }
+            } catch (Error $e) {}
         }
 
-        return $return;
+        // Try by extension.
+        if ($type == null) {
+            $extension = self::getExtension($file);
+            if ($extension != null) {
+                $type = self::getTypeByExtension($extension);
+            }
+        }
+
+        return $type;
     }
 
     /**
      * Get extension.
-     * @param  string $fileName
+     * @param  string $file
      * @return ?string
      * @since  3.0
      */
-    public static function getExtension(string $fileName): ?string
+    public static function getExtension(string $file): ?string
     {
-        return strchr($fileName, '.') ? pathinfo($fileName, PATHINFO_EXTENSION) : null;
+        if (ctype_print($file)) { // safe
+            return pathinfo($file, PATHINFO_EXTENSION);
+        }
+        return null;
     }
 
     /**
      * Get type by extension.
-     * @param  string $fileName
+     * @param  string $extension
      * @return ?string
      */
-    public static function getTypeByExtension(string $fileName): ?string
+    public static function getTypeByExtension(string $extension): ?string
     {
-        $extension = self::getExtension($fileName);
+        $search = strtolower($extension);
+
         foreach (MimeTypes::all() as $type => $extensions) {
-            if (in_array($extension, $extensions)) {
+            if (in_array($search, $extensions, true)) {
                 return $type;
             }
         }
@@ -91,9 +127,14 @@ final /* static */ class Mime
      */
     public static function getExtensionByType(string $type, int $i = 0): ?string
     {
-        $type = strtolower($type);
-        $types = MimeTypes::all();
+        $search = strtolower($type);
 
-        return isset($types[$type]) ? $types[$type][$i] ?? $types[$type][0] : null;
+        foreach (MimeTypes::all() as $type => $extensions) {
+            if ($search === $type) {
+                return $extensions[$i] ?? null;
+            }
+        }
+
+        return null;
     }
 }
