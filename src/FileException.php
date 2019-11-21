@@ -26,12 +26,14 @@ declare(strict_types=1);
 
 namespace froq\file;
 
+use froq\Exception;
+
 /**
- * File exception.
+ * File Exception.
  * @package froq\file
  * @object  froq\file\FileException
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   1.0
  */
-final class FileException extends \Exception
+final class FileException extends Exception
 {}
