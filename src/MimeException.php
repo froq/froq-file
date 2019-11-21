@@ -29,7 +29,7 @@ namespace froq\file;
 use froq\Exception;
 
 /**
- * Mime exception.
+ * Mime Exception.
  * @package froq\file
  * @object  froq\file\MimeException
  * @author  Kerem Güneş <k-gun@mail.com>
