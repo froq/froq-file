@@ -87,37 +87,37 @@ final class Util
 
     /**
      * Format bytes.
-     * @param  int $in
+     * @param  int $bytes
      * @return string
      */
-    public static function formatBytes(int $in): string
+    public static function formatBytes(int $bytes): string
     {
         static $base = 1024, $units = ['B', 'KB', 'MB', 'GB'];
 
         $i = 0;
-        while ($in > $base) {
-            $i++; $in /= $base;
+        while ($bytes > $base) {
+            $i++; $bytes /= $base;
         }
 
-        return round($in, 2) . $units[$i];
+        return round($bytes, 2) . $units[$i];
     }
 
 
     /**
      * Convert bytes.
-     * @param  string $in
+     * @param  string $bytes
      * @return int
      */
-    public static function convertBytes(string $in): int
+    public static function convertBytes(string $bytes): int
     {
         static $base = 1024, $units = ['', 'K', 'M', 'G'];
 
-        if (preg_match('~([\d\.]+)(\w)~', $in, $match)) {
-            [, $in, $unit] = $match;
-            return (int) ($in * pow($base, array_search(strtoupper($unit), $units)));
+        if (preg_match('~([\d\.]+)(\w)~', $bytes, $match)) {
+            [, $bytes, $unit] = $match;
+            return (int) ($bytes * pow($base, array_search(strtoupper($unit), $units)));
         }
 
-        return (int) $in;
+        return (int) $bytes;
     }
 
     /**
