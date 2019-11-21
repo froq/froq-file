@@ -27,7 +27,7 @@ declare(strict_types=1);
 namespace froq\file;
 
 /**
- * File interface.
+ * File Interface.
  * @package froq\file
  * @object  froq\file\FileInterface
  * @author  Kerem Güneş <k-gun@mail.com>
@@ -44,12 +44,12 @@ interface FileInterface
 
     /**
      * Save as.
-     * @param  string $name
-     * @param  string $nameAppendix
+     * @param  string      $name
+     * @param  string|null $nameAppendix
      * @return string
      * @throws froq\file\FileException
      */
-    public function saveAs(string $name, string $nameAppendix = ''): string;
+    public function saveAs(string $name, string $nameAppendix = null): string;
 
     /**
      * Move.
@@ -61,11 +61,11 @@ interface FileInterface
     /**
      * Move as.
      * @param  string $name
-     * @param  string $nameAppendix
+     * @param  string|null $nameAppendix
      * @return string
      * @throws froq\file\FileException
      */
-    public function moveAs(string $name, string $nameAppendix = ''): string;
+    public function moveAs(string $name, string $nameAppendix = null): string;
 
     /**
      * Clear.
