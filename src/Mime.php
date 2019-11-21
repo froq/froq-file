@@ -95,7 +95,7 @@ final class Mime
      */
     public static function getExtension(string $file): ?string
     {
-        if (ctype_print($file)) { // safe
+        if (ctype_print($file)) { // Safe.
             return pathinfo($file, PATHINFO_EXTENSION);
         }
         return null;
