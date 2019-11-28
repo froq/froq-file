@@ -353,11 +353,11 @@ final class ImageUploader extends File implements FileInterface
 
     /**
      * Get info.
-     * @return array
+     * @return ?array
      */
-    public function getInfo(): array
+    public function getInfo(): ?array
     {
-        return $this->info ?? [];
+        return $this->info ?? null;
     }
 
     /**
