@@ -418,7 +418,7 @@ final class ImageUploader extends File implements FileInterface
      */
     public function getNewDimensions(bool $format = false)
     {
-        $newDimensions = $this->getNewDimensions();
+        $newDimensions = $this->newDimensions ?? null;
 
         if ($newDimensions != null && $format) {
             $newDimensions = vsprintf('%dx%d', $newDimensions);
