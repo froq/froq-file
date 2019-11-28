@@ -67,7 +67,7 @@ final class ImageUploader extends File implements FileInterface
 
     /**
      * New dimensions.
-     * @var array<int,int>
+     * @var array<int, int>
      */
     private array $newDimensions;
 
@@ -150,10 +150,10 @@ final class ImageUploader extends File implements FileInterface
 
     /**
      * Crop.
-     * @param  int                 $width
-     * @param  int                 $height
-     * @param  bool                $proportional
-     * @param  array<int,int>|null $xy @internal
+     * @param  int                  $width
+     * @param  int                  $height
+     * @param  bool                 $proportional
+     * @param  array<int, int>|null $xy @internal
      * @return self
      * @throws froq\file\FileException
      */
@@ -414,7 +414,7 @@ final class ImageUploader extends File implements FileInterface
     /**
      * Get new dimensions.
      * @param  bool $format
-     * @return array|string|null
+     * @return array<int, int>|string|null
      */
     public function getNewDimensions(bool $format = false)
     {
