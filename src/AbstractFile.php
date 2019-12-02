@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\interfaces\Arrayable;
+use froq\inters\Arrayable;
 
 /**
  * Abstract File.
