@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use Error;
+use froq\Error;
 
 /**
  * File Error.
