@@ -361,17 +361,6 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
-     * Get info value.
-     * @param  string $key
-     * @return ?any
-     * @since  4.0
-     */
-    public function getInfoValue(string $key)
-    {
-        return $this->info[$key] ?? null;
-    }
-
-    /**
      * Fill info.
      * @return void
      * @throws froq\file\FileException
@@ -453,7 +442,7 @@ final class ImageUploader extends File implements FileInterface
      */
     private function createResourceFile()
     {
-        $type = $this->getInfoValue('type');
+        $type = $this->getInfo()['type'];
 
         if (!in_array($type, self::SUPPORTED_TYPES)) {
             throw new FileException('Unsupported image type');
@@ -477,7 +466,7 @@ final class ImageUploader extends File implements FileInterface
      */
     private function output(): ?bool
     {
-        $type = $this->getInfoValue('type');
+        $type = $this->getInfo()['type'];
         $destinationFile = $this->getDestinationFile();
 
         if ($destinationFile != null) {
@@ -502,7 +491,7 @@ final class ImageUploader extends File implements FileInterface
      */
     private function outputTo(string $to): ?bool
     {
-        $type = $this->getInfoValue('type');
+        $type = $this->getInfo()['type'];
         $destinationFile = $this->getDestinationFile();
 
         if ($destinationFile != null) {
