@@ -46,9 +46,7 @@ final class Util
      */
     public static function getType(string $file): ?string
     {
-        try { return Mime::getType($file); } catch (MimeException $e) {
-            return null;
-        }
+        try { return Mime::getType($file); } catch (MimeException $e) { return null; }
     }
 
     /**
