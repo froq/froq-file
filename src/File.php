@@ -89,8 +89,10 @@ class File extends AbstractFile
         }
 
         // Type @override.
-        try { $type = Mime::getType($source); } catch (MimeException $e) {
-            throw new FileException($e->getMessage(), $e->getCode());
+        try {
+            $type = Mime::getType($source);
+        } catch (MimeException $e) {
+            throw new FileException($e->getMessage(), $e->getCode(), $e);
         }
 
         if ($options_allowedTypes !== '*'
