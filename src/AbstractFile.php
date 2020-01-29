@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\interfaces\Arrayable;
+use froq\common\interfaces\Arrayable;
 
 /**
  * Abstract File.
@@ -90,7 +90,7 @@ abstract class AbstractFile implements Arrayable
     ];
 
     /**
-     * @inheritDoc froq\interfaces\Arrayable
+     * @inheritDoc froq\common\interfaces\Arrayable
      */
     public final function toArray(): array
     {
