@@ -178,14 +178,27 @@ abstract class AbstractFile implements Arrayable
      */
     public final function getDestination(string $name = null, string $nameAppendix = null): string
     {
+        // Update extension if given on runtime (with saveAs() or moveAs()).
+        if ($name && strpos($name, '.')) {
+            $extension = pathinfo($name, PATHINFO_EXTENSION);
+            if ($extension !== '' && $this->options['allowedExtensions'] !== '*'
+                && !in_array($extension, explode(',', (string) $this->options['allowedExtensions']))) {
+                throw new FileException(
+                    'Extension "%s" not allowed by options, allowed extensions: "%s"',
+                    [$extension, $this->options['allowedExtensions']], FileError::OPTION_NOT_ALLOWED_EXTENSION
+                );
+            }
+            $this->extension = $extension;
+        }
+
         // Update name if given on runtime (with saveAs() or moveAs()).
-        if ($name != null) {
+        if ($name) {
             $name = $this->name = $this->prepareName($name, $nameAppendix);
         }
 
         $destination = $this->directory .'/'. ($name ?? $this->name);
-        if ($this->extension != '') {
-            $destination .= '.'. $this->extension;
+        if ($this->extension) {
+            $destination = $destination .'.'. $this->extension;
         }
 
         return $destination;
@@ -202,22 +215,21 @@ abstract class AbstractFile implements Arrayable
     protected final function prepareName(string $name, string $nameAppendix = null): string
     {
         // Some security & standard stuff.
-        $name = preg_replace(['~[\s_-]+~', '~[^a-z0-9-]~i'], ['-', ''],
-            pathinfo($name, PATHINFO_FILENAME));
+        $name = preg_replace('~[^a-z0-9-]+~i', '-', pathinfo($name, PATHINFO_FILENAME));
         if (strlen($name) > 250) {
             $name = substr($name, 0, 250);
         }
 
         // All names lower-cased.
-        $name = strtolower($name);
+        $name = strtolower(trim($name, '-'));
 
         // Hash name if option set.
         $hash = $this->options['hash'];
-        if ($hash != null) {
+        if ($hash) {
             static $hashAlgos = [8 => 'fnv1a32', 16 => 'fnv1a64', 32 => 'md5', 40 => 'sha1'];
             @ $hashAlgo = $hashAlgos[$this->options['hashLength'] ?? 16];
-            if ($hashAlgo == null) {
-                throw new FileException("Only '8,16,32,40' are accepted");
+            if (!$hashAlgo) {
+                throw new FileException("Only '8,16,32,40' are accepted as 'hashLength'");
             }
 
             if ($hash == 'rand') {
@@ -230,7 +242,7 @@ abstract class AbstractFile implements Arrayable
         }
 
         // Appendix like 'crop' (ie: abc123-crop.jpg).
-        if ($nameAppendix != null) {
+        if ($nameAppendix) {
             $name .= '-'. strtolower(preg_replace('~[^a-z0-9-]~i', '', $nameAppendix));
         }
 

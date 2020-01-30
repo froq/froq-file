@@ -146,7 +146,7 @@ final class Util
                     FileError::DIRECTORY_GIVEN);
             }
         } else {
-            $error = $error ?? error();
+            $error = $error ?? error_get_last()['message'] ?? 'unknown';
             if (stripos($error, 'no such file')) {
                 $error = new FileError(sprintf('File "%s" is not exists', $file),
                     FileError::NO_SUCH_FILE);

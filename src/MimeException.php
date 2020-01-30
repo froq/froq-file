@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\common\Exception;
+use froq\file\FileException;
 
 /**
  * Mime Exception.
@@ -35,5 +35,5 @@ use froq\common\Exception;
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   3.0
  */
-final class MimeException extends Exception
+final class MimeException extends FileException
 {}

@@ -45,7 +45,7 @@ final class FileUploader extends File implements FileInterface
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new FileException(sprintf('Cannot save file, error[%s]', error()));
+            throw new FileException('Cannot save file, error[%s]', ['@error']);
         }
 
         return $destination;
@@ -65,7 +65,7 @@ final class FileUploader extends File implements FileInterface
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new FileException(sprintf('Cannot save file, error[%s]', error()));
+            throw new FileException('Cannot save file, error[%s]', ['@error']);
         }
 
         return $destination;
@@ -79,10 +79,13 @@ final class FileUploader extends File implements FileInterface
         $source = $this->getSource();
         $destination = $this->getDestination();
 
-        $ok =@ move_uploaded_file($source, $destination);
+        $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new FileException(sprintf('Cannot move file, error[%s]', error()));
+            throw new FileException('Cannot move file, error[%s]', ['@error']);
         }
+
+        // Remove source instantly.
+        @ unlink($source);
 
         return $destination;
     }
@@ -99,10 +102,13 @@ final class FileUploader extends File implements FileInterface
         $source = $this->getSource();
         $destination = $this->getDestination($name, $nameAppendix);
 
-        $ok =@ move_uploaded_file($source, $destination);
+        $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new FileException(sprintf('Cannot move file, error[%s]', error()));
+            throw new FileException('Cannot move file, error[%s]', ['@error']);
         }
+
+        // Remove source instantly.
+        @ unlink($source);
 
         return $destination;
     }

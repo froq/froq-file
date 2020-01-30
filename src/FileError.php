@@ -42,7 +42,7 @@ final class FileError extends Error
      * @const int
      */
     public const INTERNAL                       = 1, // Below used in file.File.
-                 NO_VALID_DATA                  = 2,
+                 NO_VALID_FILE                  = 2,
                  NO_VALID_SOURCE                = 3,
                  OPTION_EMPTY                   = 4,
                  OPTION_SIZE_EXCEEDED           = 5,

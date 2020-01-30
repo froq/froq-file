@@ -48,9 +48,8 @@ final class MimeTypes
      */
     public static function all(): array
     {
-        if (self::$all == null) {
-            self::$all = include __dir__ .'/data/mimes.php';
-        }
-        return self::$all;
+        return self::$all ?? (
+               self::$all = include 'data/mimes.php'
+        );
     }
 }

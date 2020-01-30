@@ -90,8 +90,7 @@ final class ImageUploader extends File implements FileInterface
      * @return self
      * @throws froq\file\FileException
      */
-    public function resize(int $width, int $height, bool $proportional = true,
-        bool $fixExcessiveDimensions = true): self
+    public function resize(int $width, int $height, bool $proportional = true, bool $fixExcessiveDimensions = true): self
     {
         // Fill/ensure info.
         $this->fillInfo();
@@ -100,7 +99,7 @@ final class ImageUploader extends File implements FileInterface
 
         @ $this->resourceFile = $this->createResourceFile();
         if (!$this->resourceFile) {
-            throw new FileException(sprintf('Could not create resource file, error[%s]', error()));
+            throw new FileException('Could not create resource file, error[%s]', ['@error']);
         }
 
         [$origWidth, $origHeight] = $info;
@@ -125,7 +124,7 @@ final class ImageUploader extends File implements FileInterface
 
         @ $this->destinationFile = imagecreatetruecolor($newWidth, $newHeight);
         if (!$this->destinationFile) {
-            throw new FileException(sprintf('Could not create destination file, error[%s]', error()));
+            throw new FileException('Could not create destination file, error[%s]', ['@error']);
         }
 
         // Handle PNGs.
@@ -136,10 +135,10 @@ final class ImageUploader extends File implements FileInterface
             imagesavealpha($this->destinationFile, true);
         }
 
-        $ok =@ imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, 0, 0,
+        @ $ok = imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, 0, 0,
             $newWidth, $newHeight, $origWidth, $origHeight);
         if (!$ok) {
-            throw new FileException(sprintf('Could not resample file, error[%s]', error()));
+            throw new FileException('Could not resample file, error[%s]', ['@error']);
         }
 
         // Store new dimensions.
@@ -171,7 +170,7 @@ final class ImageUploader extends File implements FileInterface
 
         @ $this->resourceFile = $this->createResourceFile();
         if (!$this->resourceFile) {
-            throw new FileException(sprintf('Could not create resource file, error[%s]', error()));
+            throw new FileException('Could not create resource file, error[%s]', ['@error']);
         }
 
         [$origWidth, $origHeight] = $info;
@@ -192,7 +191,7 @@ final class ImageUploader extends File implements FileInterface
 
         @ $this->destinationFile = imagecreatetruecolor($width, $height);
         if (!$this->destinationFile) {
-            throw new FileException(sprintf('Could not create destination file, error[%s]', error()));
+            throw new FileException('Could not create destination file, error[%s]', ['@error']);
         }
 
         // Handle PNGs.
@@ -203,10 +202,10 @@ final class ImageUploader extends File implements FileInterface
             imagesavealpha($this->destinationFile, true);
         }
 
-        $ok =@ imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
+        @ $ok = imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
             $width, $height, $cropWidth, $cropHeight);
         if (!$ok) {
-            throw new FileException(sprintf('Could not resample file, error[%s]', error()));
+            throw new FileException('Could not resample file, error[%s]', ['@error']);
         }
 
         // Store new dimensions.
@@ -245,9 +244,9 @@ final class ImageUploader extends File implements FileInterface
 
         $destination = $this->getDestination();
 
-        $ok =@ $this->outputTo($destination);
+        @ $ok = $this->outputTo($destination);
         if (!$ok) {
-            throw new FileException(sprintf('Cannot save file, error[%s]', error()));
+            throw new FileException('Cannot save file, error[%s]', ['@error']);
         }
 
         return $destination;
@@ -256,8 +255,7 @@ final class ImageUploader extends File implements FileInterface
     /**
      * @inheritDoc froq\file\FileInterface
      */
-    public function saveAs(string $name, string $nameAppendix = null,
-        bool $useNewDimensionsAsNameAppendix = false): string
+    public function saveAs(string $name, string $nameAppendix = null, bool $useNewDimensionsAsNameAppendix = false): string
     {
         if ($name == '') {
             throw new FileException('Name cannot be empty');
@@ -280,9 +278,9 @@ final class ImageUploader extends File implements FileInterface
 
         $destination = $this->getDestination($name, $nameAppendix);
 
-        $ok =@ $this->outputTo($destination);
+        @ $ok = $this->outputTo($destination);
         if (!$ok) {
-            throw new FileException(sprintf('Cannot save file, error[%s]', error()));
+            throw new FileException('Cannot save file, error[%s]', ['@error']);
         }
 
         return $destination;
@@ -296,10 +294,13 @@ final class ImageUploader extends File implements FileInterface
         $source = $this->getSource();
         $destination = $this->getDestination();
 
-        $ok =@ move_uploaded_file($source, $destination);
+        @ $ok = copy($source, $destination);
         if (!$ok) {
-            throw new FileException(sprintf('Cannot move file, error[%s]', error()));
+            throw new FileException('Cannot move file, error[%s]', ['@error']);
         }
+
+        // Remove source instantly.
+        @ unlink($source);
 
         return $destination;
     }
@@ -316,10 +317,13 @@ final class ImageUploader extends File implements FileInterface
         $source = $this->getSource();
         $destination = $this->getDestination($name, $nameAppendix);
 
-        $ok =@ move_uploaded_file($source, $destination);
+        @ $ok = copy($source, $destination);
         if (!$ok) {
-            throw new FileException(sprintf('Cannot move file, error[%s]', error()));
+            throw new FileException('Cannot move file, error[%s]', ['@error']);
         }
+
+        // Remove source instantly.
+        @ unlink($source);
 
         return $destination;
     }
@@ -371,7 +375,7 @@ final class ImageUploader extends File implements FileInterface
         if (empty($this->info)) {
             @ $info = getimagesize($this->getSource());
             if (!$info) {
-                throw new FileException(sprintf('Could not get file info, error[%s]', error()));
+                throw new FileException('Could not get file info, error[%s]', ['@error']);
             }
 
             // Add suggestive names..

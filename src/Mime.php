@@ -51,7 +51,7 @@ final class Mime
         if ($errorCheck) {
             FileUtil::errorCheck($file, $error);
             if ($error != null) {
-                throw new MimeException($error->getMessage(), $error->getCode());
+                throw new MimeException($error->getMessage(), null, $error->getCode());
             }
         }
 
@@ -61,7 +61,7 @@ final class Mime
             // This function might be not available.
             $type = mime_content_type($file);
             if ($type === false) {
-                throw new MimeException(error_get_last()['message'] ?? 'unknown');
+                throw new MimeException('@error');
             }
         } catch (Error $e) {
             try {
