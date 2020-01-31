@@ -242,7 +242,7 @@ abstract class AbstractUploader
             $extension = pathinfo($name, PATHINFO_EXTENSION);
             if ($extension !== '' && $this->options['allowedExtensions'] !== '*'
                 && !in_array($extension, explode(',', (string) $this->options['allowedExtensions']))) {
-                throw new FileException(
+                throw new UploaderException(
                     'Extension "%s" not allowed by options, allowed extensions: "%s"',
                     [$extension, $this->options['allowedExtensions']], UploaderError::OPTION_NOT_ALLOWED_EXTENSION
                 );
