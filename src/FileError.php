@@ -41,41 +41,8 @@ final class FileError extends Error
      * Errors.
      * @const int
      */
-    public const INTERNAL                       = 1, // Below used in file.File.
-                 NO_VALID_FILE                  = 2,
-                 NO_VALID_SOURCE                = 3,
-                 OPTION_EMPTY                   = 4,
-                 OPTION_SIZE_EXCEEDED           = 5,
-                 OPTION_EMPTY_EXTENSION         = 6,
-                 OPTION_NOT_ALLOWED_TYPE        = 7,
-                 OPTION_NOT_ALLOWED_EXTENSION   = 8,
-                 DIRECTORY_EMPTY                = 10,
-                 DIRECTORY_ERROR                = 11,
-                 DIRECTORY_GIVEN                = 20, // Below used in file.Util.
-                 PERMISSION_DENIED              = 21,
-                 INVALID_PATH                   = 22,
-                 NO_SUCH_FILE                   = 23;
-
-    /**
-     * All.
-     * @var array
-     */
-    private static array $all = [
-        1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
-        2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
-        3 => 'The uploaded file was only partially uploaded',
-        4 => 'No file was uploaded',
-        6 => 'Missing a temporary folder',
-        7 => 'Failed to write file to disk',
-        8 => 'A PHP extension stopped the file upload'
-    ];
-
-    /**
-     * All.
-     * @return array
-     */
-    public static function all(): array
-    {
-        return self::$all;
-    }
+    public const DIRECTORY_GIVEN   = 1,
+                 NO_SUCH_FILE      = 2,
+                 PERMISSION_DENIED = 3,
+                 INVALID_PATH      = 4;
 }

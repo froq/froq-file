@@ -26,50 +26,14 @@ declare(strict_types=1);
 
 namespace froq\file;
 
+use froq\file\FileException;
+
 /**
- * File Interface.
+ * Uploader Exception.
  * @package froq\file
- * @object  froq\file\FileInterface
+ * @object  froq\file\UploaderException
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   1.0
+ * @since   4.0
  */
-interface FileInterface
-{
-    /**
-     * Save.
-     * @return string
-     * @throws froq\file\FileException
-     */
-    public function save(): string;
-
-    /**
-     * Save as.
-     * @param  string      $name
-     * @param  string|null $nameAppendix
-     * @return string
-     * @throws froq\file\FileException
-     */
-    public function saveAs(string $name, string $nameAppendix = null): string;
-
-    /**
-     * Move.
-     * @return string
-     * @throws froq\file\FileException
-     */
-    public function move(): string;
-
-    /**
-     * Move as.
-     * @param  string $name
-     * @param  string|null $nameAppendix
-     * @return string
-     * @throws froq\file\FileException
-     */
-    public function moveAs(string $name, string $nameAppendix = null): string;
-
-    /**
-     * Clear.
-     * @return void
-     */
-    public function clear(): void;
-}
+final class UploaderException extends FileException
+{}

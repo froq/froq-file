@@ -26,6 +26,8 @@ declare(strict_types=1);
 
 namespace froq\file;
 
+use froq\file\{AbstractUploader, UploaderException};
+
 /**
  * Image Uploader.
  * @package froq\file
@@ -33,7 +35,7 @@ namespace froq\file;
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   3.0
  */
-final class ImageUploader extends File implements FileInterface
+final class ImageUploader extends AbstractUploader
 {
     /**
      * Supported types.
@@ -74,7 +76,7 @@ final class ImageUploader extends File implements FileInterface
     /**
      * Resample.
      * @return self
-     * @throws froq\file\FileException
+     * @throws froq\file\UploaderException
      */
     public function resample(): self
     {
@@ -88,7 +90,7 @@ final class ImageUploader extends File implements FileInterface
      * @param  bool $proportional
      * @param  bool $fixExcessiveDimensions
      * @return self
-     * @throws froq\file\FileException
+     * @throws froq\file\UploaderException
      */
     public function resize(int $width, int $height, bool $proportional = true, bool $fixExcessiveDimensions = true): self
     {
@@ -99,7 +101,7 @@ final class ImageUploader extends File implements FileInterface
 
         @ $this->resourceFile = $this->createResourceFile();
         if (!$this->resourceFile) {
-            throw new FileException('Could not create resource file, error[%s]', ['@error']);
+            throw new UploaderException('Could not create resource file, error[%s]', ['@error']);
         }
 
         [$origWidth, $origHeight] = $info;
@@ -124,7 +126,7 @@ final class ImageUploader extends File implements FileInterface
 
         @ $this->destinationFile = imagecreatetruecolor($newWidth, $newHeight);
         if (!$this->destinationFile) {
-            throw new FileException('Could not create destination file, error[%s]', ['@error']);
+            throw new UploaderException('Could not create destination file, error[%s]', ['@error']);
         }
 
         // Handle PNGs.
@@ -138,7 +140,7 @@ final class ImageUploader extends File implements FileInterface
         @ $ok = imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, 0, 0,
             $newWidth, $newHeight, $origWidth, $origHeight);
         if (!$ok) {
-            throw new FileException('Could not resample file, error[%s]', ['@error']);
+            throw new UploaderException('Could not resample file, error[%s]', ['@error']);
         }
 
         // Store new dimensions.
@@ -154,7 +156,7 @@ final class ImageUploader extends File implements FileInterface
      * @param  bool                 $proportional
      * @param  array<int, int>|null $xy @internal
      * @return self
-     * @throws froq\file\FileException
+     * @throws froq\file\UploaderException
      */
     public function crop(int $width, int $height, bool $proportional = true, array $xy = null): self
     {
@@ -170,7 +172,7 @@ final class ImageUploader extends File implements FileInterface
 
         @ $this->resourceFile = $this->createResourceFile();
         if (!$this->resourceFile) {
-            throw new FileException('Could not create resource file, error[%s]', ['@error']);
+            throw new UploaderException('Could not create resource file, error[%s]', ['@error']);
         }
 
         [$origWidth, $origHeight] = $info;
@@ -191,7 +193,7 @@ final class ImageUploader extends File implements FileInterface
 
         @ $this->destinationFile = imagecreatetruecolor($width, $height);
         if (!$this->destinationFile) {
-            throw new FileException('Could not create destination file, error[%s]', ['@error']);
+            throw new UploaderException('Could not create destination file, error[%s]', ['@error']);
         }
 
         // Handle PNGs.
@@ -205,7 +207,7 @@ final class ImageUploader extends File implements FileInterface
         @ $ok = imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
             $width, $height, $cropWidth, $cropHeight);
         if (!$ok) {
-            throw new FileException('Could not resample file, error[%s]', ['@error']);
+            throw new UploaderException('Could not resample file, error[%s]', ['@error']);
         }
 
         // Store new dimensions.
@@ -222,7 +224,7 @@ final class ImageUploader extends File implements FileInterface
      * @param  int  $y
      * @param  bool $proportional
      * @return bool
-     * @throws froq\file\FileException
+     * @throws froq\file\UploaderException
      */
     public function cropBy(int $width, int $height, int $x, int $y, bool $proportional = true): self
     {
@@ -230,7 +232,7 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc froq\file\FileInterface
+     * @inheritDoc froq\file\Uploader
      */
     public function save(): string
     {
@@ -238,7 +240,7 @@ final class ImageUploader extends File implements FileInterface
         $destinationFile = $this->getDestinationFile();
 
         if ($resourceFile == null || $destinationFile == null) {
-            throw new FileException('No resource/destination file created yet, call one of these '.
+            throw new UploaderException('No resource/destination file created yet, call one of these '.
                 'method first: resample(), resize(), crop() or cropBy()');
         }
 
@@ -246,26 +248,26 @@ final class ImageUploader extends File implements FileInterface
 
         @ $ok = $this->outputTo($destination);
         if (!$ok) {
-            throw new FileException('Cannot save file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot save file, error[%s]', ['@error']);
         }
 
         return $destination;
     }
 
     /**
-     * @inheritDoc froq\file\FileInterface
+     * @inheritDoc froq\file\Uploader
      */
     public function saveAs(string $name, string $nameAppendix = null, bool $useNewDimensionsAsNameAppendix = false): string
     {
         if ($name == '') {
-            throw new FileException('Name cannot be empty');
+            throw new UploaderException('Name cannot be empty');
         }
 
         $resourceFile = $this->getResourceFile();
         $destinationFile = $this->getDestinationFile();
 
         if ($resourceFile == null || $destinationFile == null) {
-            throw new FileException('No resource/destination file created yet, call one of these '.
+            throw new UploaderException('No resource/destination file created yet, call one of these '.
                 'method first: resample(), resize(), crop() or cropBy()');
         }
 
@@ -280,14 +282,14 @@ final class ImageUploader extends File implements FileInterface
 
         @ $ok = $this->outputTo($destination);
         if (!$ok) {
-            throw new FileException('Cannot save file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot save file, error[%s]', ['@error']);
         }
 
         return $destination;
     }
 
     /**
-     * @inheritDoc froq\file\FileInterface
+     * @inheritDoc froq\file\Uploader
      */
     public function move(): string
     {
@@ -296,7 +298,7 @@ final class ImageUploader extends File implements FileInterface
 
         @ $ok = copy($source, $destination);
         if (!$ok) {
-            throw new FileException('Cannot move file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot move file, error[%s]', ['@error']);
         }
 
         // Remove source instantly.
@@ -306,12 +308,12 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc froq\file\FileInterface
+     * @inheritDoc froq\file\Uploader
      */
     public function moveAs(string $name, string $nameAppendix = null): string
     {
         if ($name == '') {
-            throw new FileException('Name cannot be empty');
+            throw new UploaderException('Name cannot be empty');
         }
 
         $source = $this->getSource();
@@ -319,7 +321,7 @@ final class ImageUploader extends File implements FileInterface
 
         @ $ok = copy($source, $destination);
         if (!$ok) {
-            throw new FileException('Cannot move file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot move file, error[%s]', ['@error']);
         }
 
         // Remove source instantly.
@@ -329,20 +331,30 @@ final class ImageUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc froq\file\File
+     * @inheritDoc froq\file\Uploader
      */
-    public function clear(): void
+    public function clear(bool $force = false): void
     {
-        if ($this->options['clear']) {
+        if (!$force) {
+            if ($this->options['clearSource']) {
+                @ unlink($this->getSource());
+            }
+
+            if ($this->options['clear']) {
+                is_resource($this->resourceFile) && imagedestroy($this->resourceFile);
+                is_resource($this->destinationFile) && imagedestroy($this->destinationFile);
+
+                $this->resourceFile = null;
+                $this->destinationFile = null;
+            }
+        } else {
+            @ unlink($this->getSource());
+
             is_resource($this->resourceFile) && imagedestroy($this->resourceFile);
             is_resource($this->destinationFile) && imagedestroy($this->destinationFile);
 
             $this->resourceFile = null;
             $this->destinationFile = null;
-        }
-
-        if ($this->options['clearSource']) {
-            @ unlink($this->getSource());
         }
     }
 
@@ -357,17 +369,20 @@ final class ImageUploader extends File implements FileInterface
 
     /**
      * Get info.
-     * @return ?array
+     * @return array
      */
-    public function getInfo(): ?array
+    public function getInfo(): array
     {
-        return $this->info ?? null;
+        if (empty($this->info)) {
+            throw new UploaderException('Could not get info, try after calling fillInfo()');
+        }
+        return $this->info;
     }
 
     /**
      * Fill info.
      * @return void
-     * @throws froq\file\FileException
+     * @throws froq\file\UploaderException
      * @internal
      */
     public function fillInfo(): void
@@ -375,7 +390,7 @@ final class ImageUploader extends File implements FileInterface
         if (empty($this->info)) {
             @ $info = getimagesize($this->getSource());
             if (!$info) {
-                throw new FileException('Could not get file info, error[%s]', ['@error']);
+                throw new UploaderException('Could not get source info, error[%s]', ['@error']);
             }
 
             // Add suggestive names..
@@ -423,17 +438,9 @@ final class ImageUploader extends File implements FileInterface
     /**
      * Get output buffer.
      * @return string
-     * @throws froq\file\FileException
      */
     public function getOutputBuffer(): string
     {
-        $destinationFile = $this->getDestinationFile();
-
-        if ($destinationFile == null) {
-            throw new FileException('No destination file created yet, call one of these method '.
-                'first: resample(), resize(), crop() or cropBy()');
-        }
-
         ob_start();
         $this->output();
         return ob_get_clean();
@@ -442,14 +449,13 @@ final class ImageUploader extends File implements FileInterface
     /**
      * Create resource file.
      * @return ?resource
-     * @throws froq\file\FileException
+     * @throws froq\file\UploaderException
      */
     private function createResourceFile()
     {
         $type = $this->getInfo()['type'];
-
         if (!in_array($type, self::SUPPORTED_TYPES)) {
-            throw new FileException('Unsupported image type');
+            throw new UploaderException('Unsupported image type, only "jpeg, png, gif" are accepted');
         }
 
         switch ($type) {
@@ -467,22 +473,29 @@ final class ImageUploader extends File implements FileInterface
     /**
      * Output.
      * @return ?bool
+     * @throws froq\file\UploaderException
      */
     private function output(): ?bool
     {
-        $type = $this->getInfo()['type'];
         $destinationFile = $this->getDestinationFile();
+        if ($destinationFile == null) {
+            throw new UploaderException('No destination file created yet, call one of these method '.
+                'first: resample(), resize(), crop() or cropBy()');
+        }
 
-        if ($destinationFile != null) {
-            switch ($type) {
-                case IMAGETYPE_JPEG:
-                    $jpegQuality = intval($this->options['jpegQuality'] ?? self::JPEG_QUALITY);
-                    return imagejpeg($destinationFile, null, $jpegQuality);
-                case IMAGETYPE_PNG:
-                    return imagepng($destinationFile);
-                case IMAGETYPE_GIF:
-                    return imagegif($destinationFile);
-            }
+        $type = $this->getInfo()['type'];
+        if (!in_array($type, self::SUPPORTED_TYPES)) {
+            throw new UploaderException('Unsupported image type, only "jpeg, png, gif" are accepted');
+        }
+
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                $jpegQuality = intval($this->options['jpegQuality'] ?? self::JPEG_QUALITY);
+                return imagejpeg($destinationFile, null, $jpegQuality);
+            case IMAGETYPE_PNG:
+                return imagepng($destinationFile);
+            case IMAGETYPE_GIF:
+                return imagegif($destinationFile);
         }
 
         return null;
@@ -492,22 +505,29 @@ final class ImageUploader extends File implements FileInterface
      * Output to.
      * @param  string $to
      * @return ?bool
+     * @throws froq\file\UploaderException
      */
     private function outputTo(string $to): ?bool
     {
-        $type = $this->getInfo()['type'];
         $destinationFile = $this->getDestinationFile();
+        if ($destinationFile == null) {
+            throw new UploaderException('No destination file created yet, call one of these method '.
+                'first: resample(), resize(), crop() or cropBy()');
+        }
 
-        if ($destinationFile != null) {
-            switch ($type) {
-                case IMAGETYPE_JPEG:
-                    $jpegQuality = intval($this->options['jpegQuality'] ?? self::JPEG_QUALITY);
-                    return imagejpeg($destinationFile, $to, $jpegQuality);
-                case IMAGETYPE_PNG:
-                    return imagepng($destinationFile, $to);
-                case IMAGETYPE_GIF:
-                    return imagegif($destinationFile, $to);
-            }
+        $type = $this->getInfo()['type'];
+        if (!in_array($type, self::SUPPORTED_TYPES)) {
+            throw new UploaderException('Unsupported image type, only "jpeg, png, gif" are accepted');
+        }
+
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                $jpegQuality = intval($this->options['jpegQuality'] ?? self::JPEG_QUALITY);
+                return imagejpeg($destinationFile, $to, $jpegQuality);
+            case IMAGETYPE_PNG:
+                return imagepng($destinationFile, $to);
+            case IMAGETYPE_GIF:
+                return imagegif($destinationFile, $to);
         }
 
         return null;

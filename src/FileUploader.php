@@ -26,6 +26,8 @@ declare(strict_types=1);
 
 namespace froq\file;
 
+use froq\file\{AbstractUploader, UploaderException};
+
 /**
  * File Uploader.
  * @package froq\file
@@ -33,10 +35,10 @@ namespace froq\file;
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   3.0
  */
-final class FileUploader extends File implements FileInterface
+final class FileUploader extends AbstractUploader
 {
     /**
-     * @inheritDoc froq\file\FileInterface
+     * @inheritDoc froq\file\Uploader
      */
     public function save(): string
     {
@@ -45,19 +47,19 @@ final class FileUploader extends File implements FileInterface
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new FileException('Cannot save file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot save file, error[%s]', ['@error']);
         }
 
         return $destination;
     }
 
     /**
-     * @inheritDoc froq\file\FileInterface
+     * @inheritDoc froq\file\Uploader
      */
     public function saveAs(string $name, string $nameAppendix = null): string
     {
         if ($name == '') {
-            throw new FileException('Name cannot be empty');
+            throw new UploaderException('Name cannot be empty');
         }
 
         $source = $this->getSource();
@@ -65,14 +67,14 @@ final class FileUploader extends File implements FileInterface
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new FileException('Cannot save file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot save file, error[%s]', ['@error']);
         }
 
         return $destination;
     }
 
     /**
-     * @inheritDoc froq\file\FileInterface
+     * @inheritDoc froq\file\Uploader
      */
     public function move(): string
     {
@@ -81,7 +83,7 @@ final class FileUploader extends File implements FileInterface
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new FileException('Cannot move file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot move file, error[%s]', ['@error']);
         }
 
         // Remove source instantly.
@@ -91,12 +93,12 @@ final class FileUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc froq\file\FileInterface
+     * @inheritDoc froq\file\Uploader
      */
     public function moveAs(string $name, string $nameAppendix = null): string
     {
         if ($name == '') {
-            throw new FileException('Name cannot be empty');
+            throw new UploaderException('Name cannot be empty');
         }
 
         $source = $this->getSource();
@@ -104,7 +106,7 @@ final class FileUploader extends File implements FileInterface
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new FileException('Cannot move file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot move file, error[%s]', ['@error']);
         }
 
         // Remove source instantly.
@@ -114,11 +116,15 @@ final class FileUploader extends File implements FileInterface
     }
 
     /**
-     * @inheritDoc froq\file\FileInterface
+     * @inheritDoc froq\file\Uploader
      */
-    public function clear(): void
+    public function clear(bool $force = false): void
     {
-        if ($this->options['clearSource']) {
+        if (!$force) {
+            if ($this->options['clearSource']) {
+                @ unlink($this->getSource());
+            }
+        } else {
             @ unlink($this->getSource());
         }
     }
