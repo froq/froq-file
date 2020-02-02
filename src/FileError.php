@@ -35,7 +35,7 @@ use froq\common\Error;
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   3.0
  */
-final class FileError extends Error
+class FileError extends Error
 {
     /**
      * Errors.

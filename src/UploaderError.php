@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\common\Error;
+use froq\file\FileError;
 
 /**
  * Uploader Error.
@@ -35,13 +35,13 @@ use froq\common\Error;
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   4.0
  */
-final class UploaderError extends Error
+final class UploaderError extends FileError
 {
     /**
      * Errors.
      * @const int
      */
-    public const INTERNAL                     = 1, // Below used in file.File.
+    public const INTERNAL                     = 1,
                  NO_VALID_FILE                = 2,
                  NO_VALID_SOURCE              = 3,
                  OPTION_EMPTY                 = 4,
