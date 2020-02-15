@@ -99,9 +99,9 @@ final class ImageUploader extends AbstractUploader
 
         $info = $this->getInfo();
 
-        @ $this->resourceFile = $this->createResourceFile();
+        $this->resourceFile =@ $this->createResourceFile();
         if (!$this->resourceFile) {
-            throw new UploaderException('Could not create resource file, error[%s]', ['@error']);
+            throw new UploaderException('Could not create resource file [error: %s]', ['@error']);
         }
 
         [$origWidth, $origHeight] = $info;
@@ -124,9 +124,9 @@ final class ImageUploader extends AbstractUploader
             $newHeight = (int) ($height > 0 ? $height : $origHeight);
         }
 
-        @ $this->destinationFile = imagecreatetruecolor($newWidth, $newHeight);
+        $this->destinationFile =@ imagecreatetruecolor($newWidth, $newHeight);
         if (!$this->destinationFile) {
-            throw new UploaderException('Could not create destination file, error[%s]', ['@error']);
+            throw new UploaderException('Could not create destination file [error: %s]', ['@error']);
         }
 
         // Handle PNGs.
@@ -137,10 +137,10 @@ final class ImageUploader extends AbstractUploader
             imagesavealpha($this->destinationFile, true);
         }
 
-        @ $ok = imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, 0, 0,
+        $ok =@ imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, 0, 0,
             $newWidth, $newHeight, $origWidth, $origHeight);
         if (!$ok) {
-            throw new UploaderException('Could not resample file, error[%s]', ['@error']);
+            throw new UploaderException('Could not resample file [error: %s]', ['@error']);
         }
 
         // Store new dimensions.
@@ -170,9 +170,9 @@ final class ImageUploader extends AbstractUploader
             return $this->resize($width, $height);
         }
 
-        @ $this->resourceFile = $this->createResourceFile();
+        $this->resourceFile =@ $this->createResourceFile();
         if (!$this->resourceFile) {
-            throw new UploaderException('Could not create resource file, error[%s]', ['@error']);
+            throw new UploaderException('Could not create resource file [error: %s]', ['@error']);
         }
 
         [$origWidth, $origHeight] = $info;
@@ -191,9 +191,9 @@ final class ImageUploader extends AbstractUploader
         $x = $x ?? (int) (($origWidth - $cropWidth) / 2);
         $y = $y ?? (int) (($origHeight - $cropHeight) / 2);
 
-        @ $this->destinationFile = imagecreatetruecolor($width, $height);
+        $this->destinationFile =@ imagecreatetruecolor($width, $height);
         if (!$this->destinationFile) {
-            throw new UploaderException('Could not create destination file, error[%s]', ['@error']);
+            throw new UploaderException('Could not create destination file [error: %s]', ['@error']);
         }
 
         // Handle PNGs.
@@ -204,10 +204,10 @@ final class ImageUploader extends AbstractUploader
             imagesavealpha($this->destinationFile, true);
         }
 
-        @ $ok = imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
+        $ok =@ imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
             $width, $height, $cropWidth, $cropHeight);
         if (!$ok) {
-            throw new UploaderException('Could not resample file, error[%s]', ['@error']);
+            throw new UploaderException('Could not resample file [error: %s]', ['@error']);
         }
 
         // Store new dimensions.
@@ -246,9 +246,9 @@ final class ImageUploader extends AbstractUploader
 
         $destination = $this->getDestination();
 
-        @ $ok = $this->outputTo($destination);
+        $ok =@ $this->outputTo($destination);
         if (!$ok) {
-            throw new UploaderException('Cannot save file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot save file [error: %s]', ['@error']);
         }
 
         return $destination;
@@ -280,9 +280,9 @@ final class ImageUploader extends AbstractUploader
 
         $destination = $this->getDestination($name, $nameAppendix);
 
-        @ $ok = $this->outputTo($destination);
+        $ok =@ $this->outputTo($destination);
         if (!$ok) {
-            throw new UploaderException('Cannot save file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot save file [error: %s]', ['@error']);
         }
 
         return $destination;
@@ -296,9 +296,9 @@ final class ImageUploader extends AbstractUploader
         $source = $this->getSource();
         $destination = $this->getDestination();
 
-        @ $ok = copy($source, $destination);
+        $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new UploaderException('Cannot move file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot move file [error: %s]', ['@error']);
         }
 
         // Remove source instantly.
@@ -319,9 +319,9 @@ final class ImageUploader extends AbstractUploader
         $source = $this->getSource();
         $destination = $this->getDestination($name, $nameAppendix);
 
-        @ $ok = copy($source, $destination);
+        $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new UploaderException('Cannot move file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot move file [error: %s]', ['@error']);
         }
 
         // Remove source instantly.
@@ -388,9 +388,9 @@ final class ImageUploader extends AbstractUploader
     public function fillInfo(): void
     {
         if (empty($this->info)) {
-            @ $info = getimagesize($this->getSource());
+            $info =@ getimagesize($this->getSource());
             if (!$info) {
-                throw new UploaderException('Could not get source info, error[%s]', ['@error']);
+                throw new UploaderException('Could not get source info [error: %s]', ['@error']);
             }
 
             // Add suggestive names..

@@ -33,7 +33,7 @@ use froq\file\FileError;
  * @package froq\file
  * @object  froq\file\File
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   3.0, 4.0 Made static, added read(),write(),mode(), moved all other stuff into AbstractUploader.
+ * @since   3.0, 4.0 Become static, added read(),write(),mode(), moved all other stuff into AbstractUploader.
  * @static
  */
 final class File
@@ -89,7 +89,7 @@ final class File
             if ($mode === -1) {
                 $ret =@ fileperms($file);
                 if ($ret === false) {
-                    throw new FileError('Cannot get file stat for %s', [$file]);
+                    throw new FileError('Cannot get file stat for "%s"', [$file]);
                 }
             }
             // Set mode.
@@ -110,7 +110,7 @@ final class File
         // Get full permissions.
         $perms =@ fileperms($file);
         if ($perms === false) {
-            throw new FileError('Cannot get file stat for %s', [$file]);
+            throw new FileError('Cannot get file stat for "%s"', [$file]);
         }
 
         // Source http://php.net/fileperms.

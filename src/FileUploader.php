@@ -47,7 +47,7 @@ final class FileUploader extends AbstractUploader
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new UploaderException('Cannot save file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot save file [error: %s]', ['@error']);
         }
 
         return $destination;
@@ -67,7 +67,7 @@ final class FileUploader extends AbstractUploader
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new UploaderException('Cannot save file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot save file [error: %s]', ['@error']);
         }
 
         return $destination;
@@ -83,7 +83,7 @@ final class FileUploader extends AbstractUploader
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new UploaderException('Cannot move file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot move file [error: %s]', ['@error']);
         }
 
         // Remove source instantly.
@@ -106,7 +106,7 @@ final class FileUploader extends AbstractUploader
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new UploaderException('Cannot move file, error[%s]', ['@error']);
+            throw new UploaderException('Cannot move file [error: %s]', ['@error']);
         }
 
         // Remove source instantly.
