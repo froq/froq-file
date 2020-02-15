@@ -169,7 +169,7 @@ abstract class AbstractUploader
             $ok =@ mkdir($directory, 0644, true);
             if (!$ok) {
                 throw new UploaderException(
-                    'Cannot make directory, error[%s]',
+                    'Cannot make directory [error: %s]',
                     ['@error'], UploaderError::DIRECTORY_ERROR
                 );
             }
