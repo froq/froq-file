@@ -46,7 +46,9 @@ final class Util
      */
     public static function getType(string $file): ?string
     {
-        try { return Mime::getType($file); } catch (MimeException $e) { return null; }
+        try { return Mime::getType($file); } catch (MimeException $e) {
+            return null; // Error.
+        }
     }
 
     /**
@@ -62,24 +64,24 @@ final class Util
     /**
      * Is file.
      * @param  string $path
-     * @return bool
+     * @return ?bool
      */
-    public static function isFile(string $path): bool
+    public static function isFile(string $path): ?bool
     {
         try { return is_file($path); } catch (Error $e) {
-            return (null !== self::getType($path));
+            return null; // Error.
         }
     }
 
     /**
      * Is directory.
      * @param  string $path
-     * @return bool
+     * @return ?bool
      */
-    public static function isDirectory(string $path): bool
+    public static function isDirectory(string $path): ?bool
     {
         try { return is_dir($path); } catch (Error $e) {
-            return ('directory' === self::getType($path));
+            return null; // Error.
         }
     }
 
@@ -141,20 +143,21 @@ final class Util
 
         if ($fp) {
             fclose($fp);
+
             if (is_dir($file)) {
-                $error = new FileError(sprintf('Given path "%s" is a directory', $file),
+                $error = new FileError('Given path "%s" is a directory', [$file],
                     FileError::DIRECTORY_GIVEN);
             }
         } else {
-            $error = $error ?? error_get_last()['message'] ?? 'unknown';
+            $error = $error ?? error_get_last()['message'] ?? 'Unknown error';
             if (stripos($error, 'no such file')) {
-                $error = new FileError(sprintf('File "%s" is not exists', $file),
+                $error = new FileError('File "%s" is not exists', [$file],
                     FileError::NO_SUCH_FILE);
             } elseif (stripos($error, 'permission denied')) {
-                $error = new FileError(sprintf('Permission denied for file "%s"', $file),
+                $error = new FileError('Permission denied for file "%s"', [$file],
                     FileError::PERMISSION_DENIED);
             } elseif (stripos($error, 'valid path')) {
-                $error = new FileError(sprintf('Invalid path "%s" given', str_replace("\0", "\\0", $file)),
+                $error = new FileError('Invalid path "%s" given', [str_replace("\0", "\\0", $file)],
                     FileError::INVALID_PATH);
             } else {
                 $error = new FileError($error);
