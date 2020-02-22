@@ -130,7 +130,7 @@ final class Util
      */
     public static function errorCheck(string $file, FileError &$error = null): bool
     {
-        // Sadly is_file(),is_readable(),stat() even SplFileInfo etc. not giving a proper error
+        // Sadly is_file(), is_readable(), stat() even SplFileInfo not give a proper error
         // when a 'permission' / 'not exists' / 'null byte (\0)' error occurs, or path is a
         // directory.. :/
         // Also seems not documented on php.net but when $filename contains null byte (\0) then a
