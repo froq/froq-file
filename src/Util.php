@@ -130,15 +130,15 @@ final class Util
             }
         } else {
             $error = $error ?? error_get_last()['message'] ?? 'Unknown error';
-            if (stripos($error, 'no such file')) {
-                $error = new FileError('File "%s" is not exists', [$file],
+            if (stripos($error, 'valid path')) {
+                $error = new FileError('No valid path "%s" given', [strtr($file, ["\0" => "\\0"])],
+                    FileError::NO_VALID_PATH);
+            } elseif (stripos($error, 'no such file')) {
+                $error = new FileError('No file such "%s" is exists', [$file],
                     FileError::NO_SUCH_FILE);
             } elseif (stripos($error, 'permission denied')) {
-                $error = new FileError('Permission denied for file "%s"', [$file],
-                    FileError::PERMISSION_DENIED);
-            } elseif (stripos($error, 'valid path')) {
-                $error = new FileError('Invalid path "%s" given', [str_replace("\0", "\\0", $file)],
-                    FileError::INVALID_PATH);
+                $error = new FileError('No permission for accessing to "%s" file', [$file],
+                    FileError::NO_PERMISSION);
             } else {
                 $error = new FileError($error);
             }
