@@ -26,7 +26,8 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\file\{Mime, MimeException, FileError};
+use froq\file\mime\{Mime, MimeException};
+use froq\file\FileError;
 use Error;
 
 /**

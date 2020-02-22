@@ -24,17 +24,18 @@
  */
 declare(strict_types=1);
 
-namespace froq\file;
+namespace froq\file\mime;
 
-use froq\file\{MimeException, MimeTypes, Util as FileUtil};
+use froq\file\Util as FileUtil;
+use froq\file\mime\{MimeException, MimeTypes};
 use Error;
 
 /**
  * Mime.
- * @package froq\file
- * @object  froq\file\Mime
+ * @package froq\file\mime
+ * @object  froq\file\mime\Mime
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   1.0
+ * @since   1.0, 4.0 Moved to "mime" directory.
  * @static
  */
 final class Mime

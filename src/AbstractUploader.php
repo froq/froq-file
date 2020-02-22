@@ -26,7 +26,8 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\file\{UploaderError, UploaderException, Mime, MimeException, Util as FileUtil};
+use froq\file\mime\{Mime, MimeException};
+use froq\file\{UploaderError, UploaderException, Util as FileUtil};
 
 /**
  * Abstract Uploader.

@@ -24,16 +24,16 @@
  */
 declare(strict_types=1);
 
-namespace froq\file;
+namespace froq\file\mime;
 
 use froq\file\FileException;
 
 /**
  * Mime Exception.
- * @package froq\file
- * @object  froq\file\MimeException
+ * @package froq\file\mime
+ * @object  froq\file\mime\MimeException
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   3.0
+ * @since   3.0, 4.0 Moved to "mime" directory.
  */
 final class MimeException extends FileException
 {}

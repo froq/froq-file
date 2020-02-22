@@ -24,14 +24,14 @@
  */
 declare(strict_types=1);
 
-namespace froq\file;
+namespace froq\file\mime;
 
 /**
  * Mime Types.
- * @package froq\file
- * @object  froq\file\MimeTypes
+ * @package froq\file\mime
+ * @object  froq\file\mime\MimeTypes
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   3.0
+ * @since   3.0, 4.0 Moved to "mime" directory.
  * @static
  */
 final class MimeTypes
@@ -49,7 +49,7 @@ final class MimeTypes
     public static function all(): array
     {
         return self::$all ?? (
-               self::$all = include 'data/mimes.php'
+               self::$all = include 'all.php'
         );
     }
 }
