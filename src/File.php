@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
+use froq\file\mime\{Mime, MimeException};
 use froq\file\FileError;
 
 /**
@@ -38,6 +39,28 @@ use froq\file\FileError;
  */
 final class File
 {
+    /**
+     * Get type.
+     * @param  string $file
+     * @return ?string
+     */
+    public static function getType(string $file): ?string
+    {
+        try { return Mime::getType($file); } catch (MimeException $e) {
+            return null; // Error.
+        }
+    }
+
+    /**
+     * Get extension.
+     * @param  string $file
+     * @return ?string
+     */
+    public static function getExtension(string $file): ?string
+    {
+        return Mime::getExtension($file);
+    }
+
     /**
      * Read.
      * @param  string $file

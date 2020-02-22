@@ -26,7 +26,6 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\file\mime\{Mime, MimeException};
 use froq\file\FileError;
 use Error;
 
@@ -40,28 +39,6 @@ use Error;
  */
 final class Util
 {
-    /**
-     * Get type.
-     * @param  string $file
-     * @return ?string
-     */
-    public static function getType(string $file): ?string
-    {
-        try { return Mime::getType($file); } catch (MimeException $e) {
-            return null; // Error.
-        }
-    }
-
-    /**
-     * Get extension.
-     * @param  string $file
-     * @return ?string
-     */
-    public static function getExtension(string $file): ?string
-    {
-        return Mime::getExtension($file);
-    }
-
     /**
      * Is file.
      * @param  string $path
@@ -131,7 +108,7 @@ final class Util
      */
     public static function errorCheck(string $file, FileError &$error = null): bool
     {
-        // Sadly is_file(), is_readable(), stat() even SplFileInfo not give a proper error
+        // Sadly is_file(), is_readable(), stat() even SplFileInfo is not giving a proper error
         // when a 'permission' / 'not exists' / 'null byte (\0)' error occurs, or path is a
         // directory.. :/
         // Also seems not documented on php.net but when $filename contains null byte (\0) then a
