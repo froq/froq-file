@@ -68,7 +68,8 @@ final class Util
      */
     public static function isFile(string $path): ?bool
     {
-        try { return is_file($path); } catch (Error $e) {
+        // Errors happen in strict mode, else warning only.
+        try { return @is_file($path); } catch (Error $e) {
             return null; // Error.
         }
     }
@@ -80,7 +81,8 @@ final class Util
      */
     public static function isDirectory(string $path): ?bool
     {
-        try { return is_dir($path); } catch (Error $e) {
+        // Errors happen in strict mode, else warning only.
+        try { return @is_dir($path); } catch (Error $e) {
             return null; // Error.
         }
     }
