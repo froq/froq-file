@@ -87,20 +87,11 @@ final class FileObject extends AbstractFileObject
         return $this;
     }
 
-    public function copy(): self
+    public function copy(): FileObject
     {
         $this->resourceCheck();
 
-        $pos = ftell($this->resource);
-        rewind($this->resource);
-
-        $copy = new self();
-        stream_copy_to_stream($this->resource, $copy->resource, -1, 0);
-        rewind($copy->resource);
-
-        fseek($this->resource, $pos);
-
-        return $copy;
+        return new FileObject($this->getResourceCopy(), $this->getMimeType());
     }
 
     public function lock(bool $block = true): bool
@@ -184,7 +175,7 @@ final class FileObject extends AbstractFileObject
         return ($ret !== false) ? $ret : null;
     }
 
-    public static function fromFile(string $file, string $mode = null): self
+    public static function fromFile(string $file, string $mode = null): FileObject
     {
         FileUtil::errorCheck($file, $error);
         if ($error != null) {
@@ -196,9 +187,9 @@ final class FileObject extends AbstractFileObject
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }
 
-        return new self($resource);
+        return new FileObject($resource);
     }
-    public static function fromString(string $string): self
+    public static function fromString(string $string): FileObject
     {
         $resource =@ fopen('php://temp', 'w+b');
         if (!$resource) {
@@ -208,7 +199,7 @@ final class FileObject extends AbstractFileObject
         fwrite($resource, $string);
         rewind($resource);
 
-        return new self($resource);
+        return new FileObject($resource);
     }
 
     // @implement
