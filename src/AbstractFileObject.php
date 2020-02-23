@@ -44,24 +44,30 @@ abstract class AbstractFileObject
      */
     protected $resource;
 
+    protected ?string $mimeType;
+
     protected ?bool $freed = null;
 
-    public function __construct($resource = null)
+    public function __construct($resource = null, string $mimeType = null)
     {
         $resource = $resource ?? self::createTemporaryResource();
 
-        if (!$resource || !is_resource($resource)) {
-            throw new FileException('Invalid resource "%s" given, must be gd or stream resource',
+        if (!is_resource($resource)) {
+            throw new FileException('Resource must be a "gd" or "stream" resource, "%s" given',
                 [gettype($resource)]);
         }
 
         $resourceType = get_resource_type($resource);
-        if ($resourceType != 'gd' && $resourceType != 'stream') {
-            throw new FileException('Invalid resource type "%s" given, valids are: gd, stream',
+        if ($this instanceof FileObject && $resourceType != 'stream') {
+            throw new FileException('Resource type must be "stream", "%s" given',
+                [$resourceType]);
+        } elseif ($this instanceof ImageObject && $resourceType != 'gd') {
+            throw new FileException('Resource type must be "gd", "%s" given',
                 [$resourceType]);
         }
 
         $this->resource = $resource;
+        $this->mimeType = $mimeType;
     }
 
     public function __destruct()
@@ -76,6 +82,37 @@ abstract class AbstractFileObject
     public final function getResourceType(): ?string
     {
         return is_resource($this->resource) ? get_resource_type($this->resource) : null;
+    }
+    public final function getResourceCopy()
+    {
+        if (is_resource($this->resource)) {
+            if ($this instanceof FileObject) {
+                $pos = ftell($this->resource);
+                rewind($this->resource);
+
+                $copy = self::createTemporaryResource();
+                stream_copy_to_stream($this->resource, $copy, -1, 0);
+                rewind($copy);
+
+                fseek($this->resource, $pos);
+            } elseif ($this instanceof ImageObject) {
+                [$width, $height] = [imagesx($this->resource), imagesy($this->resource)];
+                $copy = imagecreatetruecolor($width, $height);
+                imagecopy($copy, $this->resource, 0, 0, 0, 0, $width, $height);
+            }
+            return $copy;
+        }
+        return null;
+    }
+
+    public function setMimeType(string $mimeType): self
+    {
+        $this->mimeType = $mimeType;
+        return $this;
+    }
+    public function getMimeType(): ?string
+    {
+        return $this->mimeType;
     }
 
     public final function isFreed(): bool
@@ -102,12 +139,12 @@ abstract class AbstractFileObject
         return $resource;
     }
 
-    public static final function fromResource($resource): self
+    public static final function fromResource($resource, string $mimeType = null): self
     {
         if (is_null($resource)) {
             throw new FileException('Null resource given');
         }
-        return new static($resource);
+        return new static($resource, $mimeType);
     }
     public static final function fromMemoryResource(string $mode = null): self
     {
