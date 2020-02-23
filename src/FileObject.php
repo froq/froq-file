@@ -127,7 +127,16 @@ final class FileObject extends AbstractFileObject
     }
     public function valid(): bool
     {
-        return ($this->resource && !feof($this->resource));
+        return !$this->isEnded();
+    }
+
+    public function isEnded(): bool
+    {
+        return ($this->resource && feof($this->resource));
+    }
+    public function isEmpty(): bool
+    {
+        return ($this->freed || !$this->resource || !fstat($this->resource)['size']);
     }
 
     public function apply(callable $func): self
@@ -207,6 +216,7 @@ final class FileObject extends AbstractFileObject
     {
         if (is_resource($this->resource)) {
             $this->freed = fclose($this->resource);
+            $this->resource = null;
         }
     }
 }

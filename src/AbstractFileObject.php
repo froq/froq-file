@@ -77,9 +77,10 @@ abstract class AbstractFileObject
     {
         return is_resource($this->resource) ? get_resource_type($this->resource) : null;
     }
-    public final function isFreed(): ?bool
+
+    public final function isFreed(): bool
     {
-        return $this->freed;
+        return ($this->freed === true);
     }
 
     public static final function createMemoryResource(string $mode = null)
@@ -120,7 +121,7 @@ abstract class AbstractFileObject
     protected final function resourceCheck(): void
     {
         if ($this->freed) {
-            throw new FileException('No resource to process with, it has been freed');
+            throw new FileException('No resource to process with, it is freed');
         }
         if (!$this->resource || !is_resource($this->resource)) {
             throw new FileException('No resource to process with, it is not valid');
