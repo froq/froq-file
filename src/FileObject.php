@@ -38,13 +38,6 @@ use Error;
  */
 final class FileObject extends AbstractFileObject
 {
-    public function read(int $length): ?string
-    {
-        $this->resourceCheck();
-
-        $ret = fread($this->resource, $length);
-        return ($ret !== false) ? $ret : null;
-    }
 
     public function write(string $content): ?int
     {
@@ -54,18 +47,44 @@ final class FileObject extends AbstractFileObject
         return ($ret !== false) ? $ret : null;
     }
 
-    public function rewind(): bool
+    public function read(int $length): ?string
     {
         $this->resourceCheck();
 
-        return rewind($this->resource);
+        $ret = fread($this->resource, $length);
+        return ($ret !== false) ? $ret : null;
+    }
+    public function readChar(): ?string
+    {
+        $this->resourceCheck();
+
+        $ret = fgetc($this->resource);
+        return ($ret !== false) ? $ret : null;
+    }
+    public function readLine(int $length = 1024): ?string
+    {
+        $this->resourceCheck();
+
+        $ret = fgets($this->resource, $length);
+        return ($ret !== false) ? $ret : null;
     }
 
-    public function empty(): bool
+    public function rewind(): self
     {
         $this->resourceCheck();
 
-        return ftruncate($this->resource, 0);
+        rewind($this->resource);
+
+        return $this;
+    }
+
+    public function empty(): self
+    {
+        $this->resourceCheck();
+
+        ftruncate($this->resource, 0);
+
+        return $this;
     }
 
     public function copy(): self
@@ -106,6 +125,16 @@ final class FileObject extends AbstractFileObject
         return ($where === null) ? $this->getPosition()
                                  : $this->setPosition($where, $whence);
     }
+    public function valid(): bool
+    {
+        return ($this->resource && !feof($this->resource));
+    }
+
+    public function apply(callable $func): self
+    {
+        $func($this);
+        return $this;
+    }
 
     public function setPosition(int $where, int $whence = SEEK_SET): ?bool
     {
@@ -135,20 +164,6 @@ final class FileObject extends AbstractFileObject
         return stream_get_meta_data($this->resource) ?: null;
     }
 
-    public function getChar(): ?string
-    {
-        $this->resourceCheck();
-
-        $ret = fgetc($this->resource);
-        return ($ret !== false) ? $ret : null;
-    }
-    public function getLine(int $length = 1024): ?string
-    {
-        $this->resourceCheck();
-
-        $ret = fgets($this->resource, $length);
-        return ($ret !== false) ? $ret : null;
-    }
     public function getContents(): ?string
     {
         $this->resourceCheck();
@@ -160,11 +175,6 @@ final class FileObject extends AbstractFileObject
         return ($ret !== false) ? $ret : null;
     }
 
-    public function isValid(): bool
-    {
-        return ($this->resource && !feof($this->resource));
-    }
-
     public static function fromFile(string $file, string $mode = null): self
     {
         FileUtil::errorCheck($file, $error);
@@ -172,7 +182,7 @@ final class FileObject extends AbstractFileObject
             throw new FileException($error->getMessage(), null, $error->getCode());
         }
 
-        $resource =@ fopen($file, $mode ?? 'rwb+');
+        $resource =@ fopen($file, $mode ?? 'w+b');
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }
@@ -181,7 +191,7 @@ final class FileObject extends AbstractFileObject
     }
     public static function fromString(string $string): self
     {
-        $resource =@ fopen('php://temp', 'rwb+');
+        $resource =@ fopen('php://temp', 'w+b');
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }

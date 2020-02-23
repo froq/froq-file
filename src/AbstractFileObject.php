@@ -50,8 +50,8 @@ abstract class AbstractFileObject
     {
         $resource = $resource ?? self::createTemporaryResource();
 
-        if (!is_resource($resource)) {
-            throw new FileException('Invalid resource type "%s" given, valids are: gd, stream',
+        if (!$resource || !is_resource($resource)) {
+            throw new FileException('Invalid resource "%s" given, must be gd or stream resource',
                 [gettype($resource)]);
         }
 
@@ -66,7 +66,6 @@ abstract class AbstractFileObject
 
     public function __destruct()
     {
-        // prd(static::class."#".spl_object_id($this)."#".rand(100,999));
         $this->free();
     }
 
@@ -85,7 +84,7 @@ abstract class AbstractFileObject
 
     public static final function createMemoryResource(string $mode = null)
     {
-        $resource =@ fopen('php://memory', $mode ?? 'rwb+');
+        $resource =@ fopen('php://memory', $mode ?? 'w+b');
         if (!$resource) {
             throw new FileException('Cannot create memory resource [error: %s]', ['@error']);
         }
@@ -94,8 +93,8 @@ abstract class AbstractFileObject
 
     public static final function createTemporaryResource(string $mode = null, int $maxmem = null)
     {
-        $resource =@ ($maxmem === null) ? fopen('php://temp', $mode ?? 'rwb+')
-                                        : fopen('php://temp/maxmemory:'. $maxmem, $mode ?? 'rwb+');
+        $resource =@ ($maxmem === null) ? fopen('php://temp', $mode ?? 'w+b')
+                                        : fopen('php://temp/maxmemory:'. $maxmem, $mode ?? 'w+b');
         if (!$resource) {
             throw new FileException('Cannot create temporary resource [error: %s]', ['@error']);
         }
@@ -104,6 +103,9 @@ abstract class AbstractFileObject
 
     public static final function fromResource($resource): self
     {
+        if (is_null($resource)) {
+            throw new FileException('Null resource given');
+        }
         return new static($resource);
     }
     public static final function fromMemoryResource(string $mode = null): self
@@ -120,7 +122,7 @@ abstract class AbstractFileObject
         if ($this->freed) {
             throw new FileException('No resource to process with, it has been freed');
         }
-        if (!is_resource($this->resource)) {
+        if (!$this->resource || !is_resource($this->resource)) {
             throw new FileException('No resource to process with, it is not valid');
         }
     }
