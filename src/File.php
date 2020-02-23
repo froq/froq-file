@@ -34,7 +34,8 @@ use froq\file\FileError;
  * @package froq\file
  * @object  froq\file\File
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   3.0, 4.0 Made static, added read(),write(),mode(), moved all other stuff into AbstractUploader.
+ * @since   3.0, 4.0 Made static, added getType(),getExtension(),read(),write(),mode(), moved all
+ *          other stuff into AbstractUploader.
  * @static
  */
 final class File
