@@ -38,6 +38,16 @@ use Error;
  */
 final class FileObject extends AbstractFileObject
 {
+    public const DEFAULT_MODE = 'w+b';
+
+    protected string $mode;
+
+    public function __construct($resource = null, string $mimeType = null, string $mode = null)
+    {
+        $this->mode = $mode ?: self::DEFAULT_MODE;
+
+        parent::__construct($resource, $mimeType);
+    }
 
     public function write(string $content): ?int
     {
@@ -182,16 +192,16 @@ final class FileObject extends AbstractFileObject
             throw new FileException($error->getMessage(), null, $error->getCode());
         }
 
-        $resource =@ fopen($file, $mode ?? 'w+b');
+        $resource =@ fopen($file, $mode ?? $this->mode);
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }
 
-        return new FileObject($resource);
+        return new FileObject($resource, null, $mode ?? $this->mode);
     }
     public static function fromString(string $string): FileObject
     {
-        $resource =@ fopen('php://temp', 'w+b');
+        $resource =@ fopen('php://temp', $this->mode);
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }
@@ -199,7 +209,7 @@ final class FileObject extends AbstractFileObject
         fwrite($resource, $string);
         rewind($resource);
 
-        return new FileObject($resource);
+        return new FileObject($resource, null, $this->mode);
     }
 
     // @implement
