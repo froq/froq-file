@@ -40,7 +40,7 @@ abstract class AbstractUploader
 {
     /**
      * Source.
-     * @var array
+     * @var string
      */
     protected string $source;
 
