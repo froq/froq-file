@@ -56,16 +56,16 @@ final class ImageUploader extends AbstractUploader
     private array $info;
 
     /**
-     * Resource file.
+     * Source image.
      * @var resource
      */
-    private $resourceFile;
+    private $sourceImage;
 
     /**
      * Destination file.
      * @var resource
      */
-    private $destinationFile;
+    private $destinationImage;
 
     /**
      * New dimensions.
@@ -98,9 +98,9 @@ final class ImageUploader extends AbstractUploader
 
         $info = $this->getInfo();
 
-        $this->resourceFile =@ $this->createResourceFile();
-        if (!$this->resourceFile) {
-            throw new UploaderException('Could not create resource file [error: %s]', ['@error']);
+        $this->sourceImage =@ $this->createSourceImage();
+        if (!$this->sourceImage) {
+            throw new UploaderException('Could not create source image [error: %s]', ['@error']);
         }
 
         [$origWidth, $origHeight] = $info;
@@ -123,20 +123,20 @@ final class ImageUploader extends AbstractUploader
             $newHeight = (int) ($height > 0 ? $height : $origHeight);
         }
 
-        $this->destinationFile =@ imagecreatetruecolor($newWidth, $newHeight);
-        if (!$this->destinationFile) {
-            throw new UploaderException('Could not create destination file [error: %s]', ['@error']);
+        $this->destinationImage =@ imagecreatetruecolor($newWidth, $newHeight);
+        if (!$this->destinationImage) {
+            throw new UploaderException('Could not create destination image [error: %s]', ['@error']);
         }
 
         // Handle PNG/GIFs.
         if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF])) {
-            ImageObject::copyTransparency($this->resourceFile, $this->destinationFile);
+            ImageObject::copyTransparency($this->sourceImage, $this->destinationImage);
         }
 
-        $ok =@ imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, 0, 0,
+        $ok =@ imagecopyresampled($this->destinationImage, $this->sourceImage, 0, 0, 0, 0,
             $newWidth, $newHeight, $origWidth, $origHeight);
         if (!$ok) {
-            throw new UploaderException('Could not resample file [error: %s]', ['@error']);
+            throw new UploaderException('Could not resample image [error: %s]', ['@error']);
         }
 
         // Store new dimensions.
@@ -166,9 +166,9 @@ final class ImageUploader extends AbstractUploader
             return $this->resize($width, $height);
         }
 
-        $this->resourceFile =@ $this->createResourceFile();
-        if (!$this->resourceFile) {
-            throw new UploaderException('Could not create resource file [error: %s]', ['@error']);
+        $this->sourceImage =@ $this->createSourceImage();
+        if (!$this->sourceImage) {
+            throw new UploaderException('Could not create source image [error: %s]', ['@error']);
         }
 
         [$origWidth, $origHeight] = $info;
@@ -187,20 +187,20 @@ final class ImageUploader extends AbstractUploader
         $x = $x ?? (int) (($origWidth - $cropWidth) / 2);
         $y = $y ?? (int) (($origHeight - $cropHeight) / 2);
 
-        $this->destinationFile =@ imagecreatetruecolor($width, $height);
-        if (!$this->destinationFile) {
-            throw new UploaderException('Could not create destination file [error: %s]', ['@error']);
+        $this->destinationImage =@ imagecreatetruecolor($width, $height);
+        if (!$this->destinationImage) {
+            throw new UploaderException('Could not create destination image [error: %s]', ['@error']);
         }
 
         // Handle PNG/GIFs.
         if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF])) {
-            ImageObject::copyTransparency($this->resourceFile, $this->destinationFile);
+            ImageObject::copyTransparency($this->sourceImage, $this->destinationImage);
         }
 
-        $ok =@ imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
+        $ok =@ imagecopyresampled($this->destinationImage, $this->sourceImage, 0, 0, $x, $y,
             $width, $height, $cropWidth, $cropHeight);
         if (!$ok) {
-            throw new UploaderException('Could not resample file [error: %s]', ['@error']);
+            throw new UploaderException('Could not resample image [error: %s]', ['@error']);
         }
 
         // Store new dimensions.
@@ -229,14 +229,6 @@ final class ImageUploader extends AbstractUploader
      */
     public function save(): string
     {
-        $resourceFile = $this->getResourceFile();
-        $destinationFile = $this->getDestinationFile();
-
-        if ($resourceFile == null || $destinationFile == null) {
-            throw new UploaderException('No resource/destination file created yet, call one of these '.
-                'method first: resample(), resize(), crop() or cropBy()');
-        }
-
         $destination = $this->getDestination();
 
         $ok =@ $this->outputTo($destination);
@@ -254,14 +246,6 @@ final class ImageUploader extends AbstractUploader
     {
         if ($name == '') {
             throw new UploaderException('Name cannot be empty');
-        }
-
-        $resourceFile = $this->getResourceFile();
-        $destinationFile = $this->getDestinationFile();
-
-        if ($resourceFile == null || $destinationFile == null) {
-            throw new UploaderException('No resource/destination file created yet, call one of these '.
-                'method first: resample(), resize(), crop() or cropBy()');
         }
 
         if ($useNewDimensionsAsNameAppendix) {
@@ -334,20 +318,20 @@ final class ImageUploader extends AbstractUploader
             }
 
             if ($this->options['clear']) {
-                is_resource($this->resourceFile) && imagedestroy($this->resourceFile);
-                is_resource($this->destinationFile) && imagedestroy($this->destinationFile);
+                is_resource($this->sourceImage) && imagedestroy($this->sourceImage);
+                is_resource($this->destinationImage) && imagedestroy($this->destinationImage);
 
-                $this->resourceFile = null;
-                $this->destinationFile = null;
+                $this->sourceImage = null;
+                $this->destinationImage = null;
             }
         } else {
             @ unlink($this->getSource());
 
-            is_resource($this->resourceFile) && imagedestroy($this->resourceFile);
-            is_resource($this->destinationFile) && imagedestroy($this->destinationFile);
+            is_resource($this->sourceImage) && imagedestroy($this->sourceImage);
+            is_resource($this->destinationImage) && imagedestroy($this->destinationImage);
 
-            $this->resourceFile = null;
-            $this->destinationFile = null;
+            $this->sourceImage = null;
+            $this->destinationImage = null;
         }
     }
 
@@ -395,21 +379,21 @@ final class ImageUploader extends AbstractUploader
     }
 
     /**
-     * Get resource file.
+     * Get source image.
      * @return ?resource
      */
-    public function getResourceFile()
+    public function getSourceImage()
     {
-        return $this->resourceFile;
+        return $this->sourceImage;
     }
 
     /**
-     * Get destination file.
+     * Get destination image.
      * @return ?resource
      */
-    public function getDestinationFile()
+    public function getDestinationImage()
     {
-        return $this->destinationFile;
+        return $this->destinationImage;
     }
 
     /**
@@ -440,11 +424,11 @@ final class ImageUploader extends AbstractUploader
     }
 
     /**
-     * Create resource file.
+     * Create source image.
      * @return ?resource
      * @throws froq\file\UploaderException
      */
-    private function createResourceFile()
+    private function createSourceImage()
     {
         $type = $this->getInfo()['type'];
         if (!in_array($type, self::SUPPORTED_TYPES)) {
@@ -470,8 +454,8 @@ final class ImageUploader extends AbstractUploader
      */
     private function output(): ?bool
     {
-        $destinationFile = $this->getDestinationFile();
-        if ($destinationFile == null) {
+        $destinationImage = $this->getDestinationImage();
+        if ($destinationImage == null) {
             throw new UploaderException('No destination file created yet, call one of these method '.
                 'first: resample(), resize(), crop() or cropBy()');
         }
@@ -484,11 +468,11 @@ final class ImageUploader extends AbstractUploader
         switch ($type) {
             case IMAGETYPE_JPEG:
                 $jpegQuality = intval($this->options['jpegQuality'] ?? self::JPEG_QUALITY);
-                return imagejpeg($destinationFile, null, $jpegQuality);
+                return imagejpeg($destinationImage, null, $jpegQuality);
             case IMAGETYPE_PNG:
-                return imagepng($destinationFile);
+                return imagepng($destinationImage);
             case IMAGETYPE_GIF:
-                return imagegif($destinationFile);
+                return imagegif($destinationImage);
         }
 
         return null;
@@ -502,8 +486,8 @@ final class ImageUploader extends AbstractUploader
      */
     private function outputTo(string $to): ?bool
     {
-        $destinationFile = $this->getDestinationFile();
-        if ($destinationFile == null) {
+        $destinationImage = $this->getDestinationImage();
+        if ($destinationImage == null) {
             throw new UploaderException('No destination file created yet, call one of these method '.
                 'first: resample(), resize(), crop() or cropBy()');
         }
@@ -516,11 +500,11 @@ final class ImageUploader extends AbstractUploader
         switch ($type) {
             case IMAGETYPE_JPEG:
                 $jpegQuality = intval($this->options['jpegQuality'] ?? self::JPEG_QUALITY);
-                return imagejpeg($destinationFile, $to, $jpegQuality);
+                return imagejpeg($destinationImage, $to, $jpegQuality);
             case IMAGETYPE_PNG:
-                return imagepng($destinationFile, $to);
+                return imagepng($destinationImage, $to);
             case IMAGETYPE_GIF:
-                return imagegif($destinationFile, $to);
+                return imagegif($destinationImage, $to);
         }
 
         return null;
