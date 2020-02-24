@@ -131,10 +131,10 @@ final class ImageUploader extends AbstractUploader
 
         // Handle PNGs.
         if ($info['type'] == IMAGETYPE_PNG) {
-            imagealphablending($this->destinationFile, false);
             $transparent = imagecolorallocatealpha($this->destinationFile, 0, 0, 0, 127);
             imagefill($this->destinationFile, 0, 0, $transparent);
             imagesavealpha($this->destinationFile, true);
+            imagealphablending($this->destinationFile, false);
         }
 
         $ok =@ imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, 0, 0,
@@ -198,10 +198,10 @@ final class ImageUploader extends AbstractUploader
 
         // Handle PNGs.
         if ($info['type'] == IMAGETYPE_PNG) {
-            imagealphablending($this->destinationFile, false);
             $transparent = imagecolorallocatealpha($this->destinationFile, 0, 0, 0, 127);
             imagefill($this->destinationFile, 0, 0, $transparent);
             imagesavealpha($this->destinationFile, true);
+            imagealphablending($this->destinationFile, false);
         }
 
         $ok =@ imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
