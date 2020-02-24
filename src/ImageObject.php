@@ -38,5 +38,114 @@ use Error;
  */
 final class ImageObject extends AbstractFileObject
 {
-    //
+    public const DEFAULT_QUALITY = -1;
+
+    protected int $quality;
+
+    public function __construct($resource = null, string $mimeType = null, int $quality = null)
+    {
+        $this->quality = $quality ?: self::DEFAULT_QUALITY;
+
+        parent::__construct($resource, $mimeType);
+    }
+
+    public function copy(): ImageObject
+    {
+        $this->resourceCheck();
+
+        return new ImageObject($this->getResourceCopy(), $this->getMimeType());
+    }
+
+    public function getContents(int $quality = null)
+    {
+        $mimeType = $this->getMimeType();
+        if ($mimeType == null) {
+            throw new FileException('No MIME type given yet');
+        }
+
+        $quality = $quality ?? $this->quality;
+
+        ob_start();
+        switch ($mimeType) {
+            case 'image/jpeg':
+                $copy = $this->getResourceCopy();
+                imagejpeg($copy, null, $quality) && imagedestroy($copy);
+                break;
+            case 'image/png':
+                $copy = $this->getResourceCopy();
+                // $copy = $this->getResource();
+
+                // $color = imagecolorallocatealpha($copy, 0, 0, 0, 127); //fill transparent back
+                // imagefill($copy, 0, 0, $color);
+                // imagesavealpha($copy, true);
+
+                // imagealphablending($copy, false);
+                // imagesavealpha($copy, true);
+                // imageantialias($copy, true);
+
+                // $transparent = imagecolorallocatealpha($copy, 255, 255, 255, 127);
+                // $transparent = imagecolorallocatealpha($copy, 0, 0, 0, 127);
+                // $transparent = imagecolorallocate($copy, 0, 0, 0);
+                // imagefill($copy, 0, 0, $transparent);
+                // imagecolortransparent($copy, $transparent);
+
+                // $black = imagecolorallocate($copy, 0, 0, 0);
+                // imagecolortransparent($copy, $black); // Make the background transparent
+
+                imagepng($copy) && imagedestroy($copy);
+                // imagecolordeallocate($copy, $transparent);
+                break;
+            case 'image/gif':
+                $copy = $this->getResourceCopy();
+                imagegif($copy) && imagedestroy($copy);
+                break;
+            case 'image/webp':
+                $copy = $this->getResourceCopy();
+                imagewebp($copy, null, $quality) && imagedestroy($copy);
+                break;
+            default:
+                throw new FileException('No MIME type supported such "%s"', $mimeType);
+        }
+        $ret = ob_get_clean();
+
+        return $ret;
+    }
+
+    // webp
+    // public function getCompressedContents()
+    // {}
+
+    // @implement
+    public static function fromFile(string $file, int $quality = null): ImageObject
+    {
+        FileUtil::errorCheck($file, $error);
+        if ($error != null) {
+            throw new FileException($error->getMessage(), null, $error->getCode());
+        }
+
+        $resource =@ imagecreatefromstring(file_get_contents($file));
+        if (!$resource) {
+            throw new FileException('Cannot create resource [error: %s]', ['@error']);
+        }
+        return new ImageObject($resource, mime_content_type($file), $quality);
+    }
+
+    // @implement
+    public static function fromString(string $string, int $quality = null): ImageObject
+    {
+        $resource =@ imagecreatefromstring($string);
+        if (!$resource) {
+            throw new FileException('Cannot create resource [error: %s]', ['@error']);
+        }
+        return new ImageObject($resource, getimagesizefromstring($string)['mime'], $quality);
+    }
+
+    // @implement
+    public function free(): void
+    {
+        if (is_resource($this->resource)) {
+            $this->freed = imagedestroy($this->resource);
+            $this->resource = null;
+        }
+    }
 }

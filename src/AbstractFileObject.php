@@ -98,11 +98,91 @@ abstract class AbstractFileObject
             } elseif ($this instanceof ImageObject) {
                 [$width, $height] = [imagesx($this->resource), imagesy($this->resource)];
                 $copy = imagecreatetruecolor($width, $height);
-                imagecopy($copy, $this->resource, 0, 0, 0, 0, $width, $height);
+                // imagecopy($copy, $this->resource, 0, 0, 0, 0, $width, $height);
+                // imagecopymerge($copy, $this->resource, 0, 0, 0, 0, $width, $height, 100);
+                // imagecopyresampled($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
+
+                // $transparent = imagecolorallocatealpha($copy, 0, 0, 0, 127);
+                // imagefill($copy, 0, 0, $transparent);
+                // imagesavealpha($copy, true);
+                // imagealphablending($copy, false);
+                // imageantialias($copy, true);
+
+                // imagecolortransparent($copy, imagecolorallocatealpha($copy, 0, 0, 0, 127));
+                // imagealphablending($copy, false);
+                // imagesavealpha($copy, true);
+
+                // imagecolortransparent($copy, imagecolorallocate($copy, 0, 0, 0));
+                // imagealphablending($copy, false);
+                // imagesavealpha($copy, true);
+                // imagecopyresampled($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
+
+                // imagealphablending($copy, false);
+                // $color = imagecolortransparent($copy, imagecolorallocatealpha($copy, 0, 0, 0, 127));
+                // imagefill($copy, 0, 0, $color);
+                // imagesavealpha($copy, true);
+                // imagecopyresampled($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
+
+                // imagecopy($copy, $this->resource, 0, 0, 0, 0, $width, $height);
+                // imagecopymerge($copy, $this->resource, 0, 0, 0, 0, $width, $height, 100);
+                // imagecopyresampled($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
+                // $this->imagecopyresampledSMOOTH($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
+
+                $this->copyTransparency($this->resource, $copy);
+                imagecopyresampled($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
+                // $this->imagecopyresampledSMOOTH($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
             }
             return $copy;
         }
         return null;
+    }
+
+// http://php.net/imagecopyresampled.php#81898
+function imagecopyresampledSMOOTH(&$dst_img, $src_img, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h, $mult=1.25){
+    // don't use a $mult that's too close to an int or this function won't make much of a difference
+
+    $tgt_w = round($src_w * $mult);
+    $tgt_h = round($src_h * $mult);
+
+    // using $mult <= 1 will make the current step w/h smaller (or the same), don't allow this, always resize by at least 1 pixel larger
+    if($tgt_w <= $src_w){ $tgt_w += 1; }
+    if($tgt_h <= $src_h){ $tgt_h += 1; }
+
+    // if the current step w/h is larger than the final height, adjust it back to the final size
+    // this check also makes it so that if we are doing a resize to smaller image, it happens in one step (since that's already smooth)
+    if($tgt_w > $dst_w){ $tgt_w = $dst_w; }
+    if($tgt_h > $dst_h){ $tgt_h = $dst_h; }
+
+    $tmpImg = imagecreatetruecolor($tgt_w, $tgt_h);
+    $this->setTransparency($tmpImg, $this->resource);
+    imagecopyresampled($tmpImg, $src_img, 0, 0, $src_x, $src_y, $tgt_w, $tgt_h, $src_w, $src_h);
+    $this->setTransparency($dst_img, $this->resource);
+    // imagecopy($dst_img, $tmpImg, $dst_x, $dst_y, 0, 0, $tgt_w, $tgt_h);
+    imagecopyresampled($dst_img, $tmpImg, $dst_x, $dst_y, 0, 0, $tgt_w, $tgt_h, $src_w, $src_h);
+    imagedestroy($tmpImg);
+
+    // as long as the final w/h has not been reached, reep on resizing
+    if($tgt_w < $dst_w OR $tgt_h < $dst_h){
+        $this->imagecopyresampledSMOOTH($dst_img, $dst_img, $dst_x, $dst_y, $dst_x, $dst_y, $dst_w, $dst_h, $tgt_w, $tgt_h, $mult);
+    }
+}
+
+    // http://php.net/imagecolortransparent.php#89927
+    static function copyTransparency($sourceImage, &$destinationImage)
+    {
+        static $transparencyColorDefault = ['red' => 255, 'green' => 255, 'blue' => 255];
+
+        $transparencyIndex = imagecolortransparent($sourceImage);
+        $transparencyColor = $transparencyColorDefault;
+        if ($transparencyIndex >= 0) {
+            $transparencyColor = imagecolorsforindex($sourceImage, $transparencyIndex);
+        }
+
+        $transparencyIndex = imagecolorallocate($destinationImage,
+            $transparencyColor['red'], $transparencyColor['green'], $transparencyColor['blue']
+        );
+        imagefill($destinationImage, 0, 0, $transparencyIndex);
+        imagecolortransparent($destinationImage, $transparencyIndex);
     }
 
     public function setMimeType(string $mimeType): self
