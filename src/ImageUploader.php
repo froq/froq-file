@@ -129,12 +129,9 @@ final class ImageUploader extends AbstractUploader
             throw new UploaderException('Could not create destination file [error: %s]', ['@error']);
         }
 
-        // Handle PNGs.
-        if ($info['type'] == IMAGETYPE_PNG) {
-            $transparent = imagecolorallocatealpha($this->destinationFile, 0, 0, 0, 127);
-            imagefill($this->destinationFile, 0, 0, $transparent);
-            imagesavealpha($this->destinationFile, true);
-            imagealphablending($this->destinationFile, false);
+        // Handle PNG/GIFs.
+        if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF])) {
+            ImageObject::copyTransparency($this->resourceFile, $this->destinationFile);
         }
 
         $ok =@ imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, 0, 0,
@@ -196,12 +193,9 @@ final class ImageUploader extends AbstractUploader
             throw new UploaderException('Could not create destination file [error: %s]', ['@error']);
         }
 
-        // Handle PNGs.
-        if ($info['type'] == IMAGETYPE_PNG) {
-            $transparent = imagecolorallocatealpha($this->destinationFile, 0, 0, 0, 127);
-            imagefill($this->destinationFile, 0, 0, $transparent);
-            imagesavealpha($this->destinationFile, true);
-            imagealphablending($this->destinationFile, false);
+        // Handle PNG/GIFs.
+        if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF])) {
+            ImageObject::copyTransparency($this->resourceFile, $this->destinationFile);
         }
 
         $ok =@ imagecopyresampled($this->destinationFile, $this->resourceFile, 0, 0, $x, $y,
