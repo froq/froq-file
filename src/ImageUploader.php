@@ -76,7 +76,6 @@ final class ImageUploader extends AbstractUploader
     /**
      * Resample.
      * @return self
-     * @throws froq\file\UploaderException
      */
     public function resample(): self
     {
