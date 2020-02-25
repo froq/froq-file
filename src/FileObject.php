@@ -140,9 +140,9 @@ final class FileObject extends AbstractFileObject
         return ($this->freed || !$this->resource || !fstat($this->resource)['size']);
     }
 
-    public function apply(callable $func): self
+    public function call(callable $func): self
     {
-        $func($this);
+        $func->bindTo($this)->call($this);
         return $this;
     }
 

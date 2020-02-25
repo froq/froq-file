@@ -118,9 +118,9 @@ abstract class AbstractFileObject
                 // imagecopyresampled($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
 
                 // imagealphablending($copy, false);
+                // imagesavealpha($copy, true);
                 // $color = imagecolortransparent($copy, imagecolorallocatealpha($copy, 0, 0, 0, 127));
                 // imagefill($copy, 0, 0, $color);
-                // imagesavealpha($copy, true);
                 // imagecopyresampled($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
 
                 // imagecopy($copy, $this->resource, 0, 0, 0, 0, $width, $height);
@@ -128,16 +128,61 @@ abstract class AbstractFileObject
                 // imagecopyresampled($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
                 // $this->imagecopyresampledSMOOTH($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
 
-                $this->copyTransparency($this->resource, $copy);
+                $this->setTransparency($copy, $this->resource);
+                // $this->imagetograyscale($copy);
                 imagecopyresampled($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
-                // $this->imagecopyresampledSMOOTH($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
+                // imagefilter($copy, IMG_FILTER_EMBOSS);
+                // imagesavealpha($copy, true);
+                // $c = imagecolorat($copy, 0, 0);
+                // $cc = imagecolorsforindex($copy, $c);
+                // imagecolorset($copy, $c, $cc['red'], $cc['green'], $cc['blue']);
+                // for ($x = 0; $x < $width; $x++) {
+                //     for ($y = 0; $y < $height; $y++) {
+                //         $c = imagecolorat($copy, $x, $y);
+                //         $cc = imagecolorsforindex($copy, $c);
+                //         imagecolorset($copy, $c, $cc['red'], $cc['green'], $cc['blue']);
+                //     }
+                // }
             }
             return $copy;
         }
         return null;
     }
 
-// http://php.net/imagecopyresampled.php#81898
+// http://php.net/imagecolorset#70156
+static function imagetograyscale($im)
+{
+    if (imageistruecolor($im)) {
+        imagetruecolortopalette($im, false, 256);
+    }
+
+    for ($c = 0; $c < imagecolorstotal($im); $c++) {
+        $col = imagecolorsforindex($im, $c);
+        $gray = (int) round(0.299 * $col['red'] + 0.587 * $col['green'] + 0.114 * $col['blue']);
+        imagecolorset($im, $c, $gray, $gray, $gray);
+    }
+}
+// http://php.net/imagecolortransparent#89927
+static function setTransparency($new_img, $src_img)
+{
+    $transparencyIndex = imagecolortransparent($src_img);
+    $transparencyColor = array('red' => 255, 'green' => 255, 'blue' => 255);
+
+    if ($transparencyIndex >= 0) {
+        $transparencyColor    = imagecolorsforindex($src_img, $transparencyIndex);
+    }
+
+    $transparencyIndex    = imagecolorallocate($new_img, $transparencyColor['red'], $transparencyColor['green'], $transparencyColor['blue']);
+    imagefill($new_img, 0, 0, $transparencyIndex);
+    imagecolortransparent($new_img, $transparencyIndex);
+
+    imageantialias($new_img, true);
+    if (imageistruecolor($src_img)) {
+        imagetruecolortopalette($new_img, false, 256);
+    }
+}
+
+// http://php.net/imagecopyresampled#81898
 function imagecopyresampledSMOOTH(&$dst_img, $src_img, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h, $mult=1.25){
     // don't use a $mult that's too close to an int or this function won't make much of a difference
 
@@ -167,7 +212,7 @@ function imagecopyresampledSMOOTH(&$dst_img, $src_img, $dst_x, $dst_y, $src_x, $
     }
 }
 
-    // http://php.net/imagecolortransparent.php#89927
+    // http://php.net/imagecolortransparent#89927
     static function copyTransparency($sourceImage, &$destinationImage)
     {
         static $transparencyColorDefault = ['red' => 255, 'green' => 255, 'blue' => 255];

@@ -56,6 +56,16 @@ final class ImageObject extends AbstractFileObject
         return new ImageObject($this->getResourceCopy(), $this->getMimeType());
     }
 
+    public function size(): ?int
+    {
+        // imagescale()
+        // https://stackoverflow.com/a/24669362/362780
+        ob_start();              // start the buffer
+        imagejpeg($img);         // output image to buffer
+        $size = ob_get_length(); // get size of buffer (in bytes)
+        ob_end_clean();          // trash the buffer
+    }
+
     public function getContents(int $quality = null)
     {
         $mimeType = $this->getMimeType();

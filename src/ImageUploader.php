@@ -138,7 +138,7 @@ final class ImageUploader extends AbstractUploader
 
         // Handle PNG/GIFs.
         if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF])) {
-            // @TODO
+            ImageObject::copyTransparency($this->sourceImage, $this->destinationImage);
         }
 
         $ok =@ imagecopyresampled($this->destinationImage, $this->sourceImage, 0, 0, 0, 0,
