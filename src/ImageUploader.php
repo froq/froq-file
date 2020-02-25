@@ -69,9 +69,14 @@ final class ImageUploader extends AbstractUploader
 
     /**
      * New dimensions.
-     * @var array<int, int>
+     * @var ?array<int>
      */
-    private array $newDimensions;
+    private ?array $newDimensions;
+
+    /**
+     * Resized.
+     */
+    private ?bool $resized;
 
     /**
      * Resample.
@@ -79,7 +84,7 @@ final class ImageUploader extends AbstractUploader
      */
     public function resample(): self
     {
-        return $this->resize(0, 0, false);
+        return $this->resize(-1, -1, false);
     }
 
     /**
@@ -96,31 +101,34 @@ final class ImageUploader extends AbstractUploader
         // Fill/ensure info.
         $this->fillInfo();
 
-        $info = $this->getInfo();
-
         $this->sourceImage =@ $this->createSourceImage();
         if (!$this->sourceImage) {
             throw new UploaderException('Could not create source image [error: %s]', ['@error']);
         }
 
+        $info = $this->getInfo();
         [$origWidth, $origHeight] = $info;
 
+        // Use original width/height if given ones excessive.
         if ($fixExcessiveDimensions) {
-            if ($width > $origWidth) $width = $origWidth;
+            if ($width > $origWidth)   $width  = $origWidth;
             if ($height > $origHeight) $height = $origHeight;
         }
 
         $newWidth = $newHeight = 0;
         if ($proportional) {
-            if ($width == 0) $factor = $height / $origHeight;
-            elseif ($height == 0) $factor = $width / $origWidth;
-            else $factor = min($width / $origWidth, $height / $origHeight);
-
-            $newWidth = (int) ($origWidth * $factor);
+            $factor    = (
+                $width == -1 ? $height / $origHeight : (
+                    $height == -1 ? $width / $origWidth : (
+                        min($width / $origWidth, $height / $origHeight)
+                    )
+                )
+            );
+            $newWidth  = (int) ($origWidth * $factor);
             $newHeight = (int) ($origHeight * $factor);
         } else {
-            $newWidth = (int) ($width > 0 ? $width : $origWidth);
-            $newHeight = (int) ($height > 0 ? $height : $origHeight);
+            $newWidth  = (int) ($width > -1 ? $width : $origWidth);
+            $newHeight = (int) ($height > -1 ? $height : $origHeight);
         }
 
         $this->destinationImage =@ imagecreatetruecolor($newWidth, $newHeight);
@@ -130,7 +138,7 @@ final class ImageUploader extends AbstractUploader
 
         // Handle PNG/GIFs.
         if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF])) {
-            ImageObject::copyTransparency($this->sourceImage, $this->destinationImage);
+            // @TODO
         }
 
         $ok =@ imagecopyresampled($this->destinationImage, $this->sourceImage, 0, 0, 0, 0,
@@ -142,15 +150,18 @@ final class ImageUploader extends AbstractUploader
         // Store new dimensions.
         $this->newDimensions = [$newWidth, $newHeight];
 
+        // For chaining situations (eg: $up->resize(100, 150)->crop(75, 75)).
+        $this->resized = true;
+
         return $this;
     }
 
     /**
      * Crop.
-     * @param  int                  $width
-     * @param  int                  $height
-     * @param  bool                 $proportional
-     * @param  array<int, int>|null $xy @internal
+     * @param  int             $width
+     * @param  int             $height
+     * @param  bool            $proportional
+     * @param  array<int>|null $xy @internal
      * @return self
      * @throws froq\file\UploaderException
      */
@@ -159,33 +170,25 @@ final class ImageUploader extends AbstractUploader
         // Fill/ensure info.
         $this->fillInfo();
 
-        $info = $this->getInfo();
-
-        // Do not crop original width/height dimensions.
-        if ($width == $info['width'] && $height == $info['height']) {
-            return $this->resize($width, $height);
-        }
-
         $this->sourceImage =@ $this->createSourceImage();
         if (!$this->sourceImage) {
             throw new UploaderException('Could not create source image [error: %s]', ['@error']);
         }
 
+        $info = $this->getInfo();
         [$origWidth, $origHeight] = $info;
 
         if ($proportional) {
-            $size = ($origWidth > $origHeight) ? $origWidth : $origHeight;
-            $percent = 0.5;
-            $cropWidth = (int) ($size * $percent);
-            $cropHeight = (int) ($size * $percent);
+            $factor     = ($width > $height) ? $width : $height;
+            $cropWidth  = (int) (0.5 * $factor);
+            $cropHeight = (int) (0.5 * $factor);
         } else {
-            $cropWidth = $width;
+            $cropWidth  = $width;
             $cropHeight = $height;
         }
 
-        @ [$x, $y] = $xy;
-        $x = $x ?? (int) (($origWidth - $cropWidth) / 2);
-        $y = $y ?? (int) (($origHeight - $cropHeight) / 2);
+        $x = $xy[0] ?? (int) (($origWidth - $cropWidth) / 2);
+        $y = $xy[1] ?? (int) (($origHeight - $cropHeight) / 2);
 
         $this->destinationImage =@ imagecreatetruecolor($width, $height);
         if (!$this->destinationImage) {
@@ -194,11 +197,11 @@ final class ImageUploader extends AbstractUploader
 
         // Handle PNG/GIFs.
         if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF])) {
-            ImageObject::copyTransparency($this->sourceImage, $this->destinationImage);
+            // @TODO
         }
 
         $ok =@ imagecopyresampled($this->destinationImage, $this->sourceImage, 0, 0, $x, $y,
-            $width, $height, $cropWidth, $cropHeight);
+            $width, $height, $width, $height);
         if (!$ok) {
             throw new UploaderException('Could not resample image [error: %s]', ['@error']);
         }
@@ -364,18 +367,22 @@ final class ImageUploader extends AbstractUploader
      */
     public function fillInfo(): void
     {
-        if (empty($this->info)) {
+        if (isset($this->resized)) {
+            // Use resized image as source.
+            $info =@ getimagesizefromstring($this->getOutputBuffer());
+        } elseif (!isset($this->info)) {
             $info =@ getimagesize($this->getSource());
-            if (!$info) {
-                throw new UploaderException('Could not get source info [error: %s]', ['@error']);
-            }
-
-            // Add suggestive names..
-            $info += ['width' => $info[0], 'height' => $info[1], 'type' => $info[2],
-                'attributes' => $info[3]];
-
-            $this->info = $info;
         }
+
+        if (empty($info)) {
+            throw new UploaderException('Could not get source info [error: %s]', ['@error']);
+        }
+
+        // Add suggestive names..
+        $info += ['width' => $info[0], 'height' => $info[1], 'type' => $info[2],
+            'attributes' => $info[3]];
+
+        $this->info = $info;
     }
 
     /**
@@ -399,7 +406,7 @@ final class ImageUploader extends AbstractUploader
     /**
      * Get new dimensions.
      * @param  bool $format
-     * @return array<int, int>|string|null
+     * @return array<int>|string|null
      */
     public function getNewDimensions(bool $format = false)
     {
@@ -430,6 +437,16 @@ final class ImageUploader extends AbstractUploader
      */
     private function createSourceImage()
     {
+        if (isset($this->resized)) {
+            // Use resized image as source.
+            $sourceImage = imagecreatefromstring($this->getOutputBuffer());
+
+            is_resource($this->sourceImage) && imagedestroy($this->sourceImage);
+            is_resource($this->destinationImage) && imagedestroy($this->destinationImage);
+
+            return $sourceImage;
+        }
+
         $type = $this->getInfo()['type'];
         if (!in_array($type, self::SUPPORTED_TYPES)) {
             throw new UploaderException('Unsupported image type, only "jpeg, png, gif" are accepted');
