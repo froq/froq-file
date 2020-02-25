@@ -138,7 +138,12 @@ final class ImageUploader extends AbstractUploader
 
         // Handle PNG/GIFs.
         if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF])) {
-            ImageObject::copyTransparency($this->sourceImage, $this->destinationImage);
+            imagealphablending($this->destinationImage, false);
+            imagesavealpha($this->destinationImage, true);
+            imageantialias($this->destinationImage, true);
+            imagefill($this->destinationImage, 0, 0, imagecolorallocatealpha(
+                $this->destinationImage, 0, 0, 0, 127 // Tranparent.
+            ));
         }
 
         $ok =@ imagecopyresampled($this->destinationImage, $this->sourceImage, 0, 0, 0, 0,
@@ -199,7 +204,12 @@ final class ImageUploader extends AbstractUploader
 
         // Handle PNG/GIFs.
         if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF])) {
-            // @TODO
+            imagealphablending($this->destinationImage, false);
+            imagesavealpha($this->destinationImage, true);
+            imageantialias($this->destinationImage, true);
+            imagefill($this->destinationImage, 0, 0, imagecolorallocatealpha(
+                $this->destinationImage, 0, 0, 0, 127 // Tranparent.
+            ));
         }
 
         $ok =@ imagecopyresampled($this->destinationImage, $this->sourceImage, 0, 0, $x, $y,
