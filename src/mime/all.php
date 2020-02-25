@@ -775,6 +775,8 @@ return [
     'image/x-portable-pixmap' => ['ppm'],
     'image/x-rgb' => ['rgb'],
     'image/x-tga' => ['tga'],
+    'image/xbm' => ['xbm'],
+    'image/x-xbm' => ['xbm'],
     'image/x-xbitmap' => ['xbm'],
     'image/x-xpixmap' => ['xpm'],
     'image/x-xwindowdump' => ['xwd'],
