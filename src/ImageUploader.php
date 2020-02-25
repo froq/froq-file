@@ -107,8 +107,7 @@ final class ImageUploader extends AbstractUploader
             throw new UploaderException('Could not create source image [error: %s]', ['@error']);
         }
 
-        $info = $this->getInfo();
-        [$origWidth, $origHeight] = $info;
+        [$origWidth, $origHeight] = $info = $this->getInfo();
 
         // Use original width/height if given ones excessive.
         if ($fixExcessiveDimensions) {
@@ -160,13 +159,13 @@ final class ImageUploader extends AbstractUploader
     /**
      * Crop.
      * @param  int             $width
-     * @param  int             $height
+     * @param  int|null        $height
      * @param  bool            $proportional
      * @param  array<int>|null $xy @internal
      * @return self
      * @throws froq\file\UploaderException
      */
-    public function crop(int $width, int $height, bool $proportional = true, array $xy = null): self
+    public function crop(int $width, int $height = null, bool $proportional = true, array $xy = null): self
     {
         // Fill/ensure info.
         $this->fillInfo();
@@ -176,8 +175,10 @@ final class ImageUploader extends AbstractUploader
             throw new UploaderException('Could not create source image [error: %s]', ['@error']);
         }
 
-        $info = $this->getInfo();
-        [$origWidth, $origHeight] = $info;
+        // Square crops.
+        $height = $height ?? $width;
+
+        [$origWidth, $origHeight] = $info = $this->getInfo();
 
         if ($proportional) {
             $factor     = ($width > $height) ? $width : $height;
@@ -215,15 +216,14 @@ final class ImageUploader extends AbstractUploader
 
     /**
      * Crop by.
-     * @param  int  $width
-     * @param  int  $height
-     * @param  int  $x
-     * @param  int  $y
-     * @param  bool $proportional
-     * @return bool
-     * @throws froq\file\UploaderException
+     * @param  int      $width
+     * @param  int|null $height
+     * @param  int      $x
+     * @param  int      $y
+     * @param  bool     $proportional
+     * @return self
      */
-    public function cropBy(int $width, int $height, int $x, int $y, bool $proportional = true): self
+    public function cropBy(int $width, int $height = null, int $x, int $y, bool $proportional = true): self
     {
         return $this->crop($width, $height, $proportional, [$x, $y]);
     }
