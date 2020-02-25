@@ -62,7 +62,7 @@ final class ImageUploader extends AbstractUploader
     private $sourceImage;
 
     /**
-     * Destination file.
+     * Destination image.
      * @var resource
      */
     private $destinationImage;
@@ -75,6 +75,7 @@ final class ImageUploader extends AbstractUploader
 
     /**
      * Resized.
+     * @var bool
      */
     private ?bool $resized;
 
@@ -473,7 +474,7 @@ final class ImageUploader extends AbstractUploader
     {
         $destinationImage = $this->getDestinationImage();
         if ($destinationImage == null) {
-            throw new UploaderException('No destination file created yet, call one of these method '.
+            throw new UploaderException('No destination image created yet, call one of these method '.
                 'first: resample(), resize(), crop() or cropBy()');
         }
 
@@ -505,7 +506,7 @@ final class ImageUploader extends AbstractUploader
     {
         $destinationImage = $this->getDestinationImage();
         if ($destinationImage == null) {
-            throw new UploaderException('No destination file created yet, call one of these method '.
+            throw new UploaderException('No destination image created yet, call one of these method '.
                 'first: resample(), resize(), crop() or cropBy()');
         }
 
