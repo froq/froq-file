@@ -432,6 +432,18 @@ final class ImageUploader extends AbstractUploader
     }
 
     /**
+     * Call.
+     * @param  callable $func
+     * @return self
+     */
+    public function call(callable $func): self
+    {
+        $func->bindTo($this)->call($this);
+
+        return $this;
+    }
+
+    /**
      * Create source image.
      * @return ?resource
      * @throws froq\file\UploaderException
