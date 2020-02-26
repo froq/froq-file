@@ -149,8 +149,6 @@ final class ImageObject extends AbstractFileObject
                 $copy = $this->getResourceCopy();
                 imagewebp($copy, null, $this->quality) && imagedestroy($copy);
                 break;
-            default:
-                throw new FileException('No MIME type supported such "%s"', [$mimeType]);
         }
 
         return (ob_get_length() !== false) ? ob_get_clean() : null;
