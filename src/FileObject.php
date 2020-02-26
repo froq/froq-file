@@ -27,7 +27,7 @@ declare(strict_types=1);
 namespace froq\file;
 
 use froq\file\{AbstractFileObject, FileException, Util as FileUtil};
-use Error;
+// use Error;
 
 /**
  * File Object.

@@ -26,8 +26,8 @@ declare(strict_types=1);
 
 namespace froq\file;
 
+use froq\util\{Objects, Strings};
 use froq\file\{AbstractFileObject, FileException, Util as FileUtil};
-use Error;
 
 /**
  * Image Object.
@@ -38,6 +38,15 @@ use Error;
  */
 final class ImageObject extends AbstractFileObject
 {
+    public const MIME_TYPE_JPEG = 'image/jpeg',
+                 MIME_TYPE_PNG  = 'image/png',
+                 MIME_TYPE_GIF  = 'image/gif',
+                 MIME_TYPE_WEBP = 'image/webp',
+                 MIME_TYPE_WBMP = 'image/vnd.wap.wbmp',
+                 MIME_TYPE_BMP  = 'image/bmp',
+                 MIME_TYPE_XBM  = 'image/xbm',
+                 MIME_TYPE_XPM  = 'image/x-xpixmap';
+
     public const DEFAULT_QUALITY = -1;
 
     protected int $quality;
@@ -49,10 +58,26 @@ final class ImageObject extends AbstractFileObject
         parent::__construct($resource, $mimeType);
     }
 
+    public function setQuality(int $quality): self
+    {
+        $this->quality = $quality;
+    }
+    public function getQuality(): int
+    {
+        return $this->quality;
+    }
+
+    public function getMimeTypes(): array
+    {
+        return array_filter(
+            Objects::getConstantValues($this),
+            fn($value) => Strings::startsWith((string) $value, 'image/')
+        );
+    }
+
     public function copy(): ImageObject
     {
         $this->resourceCheck();
-
         return new ImageObject($this->getResourceCopy(), $this->getMimeType());
     }
 
@@ -66,59 +91,75 @@ final class ImageObject extends AbstractFileObject
         ob_end_clean();          // trash the buffer
     }
 
-    public function getContents(int $quality = null)
+    public function resample(): self
+    {
+        $this->resourceCheck();
+
+        [$oldImg, $width, $height] = [$this->resource,
+            imagesx($this->resource), imagesy($this->resource)];
+
+        $newImg = imagecreatetruecolor($width, $height);
+        imagealphablending($newImg, false);
+        imagesavealpha($newImg, true);
+        imageantialias($newImg, true);
+        imagefill($newImg, 0, 0, imagecolorallocatealpha(
+            $newImg, 0, 0, 0, 127 // Apply transparency.
+        ));
+        imagecopyresampled($newImg, $oldImg, 0, 0, 0, 0, $width, $height, $width, $height);
+        imagedestroy($oldImg); // Free old one.
+
+        $this->resource = $newImg;
+
+        return $this;
+    }
+
+    public function getDimensions(): array
+    {
+        $this->resourceCheck();
+
+        return [imagesx($this->resource), imagesy($this->resource)];
+    }
+
+    public function getContents(int &$size = null): ?string
     {
         $mimeType = $this->getMimeType();
         if ($mimeType == null) {
             throw new FileException('No MIME type given yet');
         }
-
-        $quality = $quality ?? $this->quality;
+        if (!in_array($mimeType, $this->getMimeTypes())) {
+            throw new FileException('No MIME type supported such "%s"', [$mimeType]);
+        }
 
         ob_start();
+
         switch ($mimeType) {
-            case 'image/jpeg':
+            case self::MIME_TYPE_JPEG:
                 $copy = $this->getResourceCopy();
-                imagejpeg($copy, null, $quality) && imagedestroy($copy);
+                imagejpeg($copy, null, $this->quality) && imagedestroy($copy);
                 break;
-            case 'image/png':
+            case self::MIME_TYPE_PNG:
                 $copy = $this->getResourceCopy();
-                // $copy = $this->getResource();
-
-                // $color = imagecolorallocatealpha($copy, 0, 0, 0, 127); //fill transparent back
-                // imagefill($copy, 0, 0, $color);
-                // imagesavealpha($copy, true);
-
-                // imagealphablending($copy, false);
-                // imagesavealpha($copy, true);
-                // imageantialias($copy, true);
-
-                // $transparent = imagecolorallocatealpha($copy, 255, 255, 255, 127);
-                // $transparent = imagecolorallocatealpha($copy, 0, 0, 0, 127);
-                // $transparent = imagecolorallocate($copy, 0, 0, 0);
-                // imagefill($copy, 0, 0, $transparent);
-                // imagecolortransparent($copy, $transparent);
-
-                // $black = imagecolorallocate($copy, 0, 0, 0);
-                // imagecolortransparent($copy, $black); // Make the background transparent
-
                 imagepng($copy) && imagedestroy($copy);
-                // imagecolordeallocate($copy, $transparent);
                 break;
-            case 'image/gif':
+            case self::MIME_TYPE_GIF:
                 $copy = $this->getResourceCopy();
                 imagegif($copy) && imagedestroy($copy);
                 break;
-            case 'image/webp':
+            case self::MIME_TYPE_WEBP:
                 $copy = $this->getResourceCopy();
-                imagewebp($copy, null, $quality) && imagedestroy($copy);
+                imagewebp($copy, null, $this->quality) && imagedestroy($copy);
                 break;
             default:
-                throw new FileException('No MIME type supported such "%s"', $mimeType);
+                throw new FileException('No MIME type supported such "%s"', [$mimeType]);
         }
-        $ret = ob_get_clean();
 
-        return $ret;
+        $size = ob_get_length();
+        if ($size === false) {
+            $size = null;
+            return null;
+        }
+
+        return ob_get_clean();
     }
 
     // webp
