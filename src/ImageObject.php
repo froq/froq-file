@@ -120,7 +120,7 @@ final class ImageObject extends AbstractFileObject
         return [imagesx($this->resource), imagesy($this->resource)];
     }
 
-    public function getContents(int &$size = null): ?string
+    public function getContents(): ?string
     {
         $mimeType = $this->getMimeType();
         if ($mimeType == null) {
@@ -153,13 +153,7 @@ final class ImageObject extends AbstractFileObject
                 throw new FileException('No MIME type supported such "%s"', [$mimeType]);
         }
 
-        $size = ob_get_length();
-        if ($size === false) {
-            $size = null;
-            return null;
-        }
-
-        return ob_get_clean();
+        return (ob_get_length() !== false) ? ob_get_clean() : null;
     }
 
     // webp
