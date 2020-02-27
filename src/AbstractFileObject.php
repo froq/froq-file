@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\common\traits\OptionTrait;
+use froq\common\traits\{OptionTrait, ApplyTrait};
 use froq\file\{FileException, FileObject, ImageObject};
 
 /**
@@ -39,10 +39,11 @@ use froq\file\{FileException, FileObject, ImageObject};
 abstract class AbstractFileObject
 {
     /**
-     * Option trait.
+     * Option & Apply traits.
      * @see froq\common\traits\OptionTrait
+     * @see froq\common\traits\ApplyTrait
      */
-    use OptionTrait;
+    use OptionTrait, ApplyTrait;
 
     /**
      * Resource.

@@ -138,12 +138,6 @@ final class FileObject extends AbstractFileObject
         return ($this->freed || !$this->resource || !fstat($this->resource)['size']);
     }
 
-    public function call(callable $func): self
-    {
-        $func->bindTo($this)->call($this);
-        return $this;
-    }
-
     public function setPosition(int $where, int $whence = SEEK_SET): ?bool
     {
         $this->resourceCheck();
