@@ -41,13 +41,13 @@ final class ImageUploader extends AbstractUploader
      * Supported types.
      * @const array
      */
-    public const SUPPORTED_TYPES = [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF];
+    public const SUPPORTED_TYPES = [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP];
 
     /**
-     * Jpeg quality.
+     * Quality.
      * @const int
      */
-    public const JPEG_QUALITY = -1; // Use default quality.
+    public const QUALITY = -1;
 
     /**
      * Info.
@@ -137,7 +137,7 @@ final class ImageUploader extends AbstractUploader
         }
 
         // Handle PNG/GIFs.
-        if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF])) {
+        if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP])) {
             imagealphablending($this->destinationImage, false);
             imagesavealpha($this->destinationImage, true);
             imageantialias($this->destinationImage, true);
@@ -203,7 +203,7 @@ final class ImageUploader extends AbstractUploader
         }
 
         // Handle PNG/GIFs.
-        if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF])) {
+        if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP])) {
             imagealphablending($this->destinationImage, false);
             imagesavealpha($this->destinationImage, true);
             imageantialias($this->destinationImage, true);
@@ -482,6 +482,8 @@ final class ImageUploader extends AbstractUploader
                 return imagecreatefrompng($this->getSource());
             case IMAGETYPE_GIF:
                 return imagecreatefromgif($this->getSource());
+            case IMAGETYPE_WEBP:
+                return imagecreatefromwebp($this->getSource());
         }
 
         return null;
@@ -507,12 +509,15 @@ final class ImageUploader extends AbstractUploader
 
         switch ($type) {
             case IMAGETYPE_JPEG:
-                $jpegQuality = intval($this->options['jpegQuality'] ?? self::JPEG_QUALITY);
+                $jpegQuality = intval($this->options['jpegQuality'] ?? self::QUALITY);
                 return imagejpeg($destinationImage, null, $jpegQuality);
             case IMAGETYPE_PNG:
                 return imagepng($destinationImage);
             case IMAGETYPE_GIF:
                 return imagegif($destinationImage);
+            case IMAGETYPE_WEBP:
+                $webpQuality = intval($this->options['webpQuality'] ?? self::QUALITY);
+                return imagewebp($destinationImage, null, $webpQuality);
         }
 
         return null;
@@ -539,12 +544,15 @@ final class ImageUploader extends AbstractUploader
 
         switch ($type) {
             case IMAGETYPE_JPEG:
-                $jpegQuality = intval($this->options['jpegQuality'] ?? self::JPEG_QUALITY);
+                $jpegQuality = intval($this->options['jpegQuality'] ?? self::QUALITY);
                 return imagejpeg($destinationImage, $to, $jpegQuality);
             case IMAGETYPE_PNG:
                 return imagepng($destinationImage, $to);
             case IMAGETYPE_GIF:
                 return imagegif($destinationImage, $to);
+            case IMAGETYPE_WEBP:
+                $webpQuality = intval($this->options['webpQuality'] ?? self::QUALITY);
+                return imagewebp($destinationImage, $to, $webpQuality);
         }
 
         return null;

@@ -70,6 +70,7 @@ abstract class AbstractUploader
         'clear'                => true, // Useful to use resource files after upload etc.
         'clearSource'          => true, // Useful to display crop files after crop etc.
         'jpegQuality'          => -1,   // Use default quality.
+        'webpQuality'          => -1,   // Use default quality.
     ];
 
     /**
