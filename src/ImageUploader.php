@@ -104,7 +104,7 @@ final class ImageUploader extends AbstractUploader
 
         $this->sourceImage =@ $this->createSourceImage();
         if (!$this->sourceImage) {
-            throw new UploaderException('Could not create source image [error: %s]', ['@error']);
+            throw new UploaderException('Failed creating source image [error: %s]', ['@error']);
         }
 
         [$origWidth, $origHeight] = $info = $this->getInfo();
@@ -133,7 +133,7 @@ final class ImageUploader extends AbstractUploader
 
         $this->destinationImage =@ imagecreatetruecolor($newWidth, $newHeight);
         if (!$this->destinationImage) {
-            throw new UploaderException('Could not create destination image [error: %s]', ['@error']);
+            throw new UploaderException('Failed creating destination image [error: %s]', ['@error']);
         }
 
         // Handle PNG/GIFs.
@@ -149,7 +149,7 @@ final class ImageUploader extends AbstractUploader
         $ok =@ imagecopyresampled($this->destinationImage, $this->sourceImage, 0, 0, 0, 0,
             $newWidth, $newHeight, $origWidth, $origHeight);
         if (!$ok) {
-            throw new UploaderException('Could not resample image [error: %s]', ['@error']);
+            throw new UploaderException('Failed resampling destination image [error: %s]', ['@error']);
         }
 
         // Store new dimensions.
@@ -177,7 +177,7 @@ final class ImageUploader extends AbstractUploader
 
         $this->sourceImage =@ $this->createSourceImage();
         if (!$this->sourceImage) {
-            throw new UploaderException('Could not create source image [error: %s]', ['@error']);
+            throw new UploaderException('Failed creating source image [error: %s]', ['@error']);
         }
 
         // Square crops.
@@ -199,7 +199,7 @@ final class ImageUploader extends AbstractUploader
 
         $this->destinationImage =@ imagecreatetruecolor($width, $height);
         if (!$this->destinationImage) {
-            throw new UploaderException('Could not create destination image [error: %s]', ['@error']);
+            throw new UploaderException('Failed creating destination image [error: %s]', ['@error']);
         }
 
         // Handle PNG/GIFs.
@@ -215,7 +215,7 @@ final class ImageUploader extends AbstractUploader
         $ok =@ imagecopyresampled($this->destinationImage, $this->sourceImage, 0, 0, $x, $y,
             $width, $height, $width, $height);
         if (!$ok) {
-            throw new UploaderException('Could not resample image [error: %s]', ['@error']);
+            throw new UploaderException('Failed resampling destination image [error: %s]', ['@error']);
         }
 
         // Store new dimensions.
@@ -365,7 +365,7 @@ final class ImageUploader extends AbstractUploader
     public function getInfo(): array
     {
         if (empty($this->info)) {
-            throw new UploaderException('Could not get info, try after calling fillInfo()');
+            throw new UploaderException('No info filled yet, try after calling fillInfo()');
         }
         return $this->info;
     }
@@ -386,12 +386,11 @@ final class ImageUploader extends AbstractUploader
         }
 
         if (empty($info)) {
-            throw new UploaderException('Could not get source info [error: %s]', ['@error']);
+            throw new UploaderException('Failed to get source info [error: %s]', ['@error']);
         }
 
-        // Add suggestive names..
-        $info += ['width' => $info[0], 'height' => $info[1], 'type' => $info[2],
-            'attributes' => $info[3]];
+        // Add suggestive names.
+        $info += ['type' => $info[2], 'width' => $info[0], 'height' => $info[1]];
 
         $this->info = $info;
     }
