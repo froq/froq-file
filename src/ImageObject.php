@@ -26,7 +26,6 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\util\{Objects, Strings};
 use froq\file\{AbstractFileObject, FileException, Util as FileUtil};
 
 /**
@@ -41,15 +40,19 @@ final class ImageObject extends AbstractFileObject
     public const MIME_TYPE_JPEG = 'image/jpeg',
                  MIME_TYPE_PNG  = 'image/png',
                  MIME_TYPE_GIF  = 'image/gif',
-                 MIME_TYPE_WEBP = 'image/webp',
-                 MIME_TYPE_WBMP = 'image/vnd.wap.wbmp',
+                 MIME_TYPE_WEBP = 'image/webp';
+                 // Far enough for now..
+                 /* MIME_TYPE_WBMP = 'image/vnd.wap.wbmp',
                  MIME_TYPE_BMP  = 'image/bmp',
                  MIME_TYPE_XBM  = 'image/xbm',
-                 MIME_TYPE_XPM  = 'image/x-xpixmap';
+                 MIME_TYPE_XPM  = 'image/x-xpixmap'; */
 
     public const DEFAULT_QUALITY = -1;
 
     protected int $quality;
+
+    private static array $mimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        /* 'image/vnd.wap.wbmp', 'image/bmp', 'image/xbm', 'image/x-xpixmap' */];
 
     public function __construct($resource = null, string $mimeType = null, int $quality = null)
     {
@@ -69,10 +72,7 @@ final class ImageObject extends AbstractFileObject
 
     public function getMimeTypes(): array
     {
-        return array_filter(
-            Objects::getConstantValues($this),
-            fn($value) => Strings::startsWith((string) $value, 'image/')
-        );
+        return self::$mimeTypes;
     }
 
     public function copy(): ImageObject
@@ -83,12 +83,13 @@ final class ImageObject extends AbstractFileObject
 
     public function size(): ?int
     {
+        return null;
         // imagescale()
         // https://stackoverflow.com/a/24669362/362780
-        ob_start();              // start the buffer
-        imagejpeg($img);         // output image to buffer
-        $size = ob_get_length(); // get size of buffer (in bytes)
-        ob_end_clean();          // trash the buffer
+        // ob_start();              // start the buffer
+        // imagejpeg($img);         // output image to buffer
+        // $size = ob_get_length(); // get size of buffer (in bytes)
+        // ob_end_clean();          // trash the buffer
     }
 
     public function resample(): self
@@ -151,7 +152,7 @@ final class ImageObject extends AbstractFileObject
                 break;
         }
 
-        return (ob_get_length() !== false) ? ob_get_clean() : null;
+        return ob_get_length() !== false ? ob_get_clean() : null;
     }
 
     // webp
