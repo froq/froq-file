@@ -61,8 +61,8 @@ abstract class AbstractUploader
      * @var array
      */
     protected array $options = [
-        'hash'                 => null, // Rand, file, fileName (default='').
-        'hashLength'           => null, // 8, 16, 32 or 40 (default=16).
+        'hash'                 => null, // Available commands: 'rand', 'file' or 'fileName' (default=none).
+        'hashLength'           => null, // 8, 16, 32 or 40 (default=32).
         'maxFileSize'          => null, // In binary mode: for 2 megabytes 2048, 2048k or 2m.
         'allowedTypes'         => null, // * means all allowed or 'image/jpeg,image/png' etc.
         'allowedExtensions'    => null, // * means all allowed or 'jpg,jpeg' etc.
@@ -267,6 +267,7 @@ abstract class AbstractUploader
      * @param  string      $name
      * @param  string|null $nameAppendix
      * @return string
+     * @throws froq\file\UploaderException
      */
     protected final function prepareName(string $name, string $nameAppendix = null): string
     {
@@ -284,9 +285,9 @@ abstract class AbstractUploader
         if ($hash) {
             static $hashAlgos = [8 => 'fnv1a32', 16 => 'fnv1a64', 32 => 'md5', 40 => 'sha1'];
 
-            $hashAlgo =@ $hashAlgos[$this->options['hashLength'] ?? 16];
+            $hashAlgo =@ $hashAlgos[$this->options['hashLength'] ?? 32];
             if (!$hashAlgo) {
-                throw new UploaderException("Only '8,16,32,40' are accepted as 'hashLength'");
+                throw new UploaderException('Only "8,16,32,40" are accepted as "hashLength" option');
             }
 
             if ($hash == 'rand') {
@@ -295,6 +296,8 @@ abstract class AbstractUploader
                 $name = hash($hashAlgo, file_get_contents($this->source));
             } elseif ($hash == 'fileName') {
                 $name = hash($hashAlgo, $name);
+            } else {
+                throw new UploaderException('Only "rand,file,fileName" are accepted as "hash" option');
             }
         }
 
