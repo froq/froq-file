@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
+use froq\common\traits\OptionTrait;
 use froq\file\{FileException, FileObject, ImageObject};
 
 /**
@@ -37,6 +38,12 @@ use froq\file\{FileException, FileObject, ImageObject};
  */
 abstract class AbstractFileObject
 {
+    /**
+     * Option trait.
+     * @see froq\common\traits\OptionTrait
+     */
+    use OptionTrait;
+
     /**
      * Resource.
      * @var resource
@@ -83,7 +90,7 @@ abstract class AbstractFileObject
         return is_resource($this->resource) ? get_resource_type($this->resource) : null;
     }
 
-    public final function getResourceCopy()
+    public final function &createResourceCopy()
     {
         if (is_resource($this->resource)) {
             if ($this instanceof FileObject) {
@@ -102,7 +109,9 @@ abstract class AbstractFileObject
                 );
 
                 if (in_array($this->mimeType, [
-                    ImageObject::MIME_TYPE_PNG, ImageObject::MIME_TYPE_GIF
+                    ImageObject::MIME_TYPE_PNG,
+                    ImageObject::MIME_TYPE_GIF,
+                    ImageObject::MIME_TYPE_WEBP
                 ])) {
                     imagealphablending($copy, false);
                     imagesavealpha($copy, true);
@@ -118,13 +127,27 @@ abstract class AbstractFileObject
         }
         return null;
     }
+    public final function removeResourceCopy(&$copy): ?bool
+    {
+        if (is_resource($copy)) {
+            $ok = null;
+            if ($this instanceof FileObject) {
+                $ok = fclose($copy);
+            } elseif ($this instanceof ImageObject) {
+                $ok = imagedestroy($copy);
+            }
+            $copy = null;
+            return $ok;
+        }
+        return null;
+    }
 
-    public function setMimeType(string $mimeType): self
+    public final function setMimeType(string $mimeType): self
     {
         $this->mimeType = $mimeType;
         return $this;
     }
-    public function getMimeType(): ?string
+    public final function getMimeType(): ?string
     {
         return $this->mimeType;
     }
@@ -134,12 +157,12 @@ abstract class AbstractFileObject
         return ($this->freed === true);
     }
 
-    public static final function fromResource($resource, string $mimeType = null, ...$arguments): self
+    public static final function fromResource($resource, string $mimeType = null, array $options = null): self
     {
         if (is_null($resource)) {
             throw new FileException('Null resource given');
         }
-        return new static($resource, $mimeType, ...$arguments);
+        return new static($resource, $mimeType, $options);
     }
     public static final function fromMemoryResource(string $mode = null): self
     {
@@ -178,8 +201,7 @@ abstract class AbstractFileObject
         }
     }
 
-    abstract public static function fromFile(string $file): self;
-    abstract public static function fromString(string $string): self;
-
+    abstract public static function fromFile(string $file, string $mimeType = null, array $options = null): self;
+    abstract public static function fromString(string $string, string $mimeType = null, array $options = null): self;
     abstract public function free(): void;
 }

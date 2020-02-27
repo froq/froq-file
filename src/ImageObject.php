@@ -47,27 +47,22 @@ final class ImageObject extends AbstractFileObject
                  MIME_TYPE_XBM  = 'image/xbm',
                  MIME_TYPE_XPM  = 'image/x-xpixmap'; */
 
-    public const DEFAULT_QUALITY = -1;
-
-    protected int $quality;
-
     private static array $mimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp',
         /* 'image/vnd.wap.wbmp', 'image/bmp', 'image/xbm', 'image/x-xpixmap' */];
 
-    public function __construct($resource = null, string $mimeType = null, int $quality = null)
+    private static array $optionsDefault = ['jpegQuality' => -1, 'webpQuality' => -1,
+        'pngZipLevel' => -1, 'pngFilters' => -1];
+
+    public function __construct($resource = null, string $mimeType = null, array $options = null)
     {
-        $this->quality = $quality ?: self::DEFAULT_QUALITY;
+        if ($mimeType && !in_array($mimeType, self::$mimeTypes)) {
+            throw new FileException('Invalid MIME type "%s" given, valids are: %s',
+                [$mimeType, join(', ', self::$mimeTypes)]);
+        }
+
+        $this->setOptionsDefault($options, self::$optionsDefault);
 
         parent::__construct($resource, $mimeType);
-    }
-
-    public function setQuality(int $quality): self
-    {
-        $this->quality = $quality;
-    }
-    public function getQuality(): int
-    {
-        return $this->quality;
     }
 
     public function getMimeTypes(): array
@@ -78,7 +73,8 @@ final class ImageObject extends AbstractFileObject
     public function copy(): ImageObject
     {
         $this->resourceCheck();
-        return new ImageObject($this->getResourceCopy(), $this->getMimeType());
+
+        return new ImageObject($this->createResourceCopy(), $this->mimeType);
     }
 
     public function size(): ?int
@@ -127,61 +123,54 @@ final class ImageObject extends AbstractFileObject
         if ($mimeType == null) {
             throw new FileException('No MIME type given yet');
         }
-        if (!in_array($mimeType, $this->getMimeTypes())) {
-            throw new FileException('No MIME type supported such "%s"', [$mimeType]);
-        }
 
         ob_start();
 
+        $copy = $this->createResourceCopy();
         switch ($mimeType) {
             case self::MIME_TYPE_JPEG:
-                $copy = $this->getResourceCopy();
-                imagejpeg($copy, null, $this->quality) && imagedestroy($copy);
+                imagejpeg($copy, null, $this->option('jpegQuality'));
                 break;
             case self::MIME_TYPE_PNG:
-                $copy = $this->getResourceCopy();
-                imagepng($copy) && imagedestroy($copy);
+                imagepng($copy, null, $this->option('pngZipLevel'), $this->option('pngFilters'));
                 break;
             case self::MIME_TYPE_GIF:
-                $copy = $this->getResourceCopy();
-                imagegif($copy) && imagedestroy($copy);
+                imagegif($copy);
                 break;
             case self::MIME_TYPE_WEBP:
-                $copy = $this->getResourceCopy();
-                imagewebp($copy, null, $this->quality) && imagedestroy($copy);
+                imagewebp($copy, null, $this->option('webpQuality'));
                 break;
         }
+        $this->removeResourceCopy($copy);
 
         return ob_get_length() !== false ? ob_get_clean() : null;
     }
 
-    // webp
-    // public function getCompressedContents()
-    // {}
-
     // @implement
-    public static function fromFile(string $file, int $quality = null): ImageObject
+    public static function fromFile(string $file, string $mimeType = null, array $options = null): ImageObject
     {
         FileUtil::errorCheck($file, $error);
         if ($error != null) {
             throw new FileException($error->getMessage(), null, $error->getCode());
         }
 
+        $mimeType =@ $mimeType ?? mime_content_type($file);
         $resource =@ imagecreatefromstring(file_get_contents($file));
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }
-        return new ImageObject($resource, mime_content_type($file), $quality);
+        return new ImageObject($resource, $mimeType, $options);
     }
 
     // @implement
-    public static function fromString(string $string, int $quality = null): ImageObject
+    public static function fromString(string $string, string $mimeType = null, array $options = null): ImageObject
     {
+        $mimeType =@ $mimeType ?? getimagesizefromstring($string)['mime'];
         $resource =@ imagecreatefromstring($string);
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }
-        return new ImageObject($resource, getimagesizefromstring($string)['mime'], $quality);
+        return new ImageObject($resource, $mimeType, $options);
     }
 
     // @implement

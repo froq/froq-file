@@ -27,7 +27,6 @@ declare(strict_types=1);
 namespace froq\file;
 
 use froq\file\{AbstractFileObject, FileException, Util as FileUtil};
-// use Error;
 
 /**
  * File Object.
@@ -38,13 +37,12 @@ use froq\file\{AbstractFileObject, FileException, Util as FileUtil};
  */
 final class FileObject extends AbstractFileObject
 {
-    public const DEFAULT_MODE = 'w+b';
 
-    protected string $mode;
+    private static array $optionsDefault = ['openMode' => 'w+b'];
 
-    public function __construct($resource = null, string $mimeType = null, string $mode = null)
+    public function __construct($resource = null, string $mimeType = null, array $options = null)
     {
-        $this->mode = $mode ?: self::DEFAULT_MODE;
+        $this->setOptionsDefault($options, self::$optionsDefault);
 
         parent::__construct($resource, $mimeType);
     }
@@ -101,7 +99,7 @@ final class FileObject extends AbstractFileObject
     {
         $this->resourceCheck();
 
-        return new FileObject($this->getResourceCopy(), $this->getMimeType());
+        return new FileObject($this->createResourceCopy(), $this->mimeType);
     }
 
     public function lock(bool $block = true): bool
@@ -185,23 +183,28 @@ final class FileObject extends AbstractFileObject
         return ($ret !== false) ? $ret : null;
     }
 
-    public static function fromFile(string $file, string $mode = null): FileObject
+    // @implement
+    public static function fromFile(string $file, string $mimeType = null, array $options = null): FileObject
     {
         FileUtil::errorCheck($file, $error);
         if ($error != null) {
             throw new FileException($error->getMessage(), null, $error->getCode());
         }
 
-        $resource =@ fopen($file, $mode ?? $this->mode);
+        $mode     = $options['mode'] ?? self::$optionsDefault['openMode'];
+        $resource =@ fopen($file, $mode);
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }
 
-        return new FileObject($resource, null, $mode ?? $this->mode);
+        return new FileObject($resource, $mimeType, $mode);
     }
-    public static function fromString(string $string): FileObject
+
+    // @implement
+    public static function fromString(string $string, string $mimeType = null, array $options = null): FileObject
     {
-        $resource =@ fopen('php://temp', $this->mode);
+        $mode     = $options['mode'] ?? self::$optionsDefault['openMode'];
+        $resource =@ fopen('php://temp', $mode);
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }
@@ -209,7 +212,7 @@ final class FileObject extends AbstractFileObject
         fwrite($resource, $string);
         rewind($resource);
 
-        return new FileObject($resource, null, $this->mode);
+        return new FileObject($resource, null, $mode);
     }
 
     // @implement
