@@ -80,8 +80,8 @@ abstract class AbstractUploader
      */
     public final function __construct(array $file, string $directory, array $options = null)
     {
-        @ ['type'  => $type, 'name'  => $name, 'tmp_name' => $source, 'size' => $size,
-           'error' => $error] = $file;
+        ['type'  => $type, 'name'  => $name, 'tmp_name' => $source, 'size' => $size,
+         'error' => $error] = $file + array_fill_keys(['type', 'name', 'tmp_name', 'size', 'error'], null);
 
         // All these stuff are needed.
         if (!$type || !$name || !$source) {
