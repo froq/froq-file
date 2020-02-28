@@ -79,13 +79,17 @@ final class ImageObject extends AbstractFileObject
 
     public function size(): ?int
     {
-        return null;
-        // imagescale()
-        // https://stackoverflow.com/a/24669362/362780
-        // ob_start();              // start the buffer
-        // imagejpeg($img);         // output image to buffer
-        // $size = ob_get_length(); // get size of buffer (in bytes)
-        // ob_end_clean();          // trash the buffer
+        $contents = $this->getContents();
+        return ($contents !== null) ? strlen($contents) : null;
+    }
+    public function valid(): bool
+    {
+        try {
+            $this->resourceCheck();
+            return true;
+        } catch (FileException $e) {
+            return false;
+        }
     }
 
     public function resample(): self
@@ -117,8 +121,45 @@ final class ImageObject extends AbstractFileObject
         return [imagesx($this->resource), imagesy($this->resource)];
     }
 
+    public function getInfo(): ?array
+    {
+        $contents = $this->getContents();
+        if ($contents !== null) {
+            $info = getimagesizefromstring($contents) ?: null;
+            if ($info) {
+                $info += [
+                    'width'      => $info[0], 'height' => $info[1],
+                    'type'       => $info[2], 'size'   => strlen($contents),
+                    'dimensions' => [$info[0], $info[1]],
+                    'attributes' => explode(' ', $info[3]),
+                    'extension'  => trim(image_type_to_extension($info[2]), '.'),
+                    'exif'       => null,
+                ];
+
+                // For only JPEG (and also PNG? https://stackoverflow.com/q/9542359/362780).
+                if ($info['type'] == 2 && function_exists('exif_read_data')) {
+                    $fp = fopen('php://temp', 'w+b');
+                    fwrite($fp, $contents);
+                    $info['exif'] = exif_read_data($fp);
+                    fclose($fp);
+                    if ($info['exif']) {
+                        // I don't understand why all keys aren't uniform.
+                        $info['exif'] = array_map(
+                            fn($v) => is_array($v) ? array_change_key_case($v) : $v,
+                            array_change_key_case($info['exif'])
+                        );
+                    }
+                }
+            }
+            return $info;
+        }
+        return null;
+    }
+
     public function getContents(): ?string
     {
+        $this->resourceCheck();
+
         $mimeType = $this->getMimeType();
         if ($mimeType == null) {
             throw new FileException('No MIME type given yet');
