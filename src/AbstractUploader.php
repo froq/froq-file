@@ -45,12 +45,6 @@ abstract class AbstractUploader
     protected string $source;
 
     /**
-     * Directory.
-     * @var string
-     */
-    protected string $directory;
-
-    /**
      * File info.
      * @var array
      */
@@ -71,23 +65,28 @@ abstract class AbstractUploader
         'clearSource'          => true, // Useful to display crop files after crop etc.
         'jpegQuality'          => -1,   // Use default quality.
         'webpQuality'          => -1,   // Use default quality.
+        'directory'            => null, // Will be set in constructor via $file or $options argument.
     ];
 
     /**
      * Constructor.
      * @param array      $file
-     * @param string     $directory
      * @param array|null $options
      */
-    public final function __construct(array $file, string $directory, array $options = null)
+    public final function __construct(array $file, array $options = null)
     {
-        ['type' => $type, 'name' => $name, 'tmp_name' => $source, 'size' => $size, 'error' => $error]
-            = $file + array_fill_keys(['type', 'name', 'tmp_name', 'size', 'error'], null);
+        ['type' => $type, 'name'  => $name,  'tmp_name'  => $sourceTmp, 'file' => $source,
+         'size' => $size, 'error' => $error, 'directory' => $directory] = $file + array_fill_keys([
+            'type', 'name', 'tmp_name', 'size', 'error', 'file', 'directory'
+        ], null);
+
+        // Both "source" or "tmp_name" may be given (generally "tmp_name" come from $_FILES global).
+        $source = $source ?? $sourceTmp;
 
         // All these stuff are needed.
-        if (!$type || !$name || !$source) {
+        if (!$type || !$source) {
             throw new UploaderException(
-                'No valid file given, "type", "name" and "tmp_name" are required',
+                'No valid file given, "type" and "tmp_name" or "file" are required',
                 null, UploaderError::NO_VALID_FILE
             );
         }
@@ -104,7 +103,9 @@ abstract class AbstractUploader
             );
         }
 
-        $size = $size ?? filesize($source);
+        $name      = $name ?? uniqid();
+        $size      = $size ?? filesize($source);
+        $directory = $directory ?? $options['directory'] ?? null;
 
         $options = array_merge($this->options, $options ?? []);
         extract($options, EXTR_PREFIX_ALL, 'options');
@@ -120,9 +121,9 @@ abstract class AbstractUploader
         // Type & extension security.
         if (!$options_allowedTypes || !$options_allowedExtensions) {
             throw new UploaderException(
-                '"allowedTypes" and "allowedExtensions" options cannot be empty for security '.
-                'reasons, please provide types and extensions you allow (ie: for types '.
-                '"image/jpeg,image/png" and for extensions "jpg,jpeg", or "*" to allow all)',
+                'Option "allowedTypes" and "allowedExtensions" must not be empty for '.
+                'security reasons, please provide both types and extensions you allow (ie: for '.
+                'types "image/jpeg,image/png" and for extensions "jpg,jpeg", or "*" to allow all)',
                 null, UploaderError::OPTION_EMPTY
             );
         }
@@ -159,10 +160,10 @@ abstract class AbstractUploader
             );
         }
 
-        $directory = trim($directory);
+        $directory = trim($directory ?: '');
         if (!$directory) {
             throw new UploaderException(
-                'Directory cannot be empty',
+                'Directory must not be empty',
                 null, UploaderError::DIRECTORY_EMPTY
             );
         }
@@ -177,11 +178,10 @@ abstract class AbstractUploader
             }
         }
 
-        $this->source    = $source;
-        $this->directory = $directory;
-        $this->fileInfo  = ['name' => $this->prepareName($name), 'type' => $type, 'size' => $size,
-                            'extension' => $extension];
-        $this->options   = $options;
+        $this->source   = $source;
+        $this->fileInfo = ['type' => $type, 'name'      => $this->prepareName($name),
+                           'size' => $size, 'extension' => $extension];
+        $this->options  = ['directory' => $directory] + $options;
     }
 
     /**
@@ -199,15 +199,6 @@ abstract class AbstractUploader
     public final function getSource(): string
     {
         return $this->source;
-    }
-
-    /**
-     * Get directory.
-     * @return string
-     */
-    public final function getDirectory(): string
-    {
-        return $this->directory;
     }
 
     /**
@@ -254,7 +245,7 @@ abstract class AbstractUploader
             $name = $this->prepareName($name, $nameAppendix);
         }
 
-        $destination = $this->directory .'/'. ($name ?? $this->fileInfo['name']);
+        $destination = $this->options['directory'] .'/'. ($name ?? $this->fileInfo['name']);
         if ($extension != null) {
             $destination = $destination .'.'. $extension;
         }
