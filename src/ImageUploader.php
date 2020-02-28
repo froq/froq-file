@@ -146,6 +146,7 @@ final class ImageUploader extends AbstractUploader
             ));
         }
 
+        // Not using imagescale() cos images become dithered when width/height is small.
         $ok =@ imagecopyresampled($this->destinationImage, $this->sourceImage, 0, 0, 0, 0,
             $newWidth, $newHeight, $origWidth, $origHeight);
         if (!$ok) {
