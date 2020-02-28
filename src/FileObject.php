@@ -129,15 +129,6 @@ final class FileObject extends AbstractFileObject
         return !$this->isEnded();
     }
 
-    public function isEnded(): bool
-    {
-        return ($this->resource && feof($this->resource));
-    }
-    public function isEmpty(): bool
-    {
-        return ($this->freed || !$this->resource || !fstat($this->resource)['size']);
-    }
-
     public function setPosition(int $where, int $whence = SEEK_SET): ?bool
     {
         $this->resourceCheck();
@@ -175,6 +166,15 @@ final class FileObject extends AbstractFileObject
         fseek($this->resource, $pos);
 
         return ($ret !== false) ? $ret : null;
+    }
+
+    public function isEnded(): bool
+    {
+        return ($this->resource && feof($this->resource));
+    }
+    public function isEmpty(): bool
+    {
+        return ($this->freed || !$this->resource || !fstat($this->resource)['size']);
     }
 
     // @implement

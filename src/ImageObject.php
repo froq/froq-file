@@ -187,6 +187,23 @@ final class ImageObject extends AbstractFileObject
         return ob_get_length() !== false ? ob_get_clean() : null;
     }
 
+    public function isJpeg(): bool
+    {
+        return ($this->mimeType == self::MIME_TYPE_JPEG);
+    }
+    public function isPng(): bool
+    {
+        return ($this->mimeType == self::MIME_TYPE_PNG);
+    }
+    public function isGif(): bool
+    {
+        return ($this->mimeType == self::MIME_TYPE_GIF);
+    }
+    public function isWebp(): bool
+    {
+        return ($this->mimeType == self::MIME_TYPE_WEBP);
+    }
+
     // @implement
     public static function fromFile(string $file, string $mimeType = null, array $options = null): ImageObject
     {
