@@ -157,6 +157,17 @@ final class FileObject extends AbstractFileObject
         return stream_get_meta_data($this->resource) ?: null;
     }
 
+    public function setContents(string $contents): self
+    {
+        $this->resourceCheck();
+
+        ftruncate($this->resource, 0)
+            && fwrite($this->resource, $contents);
+        rewind($this->resource);
+
+        return $this;
+    }
+
     public function getContents(): ?string
     {
         $this->resourceCheck();
@@ -191,7 +202,7 @@ final class FileObject extends AbstractFileObject
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }
 
-        return new FileObject($resource, $mimeType, $mode);
+        return new FileObject($resource, $mimeType, $options);
     }
 
     // @implement
@@ -206,7 +217,7 @@ final class FileObject extends AbstractFileObject
         fwrite($resource, $string);
         rewind($resource);
 
-        return new FileObject($resource, null, $mode);
+        return new FileObject($resource, null, $options);
     }
 
     // @implement
