@@ -96,9 +96,9 @@ abstract class AbstractUploader
             throw new UploaderException($error, null, UploaderError::INTERNAL);
         }
 
-        if (!is_file($source)) {
+        if (!is_string($source) || !is_file($source)) {
             throw new UploaderException(
-                'No valid source file "%s" given by "tmp_name"',
+                'No valid source file "%s" given by "tmp_name" or "file"',
                 [$source], UploaderError::NO_VALID_SOURCE
             );
         }
