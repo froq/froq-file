@@ -157,6 +157,23 @@ final class FileObject extends AbstractFileObject
         return stream_get_meta_data($this->resource) ?: null;
     }
 
+    public function getPath(): ?string
+    {
+        return $this->getMetadata()['uri'] ?? null;
+    }
+    public function getPathInfo(): ?array
+    {
+        $uri = $this->getMetadata()['uri'] ?? null;
+        if ($uri) {
+            return [$uri, dirname($uri), basename($uri)];
+        }
+        return null;
+    }
+    public function getDirectory(): ?string
+    {
+        return dirname($this->getMetadata()['uri'] ?? '') ?: null;
+    }
+
     public function setContents(string $contents): self
     {
         $this->resourceCheck();
