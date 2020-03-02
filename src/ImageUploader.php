@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
+use froq\common\interfaces\Stringable;
 use froq\file\{AbstractUploader, UploaderException};
 
 /**
@@ -35,7 +36,7 @@ use froq\file\{AbstractUploader, UploaderException};
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   3.0
  */
-final class ImageUploader extends AbstractUploader
+final class ImageUploader extends AbstractUploader implements Stringable
 {
     /**
      * Supported types.
@@ -381,7 +382,7 @@ final class ImageUploader extends AbstractUploader
     {
         if (isset($this->resized)) {
             // Use resized image as source.
-            $info =@ getimagesizefromstring($this->getOutputBuffer());
+            $info =@ getimagesizefromstring($this->toString());
         } elseif (!isset($this->info)) {
             $info =@ getimagesize($this->getSource());
         }
@@ -431,17 +432,6 @@ final class ImageUploader extends AbstractUploader
     }
 
     /**
-     * Get output buffer.
-     * @return string
-     */
-    public function getOutputBuffer(): string
-    {
-        ob_start();
-        $this->output();
-        return ob_get_clean();
-    }
-
-    /**
      * Call.
      * @param  callable $func
      * @return self
@@ -454,6 +444,36 @@ final class ImageUploader extends AbstractUploader
     }
 
     /**
+     * To base 64.
+     * @return string
+     */
+    public function toBase64(): string
+    {
+        return base64_encode($this->toString());
+    }
+
+    /**
+     * To base 64 url.
+     * @return string
+     */
+    public function toBase64Url(): string
+    {
+        $base64 = base64_encode($this->toString());
+
+        return 'data:'. $this->info['mime'] .';base64,'. $base64;
+    }
+
+    /**
+     * @inheritDoc froq\common\interfaces\Stringable
+     */
+    public function toString(): string
+    {
+        ob_start();
+        $this->output();
+        return ob_get_clean();
+    }
+
+    /**
      * Create source image.
      * @return ?resource
      * @throws froq\file\UploaderException
@@ -462,7 +482,7 @@ final class ImageUploader extends AbstractUploader
     {
         if (isset($this->resized)) {
             // Use resized image as source.
-            $sourceImage = imagecreatefromstring($this->getOutputBuffer());
+            $sourceImage = imagecreatefromstring($this->toString());
 
             is_resource($this->sourceImage) && imagedestroy($this->sourceImage);
             is_resource($this->destinationImage) && imagedestroy($this->destinationImage);
@@ -472,7 +492,7 @@ final class ImageUploader extends AbstractUploader
 
         $type = $this->getInfo()['type'];
         if (!in_array($type, self::SUPPORTED_TYPES)) {
-            throw new UploaderException('Unsupported image type, only "jpeg, png, gif" are accepted');
+            throw new UploaderException('Unsupported image type, only "jpeg, png, gif, webp" are accepted');
         }
 
         switch ($type) {
@@ -504,7 +524,7 @@ final class ImageUploader extends AbstractUploader
 
         $type = $this->getInfo()['type'];
         if (!in_array($type, self::SUPPORTED_TYPES)) {
-            throw new UploaderException('Unsupported image type, only "jpeg, png, gif" are accepted');
+            throw new UploaderException('Unsupported image type, only "jpeg, png, gif, webp" are accepted');
         }
 
         switch ($type) {
@@ -539,7 +559,7 @@ final class ImageUploader extends AbstractUploader
 
         $type = $this->getInfo()['type'];
         if (!in_array($type, self::SUPPORTED_TYPES)) {
-            throw new UploaderException('Unsupported image type, only "jpeg, png, gif" are accepted');
+            throw new UploaderException('Unsupported image type, only "jpeg, png, gif, webp" are accepted');
         }
 
         switch ($type) {
