@@ -92,9 +92,9 @@ final class Util
     {
         static $base = 1024, $units = ['', 'K', 'M', 'G'];
 
-        if (preg_match('~([\d\.]+)(\w)~', $bytes, $match)) {
-            [, $bytes, $unit] = $match;
-            return (int) ($bytes * pow($base, array_search(strtoupper($unit), $units)));
+        // Eg: 6.4M or 6.4MB => 6.4MB, 64M or 64MB => 64MB.
+        if (sscanf($bytes, '%f%c', $byte, $unit) == 2) {
+            return (int) ($byte * pow($base, array_search(strtoupper($unit), $units)));
         }
 
         return (int) $bytes;
