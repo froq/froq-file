@@ -432,20 +432,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
     }
 
     /**
-     * Call.
-     * @param  callable $func
-     * @return self
-     */
-    public function call(callable $func): self
-    {
-        $func->bindTo($this)->call($this);
-
-        return $this;
-    }
-
-    /**
      * To base 64.
      * @return string
+     * @since  4.0
      */
     public function toBase64(): string
     {
@@ -455,6 +444,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
     /**
      * To base 64 url.
      * @return string
+     * @since  4.0
      */
     public function toBase64Url(): string
     {
@@ -465,6 +455,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
     /**
      * @inheritDoc froq\common\interfaces\Stringable
+     * @since 4.0 Replaced with getOutputBuffer().
      */
     public function toString(): string
     {
