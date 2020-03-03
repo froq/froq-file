@@ -38,7 +38,7 @@ use froq\file\{AbstractFileObject, FileException, Util as FileUtil};
 final class FileObject extends AbstractFileObject
 {
 
-    private static array $optionsDefault = ['openMode' => 'w+b'];
+    private static array $optionsDefault = ['mode' => 'r+b'];
 
     public function __construct($resource = null, string $mimeType = null, array $options = null)
     {
@@ -213,7 +213,7 @@ final class FileObject extends AbstractFileObject
             throw new FileException($error->getMessage(), null, $error->getCode());
         }
 
-        $mode     = $options['mode'] ?? self::$optionsDefault['openMode'];
+        $mode     = $options['mode'] ?? self::$optionsDefault['mode'];
         $resource =@ fopen($file, $mode);
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
@@ -225,7 +225,7 @@ final class FileObject extends AbstractFileObject
     // @implement
     public static function fromString(string $string, string $mimeType = null, array $options = null): FileObject
     {
-        $mode     = $options['mode'] ?? self::$optionsDefault['openMode'];
+        $mode     = $options['mode'] ?? self::$optionsDefault['mode'];
         $resource =@ fopen('php://temp', $mode);
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
@@ -235,14 +235,5 @@ final class FileObject extends AbstractFileObject
         rewind($resource);
 
         return new FileObject($resource, null, $options);
-    }
-
-    // @implement
-    public function free(): void
-    {
-        if (is_resource($this->resource)) {
-            $this->freed = fclose($this->resource);
-            $this->resource = null;
-        }
     }
 }
