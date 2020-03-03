@@ -57,28 +57,28 @@ final class ImageUploader extends AbstractUploader implements Stringable
     private array $info;
 
     /**
-     * Source image.
+     * Source resource.
      * @var resource
      */
-    private $sourceImage;
+    private $sourceResource;
 
     /**
-     * Destination image.
+     * Destination resource.
      * @var resource
      */
-    private $destinationImage;
+    private $destinationResource;
 
     /**
      * New dimensions.
-     * @var ?array<int>
+     * @var array<int>
      */
-    private ?array $newDimensions;
+    private array $newDimensions;
 
     /**
      * Resized.
      * @var bool
      */
-    private ?bool $resized;
+    private bool $resized = false;
 
     /**
      * Resample.
@@ -103,9 +103,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
         // Fill/ensure info.
         $this->fillInfo();
 
-        $this->sourceImage =@ $this->createSourceImage();
-        if (!$this->sourceImage) {
-            throw new UploaderException('Failed creating source image [error: %s]', ['@error']);
+        $this->sourceResource =@ $this->createSourceResource();
+        if (!$this->sourceResource) {
+            throw new UploaderException('Failed creating source resource [error: %s]', ['@error']);
         }
 
         [$origWidth, $origHeight] = $info = $this->getInfo();
@@ -132,26 +132,26 @@ final class ImageUploader extends AbstractUploader implements Stringable
             $newHeight = (int) ($height > -1 ? $height : $origHeight);
         }
 
-        $this->destinationImage =@ imagecreatetruecolor($newWidth, $newHeight);
-        if (!$this->destinationImage) {
-            throw new UploaderException('Failed creating destination image [error: %s]', ['@error']);
+        $this->destinationResource =@ imagecreatetruecolor($newWidth, $newHeight);
+        if (!$this->destinationResource) {
+            throw new UploaderException('Failed creating destination resource [error: %s]', ['@error']);
         }
 
         // Handle PNG/GIFs.
         if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP])) {
-            imagealphablending($this->destinationImage, false);
-            imagesavealpha($this->destinationImage, true);
-            imageantialias($this->destinationImage, true);
-            imagefill($this->destinationImage, 0, 0, imagecolorallocatealpha(
-                $this->destinationImage, 0, 0, 0, 127 // Tranparent.
+            imagealphablending($this->destinationResource, false);
+            imagesavealpha($this->destinationResource, true);
+            imageantialias($this->destinationResource, true);
+            imagefill($this->destinationResource, 0, 0, imagecolorallocatealpha(
+                $this->destinationResource, 0, 0, 0, 127 // Tranparent.
             ));
         }
 
         // Not using imagescale() cos images become dithered when width/height is small.
-        $ok =@ imagecopyresampled($this->destinationImage, $this->sourceImage, 0, 0, 0, 0,
+        $ok =@ imagecopyresampled($this->destinationResource, $this->sourceResource, 0, 0, 0, 0,
             $newWidth, $newHeight, $origWidth, $origHeight);
         if (!$ok) {
-            throw new UploaderException('Failed resampling destination image [error: %s]', ['@error']);
+            throw new UploaderException('Failed resampling destination resource [error: %s]', ['@error']);
         }
 
         // Store new dimensions.
@@ -177,9 +177,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
         // Fill/ensure info.
         $this->fillInfo();
 
-        $this->sourceImage =@ $this->createSourceImage();
-        if (!$this->sourceImage) {
-            throw new UploaderException('Failed creating source image [error: %s]', ['@error']);
+        $this->sourceResource =@ $this->createSourceResource();
+        if (!$this->sourceResource) {
+            throw new UploaderException('Failed creating source resource [error: %s]', ['@error']);
         }
 
         // Square crops.
@@ -199,25 +199,25 @@ final class ImageUploader extends AbstractUploader implements Stringable
         $x = $xy[0] ?? (int) (($origWidth - $cropWidth) / 2);
         $y = $xy[1] ?? (int) (($origHeight - $cropHeight) / 2);
 
-        $this->destinationImage =@ imagecreatetruecolor($width, $height);
-        if (!$this->destinationImage) {
-            throw new UploaderException('Failed creating destination image [error: %s]', ['@error']);
+        $this->destinationResource =@ imagecreatetruecolor($width, $height);
+        if (!$this->destinationResource) {
+            throw new UploaderException('Failed creating destination resource [error: %s]', ['@error']);
         }
 
         // Handle PNG/GIFs.
         if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP])) {
-            imagealphablending($this->destinationImage, false);
-            imagesavealpha($this->destinationImage, true);
-            imageantialias($this->destinationImage, true);
-            imagefill($this->destinationImage, 0, 0, imagecolorallocatealpha(
-                $this->destinationImage, 0, 0, 0, 127 // Tranparent.
+            imagealphablending($this->destinationResource, false);
+            imagesavealpha($this->destinationResource, true);
+            imageantialias($this->destinationResource, true);
+            imagefill($this->destinationResource, 0, 0, imagecolorallocatealpha(
+                $this->destinationResource, 0, 0, 0, 127 // Tranparent.
             ));
         }
 
-        $ok =@ imagecopyresampled($this->destinationImage, $this->sourceImage, 0, 0, $x, $y,
+        $ok =@ imagecopyresampled($this->destinationResource, $this->sourceResource, 0, 0, $x, $y,
             $width, $height, $width, $height);
         if (!$ok) {
-            throw new UploaderException('Failed resampling destination image [error: %s]', ['@error']);
+            throw new UploaderException('Failed resampling destination resource [error: %s]', ['@error']);
         }
 
         // Store new dimensions.
@@ -334,20 +334,20 @@ final class ImageUploader extends AbstractUploader implements Stringable
             }
 
             if ($this->options['clear']) {
-                is_resource($this->sourceImage) && imagedestroy($this->sourceImage);
-                is_resource($this->destinationImage) && imagedestroy($this->destinationImage);
+                is_resource($this->sourceResource) && imagedestroy($this->sourceResource);
+                is_resource($this->destinationResource) && imagedestroy($this->destinationResource);
 
-                $this->sourceImage = null;
-                $this->destinationImage = null;
+                $this->sourceResource = null;
+                $this->destinationResource = null;
             }
         } else {
             @ unlink($this->getSource());
 
-            is_resource($this->sourceImage) && imagedestroy($this->sourceImage);
-            is_resource($this->destinationImage) && imagedestroy($this->destinationImage);
+            is_resource($this->sourceResource) && imagedestroy($this->sourceResource);
+            is_resource($this->destinationResource) && imagedestroy($this->destinationResource);
 
-            $this->sourceImage = null;
-            $this->destinationImage = null;
+            $this->sourceResource = null;
+            $this->destinationResource = null;
         }
     }
 
@@ -380,7 +380,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      */
     public function fillInfo(): void
     {
-        if (isset($this->resized)) {
+        if ($this->resized) {
             // Use resized image as source.
             $info =@ getimagesizefromstring($this->toString());
         } elseif (!isset($this->info)) {
@@ -398,21 +398,21 @@ final class ImageUploader extends AbstractUploader implements Stringable
     }
 
     /**
-     * Get source image.
+     * Get source resource.
      * @return ?resource
      */
-    public function getSourceImage()
+    public function getSourceResource()
     {
-        return $this->sourceImage;
+        return $this->sourceResource;
     }
 
     /**
-     * Get destination image.
+     * Get destination resource.
      * @return ?resource
      */
-    public function getDestinationImage()
+    public function getDestinationResource()
     {
-        return $this->destinationImage;
+        return $this->destinationResource;
     }
 
     /**
@@ -465,20 +465,20 @@ final class ImageUploader extends AbstractUploader implements Stringable
     }
 
     /**
-     * Create source image.
+     * Create source resource.
      * @return ?resource
      * @throws froq\file\UploaderException
      */
-    private function createSourceImage()
+    private function createSourceResource()
     {
-        if (isset($this->resized)) {
+        if ($this->resized) {
             // Use resized image as source.
-            $sourceImage = imagecreatefromstring($this->toString());
+            $sourceResource = imagecreatefromstring($this->toString());
 
-            is_resource($this->sourceImage) && imagedestroy($this->sourceImage);
-            is_resource($this->destinationImage) && imagedestroy($this->destinationImage);
+            is_resource($this->sourceResource) && imagedestroy($this->sourceResource);
+            is_resource($this->destinationResource) && imagedestroy($this->destinationResource);
 
-            return $sourceImage;
+            return $sourceResource;
         }
 
         $type = $this->getInfo()['type'];
@@ -507,9 +507,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
      */
     private function output(): ?bool
     {
-        $destinationImage = $this->getDestinationImage();
-        if ($destinationImage == null) {
-            throw new UploaderException('No destination image created yet, call one of these method '.
+        $destinationResource = $this->getDestinationResource();
+        if ($destinationResource == null) {
+            throw new UploaderException('No destination resource created yet, call one of these method '.
                 'first: resample(), resize(), crop() or cropBy()');
         }
 
@@ -521,14 +521,14 @@ final class ImageUploader extends AbstractUploader implements Stringable
         switch ($type) {
             case IMAGETYPE_JPEG:
                 $jpegQuality = intval($this->options['jpegQuality'] ?? self::QUALITY);
-                return imagejpeg($destinationImage, null, $jpegQuality);
+                return imagejpeg($destinationResource, null, $jpegQuality);
             case IMAGETYPE_PNG:
-                return imagepng($destinationImage);
+                return imagepng($destinationResource);
             case IMAGETYPE_GIF:
-                return imagegif($destinationImage);
+                return imagegif($destinationResource);
             case IMAGETYPE_WEBP:
                 $webpQuality = intval($this->options['webpQuality'] ?? self::QUALITY);
-                return imagewebp($destinationImage, null, $webpQuality);
+                return imagewebp($destinationResource, null, $webpQuality);
         }
 
         return null;
@@ -542,9 +542,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
      */
     private function outputTo(string $to): ?bool
     {
-        $destinationImage = $this->getDestinationImage();
-        if ($destinationImage == null) {
-            throw new UploaderException('No destination image created yet, call one of these method '.
+        $destinationResource = $this->getDestinationResource();
+        if ($destinationResource == null) {
+            throw new UploaderException('No destination resource created yet, call one of these method '.
                 'first: resample(), resize(), crop() or cropBy()');
         }
 
@@ -556,14 +556,14 @@ final class ImageUploader extends AbstractUploader implements Stringable
         switch ($type) {
             case IMAGETYPE_JPEG:
                 $jpegQuality = intval($this->options['jpegQuality'] ?? self::QUALITY);
-                return imagejpeg($destinationImage, $to, $jpegQuality);
+                return imagejpeg($destinationResource, $to, $jpegQuality);
             case IMAGETYPE_PNG:
-                return imagepng($destinationImage, $to);
+                return imagepng($destinationResource, $to);
             case IMAGETYPE_GIF:
-                return imagegif($destinationImage, $to);
+                return imagegif($destinationResource, $to);
             case IMAGETYPE_WEBP:
                 $webpQuality = intval($this->options['webpQuality'] ?? self::QUALITY);
-                return imagewebp($destinationImage, $to, $webpQuality);
+                return imagewebp($destinationResource, $to, $webpQuality);
         }
 
         return null;
