@@ -51,13 +51,15 @@ abstract class AbstractFileObject
      */
     protected $resource;
 
+    protected $resourceFile;
+
     protected ?string $mimeType;
 
     protected ?bool $freed = null;
 
     public function __construct($resource = null, string $mimeType = null)
     {
-        $resource = $resource ?? self::createTemporaryResource();
+        $resource = $resource ?? tmpfile();
 
         if (!is_resource($resource)) {
             throw new FileException('Resource must be a "gd" or "stream" resource, "%s" given',
@@ -75,11 +77,6 @@ abstract class AbstractFileObject
 
         $this->resource = $resource;
         $this->mimeType = $mimeType;
-    }
-
-    public function __destruct()
-    {
-        $this->free();
     }
 
     public final function getResource()
@@ -131,14 +128,11 @@ abstract class AbstractFileObject
     public final function removeResourceCopy(&$copy): ?bool
     {
         if (is_resource($copy)) {
-            $ok = null;
             if ($this instanceof FileObject) {
-                $ok = fclose($copy);
+                return fclose($copy);
             } elseif ($this instanceof ImageObject) {
-                $ok = imagedestroy($copy);
+                return imagedestroy($copy);
             }
-            $copy = null;
-            return $ok;
         }
         return null;
     }
@@ -153,6 +147,24 @@ abstract class AbstractFileObject
         return $this->mimeType;
     }
 
+    public final function free(): void
+    {
+        if (is_resource($this->resource)) {
+            if ($this instanceof FileObject) {
+                $this->freed = fclose($this->resource);
+            } elseif ($this instanceof ImageObject) {
+                $this->freed = imagedestroy($this->resource);
+            }
+
+            if (is_resource($this->resourceFile)) {
+                fclose($this->resourceFile);
+            }
+
+            $this->resource     = null;
+            $this->resourceFile = null;
+        }
+    }
+
     public final function isFreed(): bool
     {
         return ($this->freed === true);
@@ -165,27 +177,15 @@ abstract class AbstractFileObject
         }
         return new static($resource, $mimeType, $options);
     }
-    public static final function fromMemoryResource(string $mode = null): self
-    {
-        return new static(self::createMemoryResource($mode));
-    }
     public static final function fromTemporaryResource(string $mode = null, int $maxmem = null): self
     {
         return new static(self::createTemporaryResource($mode, $maxmem));
     }
 
-    public static final function createMemoryResource(string $mode = null)
-    {
-        $resource =@ fopen('php://memory', $mode ?? 'w+b');
-        if (!$resource) {
-            throw new FileException('Cannot create memory resource [error: %s]', ['@error']);
-        }
-        return $resource;
-    }
     public static final function createTemporaryResource(string $mode = null, int $maxmem = null)
     {
-        $resource =@ ($maxmem === null) ? fopen('php://temp', $mode ?? 'w+b')
-                                        : fopen('php://temp/maxmemory:'. $maxmem, $mode ?? 'w+b');
+        $resource =@ !$maxmem ? fopen('php://temp', $mode ?? 'w+b')
+                              : fopen('php://temp/maxmemory:'. $maxmem, $mode ?? 'w+b');
         if (!$resource) {
             throw new FileException('Cannot create temporary resource [error: %s]', ['@error']);
         }
@@ -204,5 +204,5 @@ abstract class AbstractFileObject
 
     abstract public static function fromFile(string $file, string $mimeType = null, array $options = null): self;
     abstract public static function fromString(string $string, string $mimeType = null, array $options = null): self;
-    abstract public function free(): void;
+    // abstract public function free(): void;
 }
