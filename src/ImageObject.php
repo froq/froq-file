@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
+use froq\common\interfaces\Stringable;
 use froq\file\{AbstractFileObject, FileException, Util as FileUtil};
 
 /**
@@ -35,7 +36,7 @@ use froq\file\{AbstractFileObject, FileException, Util as FileUtil};
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   4.0
  */
-final class ImageObject extends AbstractFileObject
+final class ImageObject extends AbstractFileObject implements Stringable
 {
     public const MIME_TYPE_JPEG = 'image/jpeg',
                  MIME_TYPE_PNG  = 'image/png',
@@ -92,27 +93,34 @@ final class ImageObject extends AbstractFileObject
         }
     }
 
-    public function resample(): self
+    public function resize(int $width, int $height): self
     {
-        $this->resourceCheck();
+        $tmp = null;
+        if (is_string($this->resourceFile)) {
+            $file = $this->resourceFile;
+        } elseif (is_resource($this->resourceFile)) {
+            $file = stream_get_meta_data($this->resourceFile)['uri'];
+        } else {
+            $tmp  = (new FileObject())->setContents($this->getContents());
+            $file = $tmp->getPath();
+        }
 
-        [$oldImg, $width, $height] = [$this->resource,
-            imagesx($this->resource), imagesy($this->resource)];
+        $up = (
+            new ImageUploader(
+                ['type' => $this->mimeType, 'file' => $file, 'directory' => '/tmp'],
+                ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
+                 'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
+            )
+        )->resize($width, $height);
 
-        $newImg = imagecreatetruecolor($width, $height);
-        imagealphablending($newImg, false);
-        imagesavealpha($newImg, true);
-        imageantialias($newImg, true);
-        imagefill($newImg, 0, 0, imagecolorallocatealpha(
-            $newImg, 0, 0, 0, 127 // Apply transparency.
-        ));
-        imagecopyresampled($newImg, $oldImg, 0, 0, 0, 0, $width, $height, $width, $height);
-        imagedestroy($oldImg); // Free old one.
+        $tmp && $tmp->free();
 
-        $this->resource = $newImg;
+        $this->resource = $up->getDestinationImage();
 
         return $this;
     }
+
+    public function crop(int $width, int $height = null): self {}
 
     public function getDimensions(): array
     {
@@ -130,15 +138,13 @@ final class ImageObject extends AbstractFileObject
                 $info += [
                     'width'      => $info[0], 'height' => $info[1],
                     'type'       => $info[2], 'size'   => strlen($contents),
-                    'dimensions' => [$info[0], $info[1]],
-                    'attributes' => explode(' ', $info[3]),
-                    'extension'  => trim(image_type_to_extension($info[2]), '.'),
+                    'extension'  => image_type_to_extension($info[2]),
                     'exif'       => null,
                 ];
 
                 // For only JPEG (and also PNG? https://stackoverflow.com/q/9542359/362780).
                 if ($info['type'] == 2 && function_exists('exif_read_data')) {
-                    $fp = fopen('php://temp', 'w+b');
+                    $fp = fopen('php://temp/maxmemory:'. $info['size'], 'w+b');
                     fwrite($fp, $contents);
                     $info['exif'] = exif_read_data($fp);
                     fclose($fp);
@@ -156,33 +162,44 @@ final class ImageObject extends AbstractFileObject
         return null;
     }
 
-    public function getContents(): ?string
+    public function setContents(string $contents): self
     {
         $this->resourceCheck();
 
-        $mimeType = $this->getMimeType();
-        if ($mimeType == null) {
-            throw new FileException('No MIME type given yet');
+        imagedestroy($this->resource);
+        $this->resource = imagecreatefromstring($contents);
+
+        return $this;
+    }
+
+    public function getContents(): ?string
+    {
+        if ($this->resourceFile) {
+            return file_get_contents($this->resourceFile);
+        }
+
+        $this->resourceCheck();
+
+        if (empty($this->mimeType)) {
+            throw new FileException('No MIME type given yet, try after calling setMimeType()');
         }
 
         ob_start();
 
-        $copy = $this->createResourceCopy();
-        switch ($mimeType) {
+        switch ($this->mimeType) {
             case self::MIME_TYPE_JPEG:
-                imagejpeg($copy, null, $this->option('jpegQuality'));
+                imagejpeg($this->resource, null, $this->options['jpegQuality']);
                 break;
             case self::MIME_TYPE_PNG:
-                imagepng($copy, null, $this->option('pngZipLevel'), $this->option('pngFilters'));
+                imagepng($this->resource, null, $this->options['pngZipLevel'], $this->options['pngFilters']);
                 break;
             case self::MIME_TYPE_GIF:
-                imagegif($copy);
+                imagegif($this->resource);
                 break;
             case self::MIME_TYPE_WEBP:
-                imagewebp($copy, null, $this->option('webpQuality'));
+                imagewebp($this->resource, null, $this->options['webpQuality']);
                 break;
         }
-        $this->removeResourceCopy($copy);
 
         return ob_get_length() !== false ? ob_get_clean() : null;
     }
@@ -204,6 +221,34 @@ final class ImageObject extends AbstractFileObject
         return ($this->mimeType == self::MIME_TYPE_WEBP);
     }
 
+    /**
+     * To base 64.
+     * @return string
+     */
+    public function toBase64(): string
+    {
+        return base64_encode($this->toString());
+    }
+
+    /**
+     * To base 64 url.
+     * @return string
+     */
+    public function toBase64Url(): string
+    {
+        $base64 = base64_encode($this->toString());
+
+        return 'data:'. $this->mimeType .';base64,'. $base64;
+    }
+
+    /**
+     * @inheritDoc froq\common\interfaces\Stringable
+     */
+    public function toString(): string
+    {
+        return $this->getContents();
+    }
+
     // @implement
     public static function fromFile(string $file, string $mimeType = null, array $options = null): ImageObject
     {
@@ -217,7 +262,11 @@ final class ImageObject extends AbstractFileObject
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }
-        return new ImageObject($resource, $mimeType, $options);
+
+        $image = new ImageObject($resource, $mimeType, $options);
+        $image->resourceFile = $file; // Stored for speed up resize(), crop(), getContents().
+
+        return $image;
     }
 
     // @implement
@@ -228,15 +277,11 @@ final class ImageObject extends AbstractFileObject
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }
-        return new ImageObject($resource, $mimeType, $options);
-    }
 
-    // @implement
-    public function free(): void
-    {
-        if (is_resource($this->resource)) {
-            $this->freed = imagedestroy($this->resource);
-            $this->resource = null;
-        }
+        $image = new ImageObject($resource, $mimeType, $options);
+        $image->resourceFile = tmpfile(); // Stored for speed up resize(), crop(), getContents().
+        fwrite($image->resourceFile, $string);
+
+        return $image;
     }
 }
