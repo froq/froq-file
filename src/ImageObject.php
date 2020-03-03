@@ -99,7 +99,8 @@ final class ImageObject extends AbstractFileObject implements Stringable
         if (is_string($this->resourceFile)) {
             $file = $this->resourceFile;
         } elseif (is_resource($this->resourceFile)) {
-            $file = stream_get_meta_data($this->resourceFile)['uri'];
+            $tmp  = (new FileObject($this->resourceFile));
+            $file = $tmp->getPath();
         } else {
             $tmp  = (new FileObject())->setContents($this->getContents());
             $file = $tmp->getPath();
@@ -115,12 +116,38 @@ final class ImageObject extends AbstractFileObject implements Stringable
 
         $tmp && $tmp->free();
 
-        $this->resource = $up->getDestinationImage();
+        $this->resource = $up->getDestinationResource();
 
         return $this;
     }
 
-    public function crop(int $width, int $height = null): self {}
+    public function crop(int $width, int $height = null): self
+    {
+        $tmp = null;
+        if (is_string($this->resourceFile) && file_exists($this->resourceFile)) {
+            $file = $this->resourceFile;
+        } elseif (is_resource($this->resourceFile)) {
+            $tmp  = (new FileObject($this->resourceFile));
+            $file = $tmp->getPath();
+        } else {
+            $tmp  = (new FileObject())->setContents($this->getContents());
+            $file = $tmp->getPath();
+        }
+
+        $up = (
+            new ImageUploader(
+                ['type' => $this->mimeType, 'file' => $file, 'directory' => '/tmp'],
+                ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
+                 'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
+            )
+        )->crop($width, $height);
+
+        $tmp && $tmp->free();
+
+        $this->resource = $up->getDestinationResource();
+
+        return $this;
+    }
 
     public function getDimensions(): array
     {
@@ -175,7 +202,11 @@ final class ImageObject extends AbstractFileObject implements Stringable
     public function getContents(): ?string
     {
         if ($this->resourceFile) {
-            return file_get_contents($this->resourceFile);
+            if (is_resource($this->resourceFile)) {
+                return stream_get_contents($this->resourceFile, -1, 0);
+            } elseif (is_string($this->resourceFile) && file_exists($this->resourceFile)) {
+                return file_get_contents($this->resourceFile);
+            }
         }
 
         $this->resourceCheck();
