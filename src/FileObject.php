@@ -250,6 +250,38 @@ final class FileObject extends AbstractFileObject implements Stringable
     }
 
     /**
+     * Get info..
+     * @return ?array
+     */
+    public function getInfo(): ?array
+    {
+        $this->resourceCheck();
+
+        $stat = fstat($this->resource) ?: null;
+        $meta = stream_get_meta_data($this->resource) ?: null;
+
+        return ($stat && $meta) ? $stat + ['meta' => $meta] : null;
+    }
+
+    /**
+     * Get name.
+     * @return ?string
+     */
+    public function getName(): ?string
+    {
+        return basename($this->getMetadata()['uri'] ?? '') ?: null;
+    }
+
+    /**
+     * Get directory.
+     * @return ?string
+     */
+    public function getDirectory(): ?string
+    {
+        return dirname($this->getMetadata()['uri'] ?? '') ?: null;
+    }
+
+    /**
      * Get path.
      * @return ?string
      */
