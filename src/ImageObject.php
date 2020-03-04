@@ -137,12 +137,13 @@ final class ImageObject extends AbstractFileObject implements Stringable
      */
     public function resize(int $width, int $height): self
     {
-        $tmp = null;
-        if (is_string($this->resourceFile)) {
-            $file = $this->resourceFile;
-        } elseif (is_resource($this->resourceFile)) {
-            $tmp  = (new FileObject($this->resourceFile));
-            $file = $tmp->getPath();
+        if ($this->resourceFile != null) {
+            if (is_resource($this->resourceFile)) {
+                $tmp  = (new FileObject($this->resourceFile));
+                $file = $tmp->getPath();
+            } elseif (is_string($this->resourceFile) && file_exists($this->resourceFile)) {
+                $file = $this->resourceFile;
+            }
         } else {
             $tmp  = (new FileObject())->setContents($this->getContents());
             $file = $tmp->getPath();
@@ -172,11 +173,13 @@ final class ImageObject extends AbstractFileObject implements Stringable
     public function crop(int $width, int $height = null): self
     {
         $tmp = null;
-        if (is_string($this->resourceFile) && file_exists($this->resourceFile)) {
-            $file = $this->resourceFile;
-        } elseif (is_resource($this->resourceFile)) {
-            $tmp  = (new FileObject($this->resourceFile));
-            $file = $tmp->getPath();
+        if ($this->resourceFile != null) {
+            if (is_resource($this->resourceFile)) {
+                $tmp  = (new FileObject($this->resourceFile));
+                $file = $tmp->getPath();
+            } elseif (is_string($this->resourceFile) && file_exists($this->resourceFile)) {
+                $file = $this->resourceFile;
+            }
         } else {
             $tmp  = (new FileObject())->setContents($this->getContents());
             $file = $tmp->getPath();
@@ -268,7 +271,7 @@ final class ImageObject extends AbstractFileObject implements Stringable
      */
     public function getContents(): ?string
     {
-        if ($this->resourceFile) {
+        if ($this->resourceFile != null) {
             if (is_resource($this->resourceFile)) {
                 return stream_get_contents($this->resourceFile, -1, 0);
             } elseif (is_string($this->resourceFile) && file_exists($this->resourceFile)) {
@@ -278,7 +281,7 @@ final class ImageObject extends AbstractFileObject implements Stringable
 
         $this->resourceCheck();
 
-        if (empty($this->mimeType)) {
+        if ($this->mimeType == null) {
             throw new FileException('No MIME type given yet, try after calling setMimeType()');
         }
 
