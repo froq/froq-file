@@ -268,6 +268,18 @@ abstract class AbstractFileObject
     }
 
     /**
+     * From temporary file resource.
+     * @param  resource    $resource
+     * @param  string|null $mimeType
+     * @param  array|null  $options
+     * @return self (static)
+     */
+    public static final function fromTemporaryFileResource(string $mimeType = null, array $options = null): self
+    {
+        return new static(tmpfile(), $mimeType, $options);
+    }
+
+    /**
      * Create temporary resource.
      * @param  array|null $options
      * @return resource
