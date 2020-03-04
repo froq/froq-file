@@ -387,7 +387,7 @@ final class FileObject extends AbstractFileObject implements Stringable
 
         fwrite($resource, $string) && fseek($resource, 0);
 
-        return new FileObject($resource, null, $options);
+        return new FileObject($resource, $mimeType, $options);
     }
 
     /**
