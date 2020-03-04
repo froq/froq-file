@@ -344,7 +344,7 @@ final class ImageObject extends AbstractFileObject implements Stringable
      */
     public function toBase64(): string
     {
-        return base64_encode($this->toString());
+        return base64_encode($this->getContents());
     }
 
     /**
@@ -353,17 +353,9 @@ final class ImageObject extends AbstractFileObject implements Stringable
      */
     public function toBase64Url(): string
     {
-        $base64 = base64_encode($this->toString());
+        $base64 = base64_encode($this->getContents());
 
         return 'data:'. $this->mimeType .';base64,'. $base64;
-    }
-
-    /**
-     * @inheritDoc froq\common\interfaces\Stringable
-     */
-    public function toString(): string
-    {
-        return $this->getContents();
     }
 
     /**
@@ -406,5 +398,13 @@ final class ImageObject extends AbstractFileObject implements Stringable
         fwrite($image->resourceFile, $string);
 
         return $image;
+    }
+
+    /**
+     * @inheritDoc froq\common\interfaces\Stringable
+     */
+    public function toString(): string
+    {
+        return $this->getContents();
     }
 }

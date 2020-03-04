@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
+use froq\common\interfaces\Stringable;
 use froq\file\{AbstractFileObject, FileException, Util as FileUtil};
 
 /**
@@ -353,5 +354,13 @@ final class FileObject extends AbstractFileObject
         rewind($resource);
 
         return new FileObject($resource, null, $options);
+    }
+
+    /**
+     * @inheritDoc froq\common\interfaces\Stringable
+     */
+    public function toString(): string
+    {
+        return $this->getContents();
     }
 }
