@@ -287,20 +287,26 @@ final class ImageObject extends AbstractFileObject implements Stringable
 
         ob_start();
 
+        // Without copy (that resampled copy), PNG, GIF, WEBP will be losing transparency.
+        $copy = null;
+
         switch ($this->mimeType) {
             case self::MIME_TYPE_JPEG:
                 imagejpeg($this->resource, null, $this->options['jpegQuality']);
                 break;
             case self::MIME_TYPE_PNG:
-                imagepng($this->resource, null, $this->options['pngZipLevel'], $this->options['pngFilters']);
+                imagepng($copy = $this->createResourceCopy(), null, $this->options['pngZipLevel'],
+                    $this->options['pngFilters']);
                 break;
             case self::MIME_TYPE_GIF:
-                imagegif($this->resource);
+                imagegif($copy = $this->createResourceCopy());
                 break;
             case self::MIME_TYPE_WEBP:
-                imagewebp($this->resource, null, $this->options['webpQuality']);
+                imagewebp($copy = $this->createResourceCopy(), null, $this->options['webpQuality']);
                 break;
         }
+
+        $copy && $this->removeResourceCopy($copy);
 
         return ob_get_length() !== false ? ob_get_clean() : null;
     }
