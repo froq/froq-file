@@ -27,7 +27,7 @@ declare(strict_types=1);
 namespace froq\file;
 
 use froq\common\interfaces\Stringable;
-use froq\file\{AbstractFileObject, FileException, Util as FileUtil};
+use froq\file\{AbstractFileObject, FileException, Util as FileUtil, FileObject, ImageUploader};
 
 /**
  * Image Object.
