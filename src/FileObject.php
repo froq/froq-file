@@ -36,7 +36,7 @@ use froq\file\{AbstractFileObject, FileException, Util as FileUtil};
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   4.0
  */
-final class FileObject extends AbstractFileObject
+final class FileObject extends AbstractFileObject implements Stringable
 {
     /**
      * Options default.
