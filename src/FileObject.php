@@ -266,7 +266,7 @@ final class FileObject extends AbstractFileObject implements Stringable
     {
         $uri = $this->getMetadata()['uri'] ?? null;
 
-        return $uri ?[$uri, dirname($uri), basename($uri)] : null;
+        return $uri ? [$uri, dirname($uri), basename($uri)] : null;
     }
 
     /**
@@ -277,6 +277,9 @@ final class FileObject extends AbstractFileObject implements Stringable
     public function setContents(string $contents): self
     {
         $this->resourceCheck();
+
+        // Without this, stats won't be resetted.
+        rewind($this->resource);
 
         ftruncate($this->resource, 0)
             && fwrite($this->resource, $contents)
@@ -350,8 +353,7 @@ final class FileObject extends AbstractFileObject implements Stringable
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }
 
-        fwrite($resource, $string);
-        rewind($resource);
+        fwrite($resource, $string) && fseek($resource, 0);
 
         return new FileObject($resource, null, $options);
     }
