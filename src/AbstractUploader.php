@@ -245,7 +245,7 @@ abstract class AbstractUploader
             $name = $this->prepareName($name, $nameAppendix);
         }
 
-        $destination = $this->options['directory'] .'/'. ($name ?? $this->fileInfo['name']);
+        $destination = $this->options['directory'] . DIRECTORY_SEPARATOR . ($name ?? $this->fileInfo['name']);
         if ($extension != null) {
             $destination = $destination .'.'. $extension;
         }
