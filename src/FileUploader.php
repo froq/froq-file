@@ -59,7 +59,7 @@ final class FileUploader extends AbstractUploader
     public function saveAs(string $name, string $nameAppendix = null): string
     {
         if ($name == '') {
-            throw new UploaderException('Name cannot be empty');
+            throw new UploaderException('Name must not be empty');
         }
 
         $source = $this->getSource();
@@ -98,7 +98,7 @@ final class FileUploader extends AbstractUploader
     public function moveAs(string $name, string $nameAppendix = null): string
     {
         if ($name == '') {
-            throw new UploaderException('Name cannot be empty');
+            throw new UploaderException('Name must not be empty');
         }
 
         $source = $this->getSource();

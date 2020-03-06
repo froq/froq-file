@@ -261,7 +261,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
     public function saveAs(string $name, string $nameAppendix = null, bool $useNewDimensionsAsNameAppendix = false): string
     {
         if ($name == '') {
-            throw new UploaderException('Name cannot be empty');
+            throw new UploaderException('Name must not be empty');
         }
 
         if ($useNewDimensionsAsNameAppendix) {
@@ -306,7 +306,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
     public function moveAs(string $name, string $nameAppendix = null): string
     {
         if ($name == '') {
-            throw new UploaderException('Name cannot be empty');
+            throw new UploaderException('Name must not be empty');
         }
 
         $source = $this->getSource();
