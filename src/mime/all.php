@@ -4,7 +4,7 @@
  * Original source: https://github.com/jshttp/mime-db
  */
 return [
-    'application/octet-stream' => ['bin', 'dms', 'lrf', 'mar', 'so', 'dist', 'distz', 'pkg', 'bpk', 'dump', 'elc', 'deploy', 'exe', 'dll', 'deb', 'dmg', 'iso', 'img', 'msi', 'msp', 'msm', 'buffer'],
+    // 'application/octet-stream' => ['bin', 'dms', 'lrf', 'mar', 'so', 'dist', 'distz', 'pkg', 'bpk', 'dump', 'elc', 'deploy', 'exe', 'dll', 'deb', 'dmg', 'iso', 'img', 'msi', 'msp', 'msm', 'buffer'],
 
     'application/andrew-inset' => ['ez'],
     'application/applixware' => ['aw'],
@@ -926,6 +926,8 @@ return [
     'x-world/x-svr' => ['svr'],
     'x-world/x-vrml' => ['wrl'],
     'x-world/x-vrt' => ['vrt'],
+
+    'application/octet-stream' => ['bin', 'dms', 'lrf', 'mar', 'so', 'dist', 'distz', 'pkg', 'bpk', 'dump', 'elc', 'deploy', 'exe', 'dll', 'deb', 'dmg', 'iso', 'img', 'msi', 'msp', 'msm', 'buffer'],
 
     'directory' => ['']
 ];
