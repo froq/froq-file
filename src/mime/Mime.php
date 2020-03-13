@@ -60,7 +60,7 @@ final class Mime
 
         try {
             // This function might be not available.
-            $type = mime_content_type($file);
+            $type =@ mime_content_type($file);
             if ($type === false) {
                 throw new MimeException('@error');
             }
