@@ -927,7 +927,5 @@ return [
     'x-world/x-vrml' => ['wrl'],
     'x-world/x-vrt' => ['vrt'],
 
-    'application/octet-stream' => ['bin', 'dms', 'lrf', 'mar', 'so', 'dist', 'distz', 'pkg', 'bpk', 'dump', 'elc', 'deploy', 'exe', 'dll', 'deb', 'dmg', 'iso', 'img', 'msi', 'msp', 'msm', 'buffer'],
-
     'directory' => ['']
 ];
