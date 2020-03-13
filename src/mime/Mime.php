@@ -68,7 +68,7 @@ final class Mime
             try {
                 // This function might be not available.
                 $exec = exec('file -i '. escapeshellarg($file));
-                if (preg_match('~: ([^/ ]+/[^; ]+)~', $exec, $match)) {
+                if (preg_match('~: *([^/ ]+/[^; ]+)~', $exec, $match)) {
                     $type = $match[1];
                     if ($type == 'inode/directory') {
                         $type = 'directory';
