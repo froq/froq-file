@@ -27,7 +27,7 @@ declare(strict_types=1);
 namespace froq\file;
 
 use froq\file\mime\{Mime, MimeException};
-use froq\file\FileError;
+use froq\file\{FileError, Util as FileUtil};
 
 /**
  * File.
@@ -60,6 +60,36 @@ final class File
     public static function getExtension(string $file): ?string
     {
         return Mime::getExtension($file);
+    }
+
+    /**
+     * Is exists.
+     * @param  string $file
+     * @return bool
+     */
+    public static function isExists(string $file): bool
+    {
+        return FileUtil::isFile($file);
+    }
+
+    /**
+     * Is readable.
+     * @param  string $file
+     * @return bool
+     */
+    public static function isReadable(string $file): bool
+    {
+        return FileUtil::isFile($file) && is_readable($file);
+    }
+
+    /**
+     * Is writable.
+     * @param  string $file
+     * @return bool
+     */
+    public static function isWritable(string $file): bool
+    {
+        return FileUtil::isFile($file) && is_writable($file);
     }
 
     /**
