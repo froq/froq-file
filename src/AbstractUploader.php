@@ -75,18 +75,16 @@ abstract class AbstractUploader
      */
     public final function __construct(array $file, array $options = null)
     {
-        ['type' => $type, 'name'  => $name,  'tmp_name'  => $sourceTmp, 'file' => $source,
-         'size' => $size, 'error' => $error, 'directory' => $directory] = $file + array_fill_keys([
-            'type', 'name', 'tmp_name', 'size', 'error', 'file', 'directory'
-        ], null);
+        ['file' => $source, 'name' => $name, 'size' => $size, 'error' => $error]
+            = $file + array_fill_keys(['file', 'name', 'size', 'error'], null);
 
-        // Both "source" or "tmp_name" may be given (generally "tmp_name" come from $_FILES global).
-        $source = $source ?? $sourceTmp;
+        // Both "source" or "tmp_name" may be given (generally "tmp_name" comes from $_FILES global).
+        $source = $source ?? $file['tmp_name'] ?? null;
 
         // All these stuff are needed.
-        if (!$type || !$source) {
+        if (!$source) {
             throw new UploaderException(
-                'No valid file given, "type" and "tmp_name" or "file" are required',
+                'No valid file given, "file" or "tmp_name" can not be empty',
                 null, UploaderError::NO_VALID_FILE
             );
         }
@@ -103,9 +101,8 @@ abstract class AbstractUploader
             );
         }
 
-        $name      = $name ?? uniqid();
-        $size      = $size ?? filesize($source);
-        $directory = $directory ?? $options['directory'] ?? null;
+        $name = $name ?? uniqid();
+        $size = $size ?? filesize($source);
 
         $options = array_merge($this->options, $options ?? []);
         extract($options, EXTR_PREFIX_ALL, 'options');
@@ -160,7 +157,7 @@ abstract class AbstractUploader
             );
         }
 
-        $directory = trim($directory ?: '');
+        $directory =@ trim($file['directory'] ?: $options['directory'] ?: '');
         if (!$directory) {
             throw new UploaderException(
                 'Directory must not be empty',
