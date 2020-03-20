@@ -137,8 +137,8 @@ final class ImageUploader extends AbstractUploader implements Stringable
             throw new UploaderException('Failed creating destination resource [error: %s]', ['@error']);
         }
 
-        // Handle PNG/GIFs.
-        if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP])) {
+        // Handle PNGs/GIFs.
+        if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP], true)) {
             imagealphablending($this->destinationResource, false);
             imagesavealpha($this->destinationResource, true);
             imageantialias($this->destinationResource, true);
@@ -204,8 +204,8 @@ final class ImageUploader extends AbstractUploader implements Stringable
             throw new UploaderException('Failed creating destination resource [error: %s]', ['@error']);
         }
 
-        // Handle PNG/GIFs.
-        if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP])) {
+        // Handle PNGs/GIFs.
+        if (in_array($info['type'], [IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP], true)) {
             imagealphablending($this->destinationResource, false);
             imagesavealpha($this->destinationResource, true);
             imageantialias($this->destinationResource, true);
