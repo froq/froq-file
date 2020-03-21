@@ -143,7 +143,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
             imagesavealpha($this->destinationResource, true);
             imageantialias($this->destinationResource, true);
             imagefill($this->destinationResource, 0, 0, imagecolorallocatealpha(
-                $this->destinationResource, 0, 0, 0, 127 // Tranparent.
+                $this->destinationResource, 255, 255, 255, 127 // Tranparent.
             ));
         }
 
@@ -210,7 +210,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
             imagesavealpha($this->destinationResource, true);
             imageantialias($this->destinationResource, true);
             imagefill($this->destinationResource, 0, 0, imagecolorallocatealpha(
-                $this->destinationResource, 0, 0, 0, 127 // Tranparent.
+                $this->destinationResource, 255, 255, 255, 127 // Tranparent.
             ));
         }
 

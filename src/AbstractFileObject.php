@@ -155,7 +155,7 @@ abstract class AbstractFileObject
                     imagesavealpha($copy, true);
                     imageantialias($copy, true);
                     imagefill($copy, 0, 0, imagecolorallocatealpha(
-                        $copy, 0, 0, 0, 127 // Apply transparency.
+                        $copy, 255, 255, 255, 127 // Apply transparency.
                     ));
                 }
 
