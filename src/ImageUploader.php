@@ -168,13 +168,14 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * Crop.
      * @param  int             $width
      * @param  int|null        $height
+     * @param  int|null        $x
+     * @param  int|null        $y
      * @param  bool            $proportional
-     * @param  array<int>|null $xy @internal
      * @return self
      * @throws froq\file\UploaderException
      */
-    public function crop(int $width, int $height = null, bool $proportional = false,
-        array $xy = null): self
+    public function crop(int $width, int $height = null, int $x = null, int $y = null,
+        bool $proportional = false): self
     {
         // Fill/ensure info.
         $this->fillInfo();
@@ -200,8 +201,8 @@ final class ImageUploader extends AbstractUploader implements Stringable
             $divisionBy = 4;
         }
 
-        $x = $xy[0] ?? (int) (($origWidth - $cropWidth) / $divisionBy);
-        $y = $xy[1] ?? (int) (($origHeight - $cropHeight) / $divisionBy);
+        $x = $x ?? (int) (($origWidth - $cropWidth) / $divisionBy);
+        $y = $x ?? (int) (($origHeight - $cropHeight) / $divisionBy);
 
         $this->destinationResource =@ imagecreatetruecolor($width, $height);
         if (!$this->destinationResource) {
@@ -231,20 +232,6 @@ final class ImageUploader extends AbstractUploader implements Stringable
     }
 
     /**
-     * Crop by.
-     * @param  int      $width
-     * @param  int|null $height
-     * @param  int      $x
-     * @param  int      $y
-     * @param  bool     $proportional
-     * @return self
-     */
-    public function cropBy(int $width, int $height = null, int $x, int $y, bool $proportional = true): self
-    {
-        return $this->crop($width, $height, $proportional, [$x, $y]);
-    }
-
-    /**
      * @inheritDoc froq\file\Uploader
      */
     public function save(): string
@@ -262,7 +249,8 @@ final class ImageUploader extends AbstractUploader implements Stringable
     /**
      * @inheritDoc froq\file\Uploader
      */
-    public function saveAs(string $name, string $nameAppendix = null, bool $useNewDimensionsAsNameAppendix = false): string
+    public function saveAs(string $name, string $nameAppendix = null,
+        bool $useNewDimensionsAsNameAppendix = false): string
     {
         if ($name == '') {
             throw new UploaderException('Name must not be empty');
