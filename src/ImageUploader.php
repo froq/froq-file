@@ -172,7 +172,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @return self
      * @throws froq\file\UploaderException
      */
-    public function crop(int $width, int $height = null, bool $proportional = true, array $xy = null): self
+    public function crop(int $width, int $height = null, bool $proportional = false, array $xy = null): self
     {
         // Fill/ensure info.
         $this->fillInfo();
@@ -187,17 +187,19 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
         [$origWidth, $origHeight] = $info = $this->getInfo();
 
-        if ($proportional) {
+        if (!$proportional) {
+            $cropWidth  = $width;
+            $cropHeight = $height;
+            $divisionBy = 2;
+        } else {
             $factor     = ($width > $height) ? $width : $height;
             $cropWidth  = (int) (0.5 * $factor);
             $cropHeight = (int) (0.5 * $factor);
-        } else {
-            $cropWidth  = $width;
-            $cropHeight = $height;
+            $divisionBy = 4;
         }
 
-        $x = $xy[0] ?? (int) (($origWidth - $cropWidth) / 2);
-        $y = $xy[1] ?? (int) (($origHeight - $cropHeight) / 2);
+        $x = $xy[0] ?? (int) (($origWidth - $cropWidth) / $divisionBy);
+        $y = $xy[1] ?? (int) (($origHeight - $cropHeight) / $divisionBy);
 
         $this->destinationResource =@ imagecreatetruecolor($width, $height);
         if (!$this->destinationResource) {
