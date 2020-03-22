@@ -98,7 +98,8 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @return self
      * @throws froq\file\UploaderException
      */
-    public function resize(int $width, int $height, bool $proportional = true, bool $fixExcessiveDimensions = true): self
+    public function resize(int $width, int $height, bool $proportional = true,
+        bool $fixExcessiveDimensions = true): self
     {
         // Fill/ensure info.
         $this->fillInfo();
@@ -112,7 +113,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
         // Use original width/height if given ones excessive.
         if ($fixExcessiveDimensions) {
-            if ($width > $origWidth)   $width  = $origWidth;
+            if ($width > $origWidth) $width = $origWidth;
             if ($height > $origHeight) $height = $origHeight;
         }
 
@@ -172,7 +173,8 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @return self
      * @throws froq\file\UploaderException
      */
-    public function crop(int $width, int $height = null, bool $proportional = false, array $xy = null): self
+    public function crop(int $width, int $height = null, bool $proportional = false,
+        array $xy = null): self
     {
         // Fill/ensure info.
         $this->fillInfo();
