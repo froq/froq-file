@@ -24,52 +24,16 @@
  */
 declare(strict_types=1);
 
-namespace froq\file;
+namespace froq\file\mime;
+
+use froq\file\FileException;
 
 /**
- * File interface.
- * @package froq\file
- * @object  froq\file\FileInterface
+ * Mime Exception.
+ * @package froq\file\mime
+ * @object  froq\file\mime\MimeException
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   1.0
+ * @since   3.0, 4.0 Moved to "mime" directory.
  */
-interface FileInterface
-{
-    /**
-     * Save.
-     * @return string
-     * @throws froq\file\FileException
-     */
-    public function save(): string;
-
-    /**
-     * Save as.
-     * @param  string $name
-     * @param  string $nameAppendix
-     * @return string
-     * @throws froq\file\FileException
-     */
-    public function saveAs(string $name, string $nameAppendix = ''): string;
-
-    /**
-     * Move.
-     * @return string
-     * @throws froq\file\FileException
-     */
-    public function move(): string;
-
-    /**
-     * Move as.
-     * @param  string $name
-     * @param  string $nameAppendix
-     * @return string
-     * @throws froq\file\FileException
-     */
-    public function moveAs(string $name, string $nameAppendix = ''): string;
-
-    /**
-     * Clear.
-     * @return void
-     */
-    public function clear(): void;
-}
+final class MimeException extends FileException
+{}

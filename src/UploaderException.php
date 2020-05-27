@@ -26,12 +26,14 @@ declare(strict_types=1);
 
 namespace froq\file;
 
+use froq\file\FileException;
+
 /**
- * Mime exception.
+ * Uploader Exception.
  * @package froq\file
- * @object  froq\file\MimeException
+ * @object  froq\file\UploaderException
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   3.0
+ * @since   4.0
  */
-final class MimeException extends \Exception
+final class UploaderException extends FileException
 {}

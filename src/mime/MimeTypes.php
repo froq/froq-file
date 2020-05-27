@@ -24,16 +24,32 @@
  */
 declare(strict_types=1);
 
-namespace froq\file;
-
-use froq\common\Exception;
+namespace froq\file\mime;
 
 /**
- * File Exception.
- * @package froq\file
- * @object  froq\file\FileException
+ * Mime Types.
+ * @package froq\file\mime
+ * @object  froq\file\mime\MimeTypes
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   1.0
+ * @since   3.0, 4.0 Moved to "mime" directory.
+ * @static
  */
-class FileException extends Exception
-{}
+final class MimeTypes
+{
+    /**
+     * All.
+     * @var array
+     */
+    private static array $all;
+
+    /**
+     * All.
+     * @return array
+     */
+    public static function all(): array
+    {
+        return self::$all ?? (
+               self::$all = include 'all.php'
+        );
+    }
+}

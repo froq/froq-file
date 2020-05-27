@@ -26,353 +26,174 @@ declare(strict_types=1);
 
 namespace froq\file;
 
+use froq\file\mime\{Mime, MimeException};
+use froq\file\{FileError, Util as FileUtil};
+
 /**
  * File.
  * @package froq\file
  * @object  froq\file\File
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   1.0
+ * @since   3.0, 4.0 Made static, added getType(),getExtension(),read(),write(),mode(), moved all
+ *          other stuff into AbstractUploader.
+ * @static
  */
-abstract class File
+final class File
 {
     /**
-     * Name.
-     * @var string
-     */
-    protected $name;
-
-    /**
-     * Type.
-     * @var string
-     */
-    protected $type;
-
-    /**
-     * Size.
-     * @var int
-     */
-    protected $size;
-
-    /**
-     * Extension.
-     * @var string
-     */
-    protected $extension;
-
-    /**
-     * Directory.
-     * @var string
-     */
-    protected $directory;
-
-    /**
-     * Source.
-     * @var string
-     */
-    protected $source;
-
-    /**
-     * Options.
-     * @var array
-     */
-    protected $options = [
-        'hash' => null,                  // rand, file, fileName
-        'hashLength' => null,            // 8, 16, 32 or 40 (default=16)
-        'maxFileSize' => null,           // in binary mode: for 2 megabytes 2048, 2048k or 2m
-        'allowedTypes' => null,          // * means all allowed or 'image/jpeg,image/png' etc.
-        'allowedExtensions' => null,     // * means all allowed or 'jpg,jpeg' etc.
-        'allowEmptyExtensions' => null,  // allow empty extension
-        'jpegQuality' => 85,             // for image files
-        'deleteSourceFile' => true,      // useful for displaying crops etc.
-    ];
-
-    /**
-     * Constructor.
-     * @param array  $file
-     * @param string $directory
-     * @param array  $options
-     */
-    public function __construct(array $file, string $directory, array $options = [])
-    {
-        // all these stuff are needed
-        if (!isset($file['tmp_name'], $file['name'], $file['type'])) {
-            throw new FileException("No valid file given, 'tmp_name,name,type' are ".
-                "required", FileError::NO_VALID_FILE);
-        }
-
-        $file['size'] = $file['size'] ?? filesize($file['tmp_name']);
-        $file['error'] = $file['error'] ?? 0;
-
-        $error = $file['error'] ? FileError::all()[$file['error']] ?? 'Unknown' : null;
-        if ($error != null) {
-            throw new FileException($error, FileError::INTERNAL);
-        }
-
-        // check file exists
-        $this->source = $file['tmp_name'];
-        if (!is_file($this->source)) {
-            throw new FileException("No valid source '{$this->source}' found by 'tmp_name'",
-                FileError::NO_VALID_SOURCE);
-        }
-
-        $this->options = array_merge($this->options, $options);
-
-        // check file size
-        $maxFileSize = self::convertBytes($this->options['maxFileSize']);
-        if ($maxFileSize && $file['size'] > $maxFileSize) {
-            throw new FileException("File size exceeded, options maxFileSize is ".
-                "'{$this->options['maxFileSize']}' ({$maxFileSize} bytes)",
-                FileError::OPTION_SIZE_EXCEEDED);
-        }
-
-        { // type & extension stuff
-            if (empty($this->options['allowedTypes']) || empty($this->options['allowedExtensions'])) {
-                throw new FileException("'allowedTypes' and 'allowedExtensions' options cannot be ".
-                    "empty for security, please provide types and extensions you allow (ie: for types ".
-                    "'image/jpeg,image/png' and for extensions 'jpg,jpeg', or use '*' to allow all)",
-                FileError::OPTION_EMPTY);
-            }
-
-            $fileExtension = pathinfo($file['name'], PATHINFO_EXTENSION);
-            if ($this->options['allowEmptyExtensions'] === false && $fileExtension === '') {
-                throw new FileException("Empty extensions not allowed by options",
-                    FileError::OPTION_EMPTY_EXTENSION);
-            }
-
-            $type = Mime::getType($this->source);
-            if ($this->options['allowedTypes'] !== '*'
-                && !in_array($type, explode(',', (string) $this->options['allowedTypes']))) {
-                throw new FileException("Type '{$type}' not allowed by options, allowed ".
-                    "types: '{$this->options['allowedTypes']}'", FileError::OPTION_NOT_ALLOWED_TYPE);
-            }
-
-            $extension = ($fileExtension !== '') ? $fileExtension : Mime::getExtensionByType($type);
-            if ($this->options['allowedExtensions'] !== '*'
-                && !in_array($extension, explode(',', (string) $this->options['allowedExtensions']))) {
-                throw new FileException("Extension '{$extension}' not allowed by options, allowed ".
-                    "extensions: '{$this->options['allowedExtensions']}'", FileError::OPTION_NOT_ALLOWED_EXTENSION);
-            }
-        }
-
-        $this->name = $this->prepareName($file['name']);
-        $this->type = $type;
-        $this->size = $file['size'];
-        $this->extension = ($fileExtension !== '') ? $fileExtension : null;
-
-        { // directory stuff
-            if ($directory == '') {
-                throw new FileException('Directory cannot be empty', FileError::DIRECTORY_EMPTY);
-            }
-
-            $this->directory = $directory;
-            if (!is_dir($this->directory)) {
-                @ $ok = mkdir($this->directory, 0644, true);
-                if (!$ok) {
-                    throw new FileException($this->prepareErrorMessage('Cannot make directory'),
-                        FileError::DIRECTORY_ERROR);
-                }
-            }
-        }
-    }
-
-    /**
-     * Destructor.
-     */
-    public function __destruct()
-    {
-        $this->clear();
-    }
-
-    /**
-     * Get name.
-     * @return string
-     */
-    public final function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
      * Get type.
-     * @return string
+     * @param  string $file
+     * @return ?string
      */
-    public final function getType(): string
+    public static function getType(string $file): ?string
     {
-        return $this->type;
-    }
-
-    /**
-     * Get size.
-     * @return int
-     */
-    public final function getSize(): int
-    {
-        return $this->size;
+        try { return Mime::getType($file); } catch (MimeException $e) {
+            return null; // Error.
+        }
     }
 
     /**
      * Get extension.
+     * @param  string $file
      * @return ?string
      */
-    public final function getExtension(): ?string
+    public static function getExtension(string $file): ?string
     {
-        return $this->extension;
+        return Mime::getExtension($file);
     }
 
     /**
-     * Get directory.
-     * @return string
-     */
-    public final function getDirectory(): string
-    {
-        return $this->directory;
-    }
-
-    /**
-     * Get options.
-     * @return array
-     */
-    public final function getOptions(): array
-    {
-        return $this->options;
-    }
-
-    /**
-     * Get source.
-     * @return string
-     */
-    public final function getSource(): string
-    {
-        return $this->source;
-    }
-
-    /**
-     * Get destination.
-     * @param  string|null $name
-     * @param  string      $nameAppendix
-     * @return string
-     */
-    public final function getDestination(string $name = null, string $nameAppendix = ''): string
-    {
-        // update name
-        if ($name != null) {
-            $this->name = $name = $this->prepareName($name, $nameAppendix);
-        }
-
-        $return = $this->directory .'/'. ($name ?? $this->name);
-        if ($this->extension != null) {
-            $return .= '.'. $this->extension;
-        }
-
-        return $return;
-    }
-
-    /**
-     * Delete.
+     * Is exists.
      * @param  string $file
-     * @return void
-     * @since  3.0
+     * @return bool
      */
-    public final function delete(string $file): void
+    public static function isExists(string $file): bool
     {
-        @ $ok = unlink($file);
-        if (!$ok) {
-            throw new FileException($this->prepareErrorMessage("Cannot delete file '{$file}'"));
-        }
+        return FileUtil::isFile($file);
     }
 
     /**
-     * To array.
-     * @return array
+     * Is readable.
+     * @param  string $file
+     * @return bool
      */
-    public final function toArray(): array
+    public static function isReadable(string $file): bool
     {
-        return [
-            'name'        => $this->name,
-            'type'        => $this->type,
-            'size'        => $this->size,
-            'extension'   => $this->extension,
-            'source'      => $this->source,
-            'directory'   => $this->directory
-        ];
+        return FileUtil::isFile($file) && is_readable($file);
     }
 
     /**
-     * Prepare name.
-     * @param  string $name
-     * @param  string $nameAppendix
+     * Is writable.
+     * @param  string $file
+     * @return bool
+     */
+    public static function isWritable(string $file): bool
+    {
+        return FileUtil::isFile($file) && is_writable($file);
+    }
+
+    /**
+     * Read.
+     * @param  string $file
      * @return string
-     * @throws froq\file\FileException
-     * @since  1.0
+     * @throws froq\file\FileError
+     * @since  4.0
      */
-    protected final function prepareName(string $name, string $nameAppendix = ''): string
+    public static function read(string $file): string
     {
-        // some security & standard stuff
-        $name = preg_replace(['~[\s_-]+~', '~[^a-z0-9-]~i'], ['-', ''], pathinfo($name, PATHINFO_FILENAME));
-        if (strlen($name) > 250) {
-            $name = substr($name, 0, 250);
+        $ret =@ file_get_contents($file);
+        if ($ret !== false) {
+            return $ret;
         }
 
-        // all names lower-cased
-        $name = strtolower($name);
-
-        // hash name if option set
-        $hash = $this->options['hash'];
-        if ($hash != '') {
-            static $hashAlgos = [8 => 'fnv1a32', 16 => 'fnv1a64', 32 => 'md5', 40 => 'sha1'];
-            @ $hashAlgo = $hashAlgos[$this->options['hashLength'] ?? 16];
-            if ($hashAlgo == null) {
-                throw new FileException("Only '8,16,32,40' are accepted");
-            }
-
-            if ($hash == 'rand') {
-                $name = hash($hashAlgo, uniqid(microtime(), true));
-            } elseif ($hash == 'file') {
-                $name = hash($hashAlgo, file_get_contents($this->source));
-            } elseif ($hash == 'fileName') {
-                $name = hash($hashAlgo, $name);
-            }
-        }
-
-        // appendix like 'crop' (ie: abc123-crop.jpg)
-        if ($nameAppendix != '') {
-            $name .= '-'. strtolower(preg_replace('~[^a-z0-9-]~i', '', $nameAppendix));
-        }
-
-        return $name;
+        throw new FileError('Cannot read file [error: %s, file: %s]', ['@error', $file]);
     }
 
     /**
-     * Prepare error message.
-     * @param  string $message
+     * Write.
+     * @param  string $file
+     * @param  string $contents
+     * @param  int    $flags
+     * @return bool
+     * @throws froq\file\FileError
+     * @since  4.0
+     */
+    public static function write(string $file, string $contents, int $flags = 0): bool
+    {
+        $ret =@ file_put_contents($file, $contents, $flags);
+        if ($ret !== false) {
+            return true;
+        }
+
+        throw new FileError('Cannot write file [error: %s, file: %s]', ['@error', $file]);
+    }
+
+    /**
+     * Mode.
+     * @param  string   $file
+     * @param  int|null $mode
      * @return string
-     * @since  3.0
+     * @throws froq\file\FileError
+     * @since  4.0
      */
-    protected final function prepareErrorMessage(string $message): string
+    public static function mode(string $file, int $mode = null): string
     {
-        return sprintf("{$message}, error[%s]", error_get_last()['message'] ?? 'Unknown');
-    }
-
-    /**
-     * Convert bytes.
-     * @param  int|string $value
-     * @return int
-     * @since  3.0
-     */
-    public static final function convertBytes($value): int
-    {
-        if ($value && !is_numeric($value)) {
-            $scan = sscanf($value, '%d%2s');
-            if (isset($scan[1])) {
-                $value = (int) $value;
-                switch (strtoupper($scan[1])) {
-                    case 'K': case 'KB': $value *= 1024; break;
-                    case 'M': case 'MB': $value *= 1048576; break;
-                    case 'G': case 'GB': $value *= 1073741824; break;
+        if ($mode !== null) {
+            // Get mode.
+            if ($mode === -1) {
+                $ret =@ fileperms($file);
+                if ($ret === false) {
+                    throw new FileError('Cannot get file stat for "%s"', [$file]);
                 }
             }
+            // Set mode.
+            else {
+                $ret =@ chmod($file, $mode);
+                if ($ret === false) {
+                    throw new FileError('Cannot set file mode [error: %s, file: %s]', ['@error', $file]);
+                }
+                $ret = $mode;
+            }
+
+            // Compare.
+            // $mode = file_mode($file, -1)
+            // $mode === '644' or octdec($mode) === 0644
+            return $ret ?  decoct($ret & 0777) : null;
         }
 
-        return (int) $value;
+        // Get full permissions.
+        $perms =@ fileperms($file);
+        if ($perms === false) {
+            throw new FileError('Cannot get file stat for "%s"', [$file]);
+        }
+
+        // Source http://php.net/fileperms.
+        switch ($perms & 0xf000) {
+            case 0xc000: $ret = 's'; break; // Socket.
+            case 0xa000: $ret = 'l'; break; // Symbolic link.
+            case 0x8000: $ret = 'r'; break; // Regular.
+            case 0x6000: $ret = 'b'; break; // Block special.
+            case 0x4000: $ret = 'd'; break; // Directory.
+            case 0x2000: $ret = 'c'; break; // Character special.
+            case 0x1000: $ret = 'p'; break; // FIFO pipe.
+                default: $ret = 'u';        // Unknown.
+        }
+
+        // Owner.
+        $ret .= (($perms & 0x0100) ? 'r' : '-');
+        $ret .= (($perms & 0x0080) ? 'w' : '-');
+        $ret .= (($perms & 0x0040) ? (($perms & 0x0800) ? 's' : 'x' ) : (($perms & 0x0800) ? 'S' : '-'));
+
+        // Group.
+        $ret .= (($perms & 0x0020) ? 'r' : '-');
+        $ret .= (($perms & 0x0010) ? 'w' : '-');
+        $ret .= (($perms & 0x0008) ? (($perms & 0x0400) ? 's' : 'x' ) : (($perms & 0x0400) ? 'S' : '-'));
+
+        // World.
+        $ret .= (($perms & 0x0004) ? 'r' : '-');
+        $ret .= (($perms & 0x0002) ? 'w' : '-');
+        $ret .= (($perms & 0x0001) ? (($perms & 0x0200) ? 't' : 'x' ) : (($perms & 0x0200) ? 'T' : '-'));
+
+        return $ret;
     }
 }
