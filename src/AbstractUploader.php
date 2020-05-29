@@ -166,7 +166,7 @@ abstract class AbstractUploader
         }
 
         if (!is_dir($directory)) {
-            $ok =@ mkdir($directory, 0644, true);
+            $ok =@ mkdir($directory, 0755, true);
             if (!$ok) {
                 throw new UploaderException(
                     'Cannot make directory [error: %s]',
