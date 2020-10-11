@@ -201,8 +201,8 @@ final class ImageUploader extends AbstractUploader implements Stringable
             $divisionBy = 4;
         }
 
-        $x = $x ?? (int) (($origWidth - $cropWidth) / $divisionBy);
-        $y = $y ?? (int) (($origHeight - $cropHeight) / $divisionBy);
+        $x ??= (int) (($origWidth - $cropWidth) / $divisionBy);
+        $y ??= (int) (($origHeight - $cropHeight) / $divisionBy);
 
         $this->destinationResource =@ imagecreatetruecolor($width, $height);
         if (!$this->destinationResource) {

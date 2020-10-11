@@ -48,8 +48,6 @@ final class MimeTypes
      */
     public static function all(): array
     {
-        return self::$all ?? (
-               self::$all = include 'all.php'
-        );
+        return self::$all ??= include 'all.php';
     }
 }
