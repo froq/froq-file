@@ -75,34 +75,33 @@ abstract class AbstractUploader
      */
     public final function __construct(array $file, array $options = null)
     {
-        ['file' => $source, 'name' => $name, 'size' => $size, 'error' => $error]
-            = $file + array_fill_keys(['file', 'name', 'size', 'error'], null);
+        ['source' => $source, 'name' => $name, 'size' => $size, 'error' => $error]
+            = $file + array_fill_keys(['source', 'name', 'size', 'error'], null);
 
-        // Both "source" or "tmp_name" may be given (generally "tmp_name" comes from $_FILES global).
-        $source = $source ?? $file['tmp_name'] ?? null;
+        // Those "source", "file", "tmp_name" may be given (generally "tmp_name" comes from $_FILES global).
+        $source ??= $file['file'] ?? $file['tmp_name'] ?? null;
 
-        // All these stuff are needed.
         if (!$source) {
             throw new UploaderException(
-                'No valid file given, "file" or "tmp_name" can not be empty',
+                'No valid source given, "source", "file" or "tmp_name" can not be empty',
                 null, UploaderError::NO_VALID_FILE
             );
         }
 
-        $error = $error ? UploaderError::MESSAGES[$error] ?? 'Unknown file upload error' : null;
-        if ($error) {
-            throw new UploaderException($error, null, UploaderError::INTERNAL);
-        }
-
         if (!is_string($source) || !is_file($source)) {
             throw new UploaderException(
-                'No valid source file "%s" given by "tmp_name" or "file"',
+                'No valid source file "%s" given by "source", "file" or "tmp_name"',
                 [$source], UploaderError::NO_VALID_SOURCE
             );
         }
 
-        $name = $name ?? uniqid();
-        $size = $size ?? filesize($source);
+        $error = $error ? (UploaderError::MESSAGES[$error] ?? 'Unknown file upload error') : null;
+        if ($error) {
+            throw new UploaderException($error, null, UploaderError::INTERNAL);
+        }
+
+        $name ??= uniqid();
+        $size ??= filesize($source);
 
         $options = array_merge($this->options, $options ?? []);
         extract($options, EXTR_PREFIX_ALL, 'options');
