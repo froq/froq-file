@@ -75,8 +75,7 @@ abstract class AbstractUploader
      */
     public final function __construct(array $file, array $options = null)
     {
-        ['source' => $source, 'name' => $name, 'size' => $size, 'error' => $error]
-            = $file + array_fill_keys(['source', 'name', 'size', 'error'], null);
+        @ ['source' => $source, 'name' => $name, 'size' => $size, 'error' => $error] = $file;
 
         // Those "source", "file", "tmp_name" may be given (generally "tmp_name" comes from $_FILES global).
         $source ??= $file['file'] ?? $file['tmp_name'] ?? null;
