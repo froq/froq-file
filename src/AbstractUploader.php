@@ -269,21 +269,28 @@ abstract class AbstractUploader
         // Hash name if option set.
         $hash = $this->options['hash'];
         if ($hash) {
-            static $hashAlgos = [8 => 'fnv1a32', 16 => 'fnv1a64', 32 => 'md5', 40 => 'sha1'];
+            static $hashAlgos = [8 => 'fnv1a32', 16 => 'fnv1a64', 32 => 'md5', 40 => 'sha1'],
+                   $hashLengthDefault = 32;
 
-            $hashAlgo =@ $hashAlgos[$this->options['hashLength'] ?? 32];
+            $hashAlgo = $hashAlgos[$this->options['hashLength'] ?? $hashLengthDefault] ?? null;
             if (!$hashAlgo) {
-                throw new UploaderException('Only "8,16,32,40" are accepted as "hashLength" option');
+                throw new UploaderException('Only "8,16,32,40" are accepted as "hashLength" '.
+                    'option, "%s" given', [$this->options['hashLength']]);
             }
 
             if ($hash == 'rand') {
-                $name = hash($hashAlgo, uniqid(microtime(), true));
+                $name = hash($hashAlgo, uniqid(random_bytes(8), true));
             } elseif ($hash == 'file') {
-                $name = hash($hashAlgo, file_get_contents($this->source));
+                $name = hash_file($hashAlgo, $this->source);
             } elseif ($hash == 'fileName') {
                 $name = hash($hashAlgo, $name);
             } else {
-                throw new UploaderException('Only "rand,file,fileName" are accepted as "hash" option');
+                throw new UploaderException('Only "rand,file,fileName" are accepted as "hash" '.
+                    'option, "%s" given', [$hash]);
+            }
+
+            if (!$name) {
+                throw new UploaderException('Cannot hash file name [error: %s]', ['@error']);
             }
         }
 
