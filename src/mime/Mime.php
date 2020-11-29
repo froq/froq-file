@@ -41,14 +41,14 @@ final class Mime
         $type = null;
 
         try {
-            // This function might be not available.
+            // This function may be not available.
             $type = mime_content_type($file);
             if ($type === false) {
                 throw new MimeException('@error');
             }
         } catch (Error $e) {
             try {
-                // This function might be not available.
+                // This function may be not available.
                 $exec = exec('file -i '. escapeshellarg($file));
                 if (preg_match('~: *([^/ ]+/[^; ]+)~', $exec, $match)) {
                     $type = $match[1];
