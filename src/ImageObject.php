@@ -7,7 +7,8 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\file\{AbstractFileObject, FileException, Util as FileUtil, FileObject, ImageUploader};
+use froq\file\{AbstractFileObject, FileException, Util as FileUtil, FileObject};
+use froq\file\upload\ImageUploader;
 use froq\common\interfaces\Stringable;
 
 /**

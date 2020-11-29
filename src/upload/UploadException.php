@@ -5,17 +5,17 @@
  */
 declare(strict_types=1);
 
-namespace froq\file;
+namespace froq\file\upload;
 
 use froq\file\FileException;
 
 /**
- * Uploader Exception.
+ * Upload Exception.
  *
- * @package froq\file
- * @object  froq\file\UploaderException
+ * @package froq\file\upload
+ * @object  froq\file\upload\UploadException
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   4.0
+ * @since   4.0, 5.0 Moved to upload directory.
  */
-class UploaderException extends FileException
+class UploadException extends FileException
 {}

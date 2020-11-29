@@ -5,18 +5,18 @@
  */
 declare(strict_types=1);
 
-namespace froq\file;
+namespace froq\file\upload;
 
-use froq\file\{AbstractUploader, UploaderException};
+use froq\file\upload\{AbstractUploader, UploadException};
 use froq\common\interfaces\Stringable;
 
 /**
  * Image Uploader.
  *
- * @package froq\file
- * @object  froq\file\ImageUploader
+ * @package froq\file\upload
+ * @object  froq\file\upload\ImageUploader
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   3.0
+ * @since   3.0, 5.0 Moved to upload directory.
  */
 final class ImageUploader extends AbstractUploader implements Stringable
 {
@@ -76,25 +76,24 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @param  int  $width
      * @param  int  $height
      * @param  bool $proportional
-     * @param  bool $fixExcessiveDimensions
+     * @param  bool $fixExtraDimensions
      * @return self
-     * @throws froq\file\UploaderException
+     * @throws froq\file\upload\UploadException
      */
-    public function resize(int $width, int $height, bool $proportional = true,
-        bool $fixExcessiveDimensions = true): self
+    public function resize(int $width, int $height, bool $proportional = true, bool $fixExtraDimensions = true): self
     {
         // Fill/ensure info.
         $this->fillInfo();
 
         $this->sourceResource =@ $this->createSourceResource();
         if (!$this->sourceResource) {
-            throw new UploaderException('Failed creating source resource [error: %s]', ['@error']);
+            throw new UploadException('Failed creating source resource [error: %s]', ['@error']);
         }
 
         [$origWidth, $origHeight] = $info = $this->getInfo();
 
         // Use original width/height if given ones excessive.
-        if ($fixExcessiveDimensions) {
+        if ($fixExtraDimensions) {
             if ($width > $origWidth) $width = $origWidth;
             if ($height > $origHeight) $height = $origHeight;
         }
@@ -117,7 +116,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
         $this->destinationResource =@ imagecreatetruecolor($newWidth, $newHeight);
         if (!$this->destinationResource) {
-            throw new UploaderException('Failed creating destination resource [error: %s]', ['@error']);
+            throw new UploadException('Failed creating destination resource [error: %s]', ['@error']);
         }
 
         // Handle PNGs/GIFs.
@@ -134,7 +133,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
         $ok =@ imagecopyresampled($this->destinationResource, $this->sourceResource, 0, 0, 0, 0,
             $newWidth, $newHeight, $origWidth, $origHeight);
         if (!$ok) {
-            throw new UploaderException('Failed resampling destination resource [error: %s]', ['@error']);
+            throw new UploadException('Failed resampling destination resource [error: %s]', ['@error']);
         }
 
         // Store new dimensions.
@@ -148,23 +147,22 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
     /**
      * Crop.
-     * @param  int             $width
-     * @param  int|null        $height
-     * @param  int|null        $x
-     * @param  int|null        $y
-     * @param  bool            $proportional
+     * @param  int      $width
+     * @param  int|null $height
+     * @param  int|null $x
+     * @param  int|null $y
+     * @param  bool     $proportional
      * @return self
-     * @throws froq\file\UploaderException
+     * @throws froq\file\upload\UploadException
      */
-    public function crop(int $width, int $height = null, int $x = null, int $y = null,
-        bool $proportional = false): self
+    public function crop(int $width, int $height = null, int $x = null, int $y = null, bool $proportional = false): self
     {
         // Fill/ensure info.
         $this->fillInfo();
 
         $this->sourceResource =@ $this->createSourceResource();
         if (!$this->sourceResource) {
-            throw new UploaderException('Failed creating source resource [error: %s]', ['@error']);
+            throw new UploadException('Failed creating source resource [error: %s]', ['@error']);
         }
 
         // Square crops.
@@ -188,7 +186,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
         $this->destinationResource =@ imagecreatetruecolor($width, $height);
         if (!$this->destinationResource) {
-            throw new UploaderException('Failed creating destination resource [error: %s]', ['@error']);
+            throw new UploadException('Failed creating destination resource [error: %s]', ['@error']);
         }
 
         // Handle PNGs/GIFs.
@@ -204,7 +202,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
         $ok =@ imagecopyresampled($this->destinationResource, $this->sourceResource, 0, 0, $x, $y,
             $width, $height, $width, $height);
         if (!$ok) {
-            throw new UploaderException('Failed resampling destination resource [error: %s]', ['@error']);
+            throw new UploadException('Failed resampling destination resource [error: %s]', ['@error']);
         }
 
         // Store new dimensions.
@@ -214,7 +212,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
     }
 
     /**
-     * @inheritDoc froq\file\Uploader
+     * @inheritDoc froq\file\upload\AbstractUploader
      */
     public function save(): string
     {
@@ -222,20 +220,20 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
         $ok =@ $this->outputTo($destination);
         if (!$ok) {
-            throw new UploaderException('Cannot save file [error: %s]', ['@error']);
+            throw new UploadException('Cannot save file [error: %s]', ['@error']);
         }
 
         return $destination;
     }
 
     /**
-     * @inheritDoc froq\file\Uploader
+     * @inheritDoc froq\file\upload\AbstractUploader
      */
     public function saveAs(string $name, string $nameAppendix = null,
         bool $useNewDimensionsAsNameAppendix = false): string
     {
         if ($name == '') {
-            throw new UploaderException('Name must not be empty');
+            throw new UploadException('Name must not be empty');
         }
 
         if ($useNewDimensionsAsNameAppendix) {
@@ -249,14 +247,14 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
         $ok =@ $this->outputTo($destination);
         if (!$ok) {
-            throw new UploaderException('Cannot save file [error: %s]', ['@error']);
+            throw new UploadException('Cannot save file [error: %s]', ['@error']);
         }
 
         return $destination;
     }
 
     /**
-     * @inheritDoc froq\file\Uploader
+     * @inheritDoc froq\file\upload\AbstractUploader
      */
     public function move(): string
     {
@@ -265,22 +263,21 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new UploaderException('Cannot move file [error: %s]', ['@error']);
+            throw new UploadException('Cannot move file [error: %s]', ['@error']);
         }
 
-        // Remove source instantly.
-        @ unlink($source);
+        unlink($source); // Remove source instantly.
 
         return $destination;
     }
 
     /**
-     * @inheritDoc froq\file\Uploader
+     * @inheritDoc froq\file\upload\AbstractUploader
      */
     public function moveAs(string $name, string $nameAppendix = null): string
     {
         if ($name == '') {
-            throw new UploaderException('Name must not be empty');
+            throw new UploadException('Name must not be empty');
         }
 
         $source = $this->getSource();
@@ -288,23 +285,22 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new UploaderException('Cannot move file [error: %s]', ['@error']);
+            throw new UploadException('Cannot move file [error: %s]', ['@error']);
         }
 
-        // Remove source instantly.
-        @ unlink($source);
+        unlink($source); // Remove source instantly.
 
         return $destination;
     }
 
     /**
-     * @inheritDoc froq\file\Uploader
+     * @inheritDoc froq\file\upload\AbstractUploader
      */
     public function clear(bool $force = false): void
     {
         if (!$force) {
             if ($this->options['clearSource']) {
-                @ unlink($this->getSource());
+                unlink($this->getSource());
             }
 
             if ($this->options['clear']) {
@@ -315,7 +311,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
                 $this->destinationResource = null;
             }
         } else {
-            @ unlink($this->getSource());
+            unlink($this->getSource());
 
             is_resource($this->sourceResource) && imagedestroy($this->sourceResource);
             is_resource($this->destinationResource) && imagedestroy($this->destinationResource);
@@ -341,28 +337,28 @@ final class ImageUploader extends AbstractUploader implements Stringable
     public function getInfo(): array
     {
         if (empty($this->info)) {
-            throw new UploaderException('No info filled yet, try after calling fillInfo()');
+            throw new UploadException('No info filled yet, try after calling fillInfo()');
         }
+
         return $this->info;
     }
 
     /**
      * Fill info.
      * @return void
-     * @throws froq\file\UploaderException
+     * @throws froq\file\upload\UploadException
      * @internal
      */
     public function fillInfo(): void
     {
-        if ($this->resized) {
-            // Use resized image as source.
-            $info =@ getimagesizefromstring($this->toString());
-        } elseif (!isset($this->info)) {
-            $info =@ getimagesize($this->getSource());
+        if ($this->resized) { // Use resized image as source.
+            $info = getimagesizefromstring($this->toString());
+        } elseif (empty($this->info)) {
+            $info = getimagesize($this->getSource());
         }
 
         if (empty($info)) {
-            throw new UploaderException('Failed to get source info [error: %s]', ['@error']);
+            throw new UploadException('Failed to get source info [error: %s]', ['@error']);
         }
 
         // Add suggestive names.
@@ -441,7 +437,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
     /**
      * Create source resource.
      * @return ?resource
-     * @throws froq\file\UploaderException
+     * @throws froq\file\upload\UploadException
      */
     private function createSourceResource()
     {
@@ -457,7 +453,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
         $type = $this->getInfo()['type'];
         if (!in_array($type, self::SUPPORTED_TYPES)) {
-            throw new UploaderException('Unsupported image type, only "jpeg, png, gif, webp" are accepted');
+            throw new UploadException('Unsupported image type, only "jpeg, png, gif, webp" are accepted');
         }
 
         switch ($type) {
@@ -477,19 +473,19 @@ final class ImageUploader extends AbstractUploader implements Stringable
     /**
      * Output.
      * @return ?bool
-     * @throws froq\file\UploaderException
+     * @throws froq\file\upload\UploadException
      */
     private function output(): ?bool
     {
         $destinationResource = $this->getDestinationResource();
         if ($destinationResource == null) {
-            throw new UploaderException('No destination resource created yet, call one of these method '.
+            throw new UploadException('No destination resource created yet, call one of these method '.
                 'first: resample(), resize(), crop() or cropBy()');
         }
 
         $type = $this->getInfo()['type'];
         if (!in_array($type, self::SUPPORTED_TYPES)) {
-            throw new UploaderException('Unsupported image type, only "jpeg, png, gif, webp" are accepted');
+            throw new UploadException('Unsupported image type, only "jpeg, png, gif, webp" are accepted');
         }
 
         switch ($type) {
@@ -512,19 +508,19 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * Output to.
      * @param  string $to
      * @return ?bool
-     * @throws froq\file\UploaderException
+     * @throws froq\file\upload\UploadException
      */
     private function outputTo(string $to): ?bool
     {
         $destinationResource = $this->getDestinationResource();
         if ($destinationResource == null) {
-            throw new UploaderException('No destination resource created yet, call one of these method '.
+            throw new UploadException('No destination resource created yet, call one of these method '.
                 'first: resample(), resize(), crop() or cropBy()');
         }
 
         $type = $this->getInfo()['type'];
         if (!in_array($type, self::SUPPORTED_TYPES)) {
-            throw new UploaderException('Unsupported image type, only "jpeg, png, gif, webp" are accepted');
+            throw new UploadException('Unsupported image type, only "jpeg, png, gif, webp" are accepted');
         }
 
         switch ($type) {

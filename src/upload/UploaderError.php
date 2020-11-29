@@ -5,19 +5,19 @@
  */
 declare(strict_types=1);
 
-namespace froq\file;
+namespace froq\file\upload;
 
 use froq\file\FileError;
 
 /**
- * Uploader Error.
+ * Upload Error.
  *
- * @package froq\file
- * @object  froq\file\UploaderError
+ * @package froq\file\upload
+ * @object  froq\file\upload\UploadError
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   4.0
+ * @since   4.0, 5.0 Moved to upload directory.
  */
-final class UploaderError extends FileError
+final class UploadError extends FileError
 {
     /**
      * Errors.

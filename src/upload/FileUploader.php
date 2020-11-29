@@ -5,22 +5,22 @@
  */
 declare(strict_types=1);
 
-namespace froq\file;
+namespace froq\file\upload;
 
-use froq\file\{AbstractUploader, UploaderException};
+use froq\file\upload\{AbstractUploader, UploadException};
 
 /**
  * File Uploader.
  *
- * @package froq\file
- * @object  froq\file\FileUploader
+ * @package froq\file\upload
+ * @object  froq\file\upload\FileUploader
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   3.0
+ * @since   3.0, 5.0 Moved to upload directory.
  */
 final class FileUploader extends AbstractUploader
 {
     /**
-     * @inheritDoc froq\file\Uploader
+     * @inheritDoc froq\file\upload\AbstractUploader
      */
     public function save(): string
     {
@@ -29,19 +29,19 @@ final class FileUploader extends AbstractUploader
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new UploaderException('Cannot save file [error: %s]', ['@error']);
+            throw new UploadException('Cannot save file [error: %s]', ['@error']);
         }
 
         return $destination;
     }
 
     /**
-     * @inheritDoc froq\file\Uploader
+     * @inheritDoc froq\file\upload\AbstractUploader
      */
     public function saveAs(string $name, string $nameAppendix = null): string
     {
         if ($name == '') {
-            throw new UploaderException('Name must not be empty');
+            throw new UploadException('Name must not be empty');
         }
 
         $source = $this->getSource();
@@ -49,14 +49,14 @@ final class FileUploader extends AbstractUploader
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new UploaderException('Cannot save file [error: %s]', ['@error']);
+            throw new UploadException('Cannot save file [error: %s]', ['@error']);
         }
 
         return $destination;
     }
 
     /**
-     * @inheritDoc froq\file\Uploader
+     * @inheritDoc froq\file\upload\AbstractUploader
      */
     public function move(): string
     {
@@ -65,22 +65,21 @@ final class FileUploader extends AbstractUploader
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new UploaderException('Cannot move file [error: %s]', ['@error']);
+            throw new UploadException('Cannot move file [error: %s]', ['@error']);
         }
 
-        // Remove source instantly.
-        @ unlink($source);
+        unlink($source); // Remove source instantly.
 
         return $destination;
     }
 
     /**
-     * @inheritDoc froq\file\Uploader
+     * @inheritDoc froq\file\upload\AbstractUploader
      */
     public function moveAs(string $name, string $nameAppendix = null): string
     {
         if ($name == '') {
-            throw new UploaderException('Name must not be empty');
+            throw new UploadException('Name must not be empty');
         }
 
         $source = $this->getSource();
@@ -88,26 +87,25 @@ final class FileUploader extends AbstractUploader
 
         $ok =@ copy($source, $destination);
         if (!$ok) {
-            throw new UploaderException('Cannot move file [error: %s]', ['@error']);
+            throw new UploadException('Cannot move file [error: %s]', ['@error']);
         }
 
-        // Remove source instantly.
-        @ unlink($source);
+        unlink($source); // Remove source instantly.
 
         return $destination;
     }
 
     /**
-     * @inheritDoc froq\file\Uploader
+     * @inheritDoc froq\file\upload\AbstractUploader
      */
     public function clear(bool $force = false): void
     {
         if (!$force) {
             if ($this->options['clearSource']) {
-                @ unlink($this->getSource());
+                unlink($this->getSource());
             }
         } else {
-            @ unlink($this->getSource());
+            unlink($this->getSource());
         }
     }
 }
