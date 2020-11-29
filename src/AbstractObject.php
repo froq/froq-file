@@ -276,7 +276,7 @@ abstract class AbstractObject
                              : fopen('php://temp/maxmemory:'. $maxmem, $mode);
 
         if (!$resource) {
-            throw new FileException('Cannot create temporary resource [error: %s]', ['@error']);
+            throw new FileException('Cannot create temporary resource [error: %s]', '@error');
         }
 
         return $resource;
