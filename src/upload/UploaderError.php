@@ -17,7 +17,7 @@ use froq\file\FileError;
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   4.0, 5.0 Moved to upload directory.
  */
-final class UploadError extends FileError
+class UploadError extends FileError
 {
     /**
      * Errors.
