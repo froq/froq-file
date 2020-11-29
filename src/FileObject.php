@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\file\{AbstractFileObject, FileException, Util as FileUtil};
+use froq\file\{AbstractObject, FileException, Util as FileUtil};
 use froq\common\interfaces\Stringable;
 
 /**
@@ -18,7 +18,7 @@ use froq\common\interfaces\Stringable;
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   4.0
  */
-final class FileObject extends AbstractFileObject implements Stringable
+final class FileObject extends AbstractObject implements Stringable
 {
     /**
      * Options default.
@@ -336,7 +336,7 @@ final class FileObject extends AbstractFileObject implements Stringable
     }
 
     /**
-     * @inheritDoc froq\file\AbstractFileObject
+     * @inheritDoc froq\file\AbstractObject
      * @implement
      */
     public static function fromFile(string $file, string $mimeType = null, array $options = null): FileObject
@@ -356,7 +356,7 @@ final class FileObject extends AbstractFileObject implements Stringable
     }
 
     /**
-     * @inheritDoc froq\file\AbstractFileObject
+     * @inheritDoc froq\file\AbstractObject
      * @implement
      */
     public static function fromString(string $string, string $mimeType = null, array $options = null): FileObject

@@ -11,14 +11,14 @@ use froq\file\{FileException, FileObject, ImageObject};
 use froq\common\traits\{OptionTrait, ApplyTrait};
 
 /**
- * Abstract File Object.
+ * Abstract Object.
  *
  * @package froq\file
- * @object  froq\file\AbstractFileObject
+ * @object  froq\file\AbstractObject
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   4.0
  */
-abstract class AbstractFileObject
+abstract class AbstractObject
 {
     /**
      * Option & Apply traits.

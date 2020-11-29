@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\file\{AbstractFileObject, FileException, Util as FileUtil, FileObject};
+use froq\file\{AbstractObject, FileException, Util as FileUtil, FileObject};
 use froq\file\upload\ImageUploader;
 use froq\common\interfaces\Stringable;
 
@@ -19,7 +19,7 @@ use froq\common\interfaces\Stringable;
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   4.0
  */
-final class ImageObject extends AbstractFileObject implements Stringable
+final class ImageObject extends AbstractObject implements Stringable
 {
     /**
      * Mime types.
@@ -351,7 +351,7 @@ final class ImageObject extends AbstractFileObject implements Stringable
     }
 
     /**
-     * @inheritDoc froq\file\AbstractFileObject
+     * @inheritDoc froq\file\AbstractObject
      * @implement
      */
     public static function fromFile(string $file, string $mimeType = null, array $options = null): ImageObject
@@ -374,7 +374,7 @@ final class ImageObject extends AbstractFileObject implements Stringable
     }
 
     /**
-     * @inheritDoc froq\file\AbstractFileObject
+     * @inheritDoc froq\file\AbstractObject
      * @implement
      */
     public static function fromString(string $string, string $mimeType = null, array $options = null): ImageObject
