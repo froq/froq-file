@@ -17,5 +17,5 @@ use froq\file\FileException;
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   4.0
  */
-final class UploaderException extends FileException
+class UploaderException extends FileException
 {}

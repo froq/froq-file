@@ -17,5 +17,5 @@ use froq\file\FileException;
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   3.0, 4.0 Moved to mime directory.
  */
-final class MimeException extends FileException
+class MimeException extends FileException
 {}
