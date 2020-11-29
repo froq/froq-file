@@ -120,29 +120,29 @@ final class ImageObject extends AbstractObject implements Stringable
      */
     public function resize(int $width, int $height): self
     {
+        $temp = null;
+
         if ($this->resourceFile != null) {
             if (is_resource($this->resourceFile)) {
-                $tmp  = (new FileObject($this->resourceFile));
-                $file = $tmp->getPath();
+                $temp = new FileObject($this->resourceFile);
+                $file = $temp->getPath();
             } elseif (is_string($this->resourceFile) && file_exists($this->resourceFile)) {
                 $file = $this->resourceFile;
             }
         } else {
-            $tmp  = (new FileObject())->setContents($this->getContents());
-            $file = $tmp->getPath();
+            $temp = (new FileObject)->setContents($this->getContents());
+            $file = $temp->getPath();
         }
 
-        $up = (
-            new ImageUploader(
-                ['type' => $this->mimeType, 'file' => $file, 'directory' => '/tmp'],
-                ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
-                 'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
-            )
-        )->resize($width, $height);
+        $image = (new ImageUploader(
+            ['type' => $this->mimeType, 'file' => $file, 'directory' => '/tmp'],
+            ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
+             'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
+        ))->resize($width, $height);
 
-        $tmp && $tmp->free();
+        $temp && $temp->free();
 
-        $this->resource = $up->getDestinationResource();
+        $this->resource = $image->getDestinationResource();
 
         return $this;
     }
@@ -155,30 +155,29 @@ final class ImageObject extends AbstractObject implements Stringable
      */
     public function crop(int $width, int $height = null): self
     {
-        $tmp = null;
+        $temp = null;
+
         if ($this->resourceFile != null) {
             if (is_resource($this->resourceFile)) {
-                $tmp  = (new FileObject($this->resourceFile));
-                $file = $tmp->getPath();
+                $temp = new FileObject($this->resourceFile);
+                $file = $temp->getPath();
             } elseif (is_string($this->resourceFile) && file_exists($this->resourceFile)) {
                 $file = $this->resourceFile;
             }
         } else {
-            $tmp  = (new FileObject())->setContents($this->getContents());
-            $file = $tmp->getPath();
+            $temp = (new FileObject)->setContents($this->getContents());
+            $file = $temp->getPath();
         }
 
-        $up = (
-            new ImageUploader(
-                ['type' => $this->mimeType, 'file' => $file, 'directory' => '/tmp'],
-                ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
-                 'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
-            )
-        )->crop($width, $height);
+        $image = (new ImageUploader(
+            ['type' => $this->mimeType, 'file' => $file, 'directory' => '/tmp'],
+            ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
+             'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
+        ))->crop($width, $height);
 
-        $tmp && $tmp->free();
+        $temp && $temp->free();
 
-        $this->resource = $up->getDestinationResource();
+        $this->resource = $image->getDestinationResource();
 
         return $this;
     }
@@ -216,8 +215,9 @@ final class ImageObject extends AbstractObject implements Stringable
                     fwrite($fp, $contents);
                     $info['exif'] = exif_read_data($fp);
                     fclose($fp);
+
                     if ($info['exif']) {
-                        // I don't understand why all keys aren't uniform.
+                        // I don't understand why all keys ain't uniform.
                         $info['exif'] = array_map(
                             fn($v) => is_array($v) ? array_change_key_case($v) : $v,
                             array_change_key_case($info['exif'])
@@ -361,7 +361,7 @@ final class ImageObject extends AbstractObject implements Stringable
             throw new FileException($error->getMessage(), null, $error->getCode());
         }
 
-        $mimeType =@ $mimeType ?? mime_content_type($file) ?: null;
+        $mimeType = $mimeType ?? mime_content_type($file) ?: null;
         $resource =@ imagecreatefromstring(file_get_contents($file));
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
@@ -379,7 +379,7 @@ final class ImageObject extends AbstractObject implements Stringable
      */
     public static function fromString(string $string, string $mimeType = null, array $options = null): ImageObject
     {
-        $mimeType =@ $mimeType ?? getimagesizefromstring($string)['mime'] ?? null;
+        $mimeType = $mimeType ?? getimagesizefromstring($string)['mime'] ?? null;
         $resource =@ imagecreatefromstring($string);
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);

@@ -76,6 +76,7 @@ final class FileObject extends AbstractObject implements Stringable
         $this->resourceCheck();
 
         $ret = fgetc($this->resource);
+
         return ($ret !== false) ? $ret : null;
     }
 
@@ -170,7 +171,7 @@ final class FileObject extends AbstractObject implements Stringable
     public function offset(int $where = null, int $whence = null)
     {
         return ($where === null) ? $this->getPosition()
-                                 : $this->setPosition($where, $whence ?? SEEK_SET);
+             : $this->setPosition($where, $whence ?? SEEK_SET);
     }
 
     /**
@@ -193,6 +194,7 @@ final class FileObject extends AbstractObject implements Stringable
         $this->resourceCheck();
 
         $ret = fseek($this->resource, $where, $whence);
+
         return ($ret === 0) ? true : null;
     }
 
@@ -346,7 +348,7 @@ final class FileObject extends AbstractObject implements Stringable
             throw new FileException($error->getMessage(), null, $error->getCode());
         }
 
-        $mode     = $options['mode'] ?? self::$optionsDefault['mode'];
+        $mode = $options['mode'] ?? self::$optionsDefault['mode'];
         $resource =@ fopen($file, $mode);
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
@@ -361,7 +363,7 @@ final class FileObject extends AbstractObject implements Stringable
      */
     public static function fromString(string $string, string $mimeType = null, array $options = null): FileObject
     {
-        $mode     = $options['mode'] ?? self::$optionsDefault['mode'];
+        $mode = $options['mode'] ?? self::$optionsDefault['mode'];
         $resource =@ fopen('php://temp', $mode);
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
