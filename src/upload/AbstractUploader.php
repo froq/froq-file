@@ -138,7 +138,7 @@ abstract class AbstractUploader
             );
         }
 
-        $directory =@ trim($file['directory'] ?: $options['directory'] ?: '');
+        $directory = trim($file['directory'] ?: $options['directory'] ?: '');
         if (!$directory) {
             throw new UploadException(
                 'Directory must not be empty',
@@ -147,11 +147,11 @@ abstract class AbstractUploader
         }
 
         if (!is_dir($directory)) {
-            $ok =@ mkdir($directory, 0755, true);
+            $ok = mkdir($directory, 0755, true);
             if (!$ok) {
                 throw new UploadException(
                     'Cannot make directory [error: %s]',
-                    ['@error'], UploadError::DIRECTORY_ERROR
+                    '@error', UploadError::DIRECTORY_ERROR
                 );
             }
         }
@@ -274,7 +274,7 @@ abstract class AbstractUploader
             }
 
             if (!$name) {
-                throw new UploadException('Cannot hash file name [error: %s]', ['@error']);
+                throw new UploadException('Cannot hash file name [error: %s]', '@error');
             }
         }
 

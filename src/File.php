@@ -83,7 +83,7 @@ final class File
      */
     public static function read(string $file): string
     {
-        $ret =@ file_get_contents($file);
+        $ret = file_get_contents($file);
         if ($ret !== false) {
             return $ret;
         }
@@ -102,7 +102,7 @@ final class File
      */
     public static function write(string $file, string $contents, int $flags = 0): bool
     {
-        $ret =@ file_put_contents($file, $contents, $flags);
+        $ret = file_put_contents($file, $contents, $flags);
         if ($ret !== false) {
             return true;
         }
@@ -123,14 +123,14 @@ final class File
         if ($mode !== null) {
             // Get mode.
             if ($mode === -1) {
-                $ret =@ fileperms($file);
+                $ret = fileperms($file);
                 if ($ret === false) {
                     throw new FileError('Cannot get file stat for "%s"', [$file]);
                 }
             }
             // Set mode.
             else {
-                $ret =@ chmod($file, $mode);
+                $ret = chmod($file, $mode);
                 if ($ret === false) {
                     throw new FileError('Cannot set file mode [error: %s, file: %s]', ['@error', $file]);
                 }
@@ -144,7 +144,7 @@ final class File
         }
 
         // Get full permissions.
-        $perms =@ fileperms($file);
+        $perms = fileperms($file);
         if ($perms === false) {
             throw new FileError('Cannot get file stat for "%s"', [$file]);
         }

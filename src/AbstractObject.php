@@ -272,8 +272,8 @@ abstract class AbstractObject
         $mode = $options['mode'] ?? 'w+b';
         $maxmem = $options['maxmem'] ?? null;
 
-        $resource =@ !$maxmem ? fopen('php://temp', $mode)
-                              : fopen('php://temp/maxmemory:'. $maxmem, $mode);
+        $resource = !$maxmem ? fopen('php://temp', $mode)
+                             : fopen('php://temp/maxmemory:'. $maxmem, $mode);
 
         if (!$resource) {
             throw new FileException('Cannot create temporary resource [error: %s]', ['@error']);

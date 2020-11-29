@@ -85,9 +85,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
         // Fill/ensure info.
         $this->fillInfo();
 
-        $this->sourceResource =@ $this->createSourceResource();
+        $this->sourceResource = $this->createSourceResource();
         if (!$this->sourceResource) {
-            throw new UploadException('Failed creating source resource [error: %s]', ['@error']);
+            throw new UploadException('Failed creating source resource [error: %s]', '@error');
         }
 
         [$origWidth, $origHeight] = $info = $this->getInfo();
@@ -114,9 +114,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
             $newHeight = (int) ($height > -1 ? $height : $origHeight);
         }
 
-        $this->destinationResource =@ imagecreatetruecolor($newWidth, $newHeight);
+        $this->destinationResource = imagecreatetruecolor($newWidth, $newHeight);
         if (!$this->destinationResource) {
-            throw new UploadException('Failed creating destination resource [error: %s]', ['@error']);
+            throw new UploadException('Failed creating destination resource [error: %s]', '@error');
         }
 
         // Handle PNGs/GIFs.
@@ -130,10 +130,10 @@ final class ImageUploader extends AbstractUploader implements Stringable
         }
 
         // Not using imagescale() cos images become dithered when width/height is small.
-        $ok =@ imagecopyresampled($this->destinationResource, $this->sourceResource, 0, 0, 0, 0,
+        $ok = imagecopyresampled($this->destinationResource, $this->sourceResource, 0, 0, 0, 0,
             $newWidth, $newHeight, $origWidth, $origHeight);
         if (!$ok) {
-            throw new UploadException('Failed resampling destination resource [error: %s]', ['@error']);
+            throw new UploadException('Failed resampling destination resource [error: %s]', '@error');
         }
 
         // Store new dimensions.
@@ -160,9 +160,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
         // Fill/ensure info.
         $this->fillInfo();
 
-        $this->sourceResource =@ $this->createSourceResource();
+        $this->sourceResource = $this->createSourceResource();
         if (!$this->sourceResource) {
-            throw new UploadException('Failed creating source resource [error: %s]', ['@error']);
+            throw new UploadException('Failed creating source resource [error: %s]', '@error');
         }
 
         // Square crops.
@@ -184,9 +184,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
         $x ??= (int) (($origWidth - $cropWidth) / $divisionBy);
         $y ??= (int) (($origHeight - $cropHeight) / $divisionBy);
 
-        $this->destinationResource =@ imagecreatetruecolor($width, $height);
+        $this->destinationResource = imagecreatetruecolor($width, $height);
         if (!$this->destinationResource) {
-            throw new UploadException('Failed creating destination resource [error: %s]', ['@error']);
+            throw new UploadException('Failed creating destination resource [error: %s]', '@error');
         }
 
         // Handle PNGs/GIFs.
@@ -199,10 +199,10 @@ final class ImageUploader extends AbstractUploader implements Stringable
             ));
         }
 
-        $ok =@ imagecopyresampled($this->destinationResource, $this->sourceResource, 0, 0, $x, $y,
+        $ok = imagecopyresampled($this->destinationResource, $this->sourceResource, 0, 0, $x, $y,
             $width, $height, $width, $height);
         if (!$ok) {
-            throw new UploadException('Failed resampling destination resource [error: %s]', ['@error']);
+            throw new UploadException('Failed resampling destination resource [error: %s]', '@error');
         }
 
         // Store new dimensions.
@@ -218,9 +218,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
     {
         $destination = $this->getDestination();
 
-        $ok =@ $this->outputTo($destination);
+        $ok = $this->outputTo($destination);
         if (!$ok) {
-            throw new UploadException('Cannot save file [error: %s]', ['@error']);
+            throw new UploadException('Cannot save file [error: %s]', '@error');
         }
 
         return $destination;
@@ -245,9 +245,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
         $destination = $this->getDestination($name, $nameAppendix);
 
-        $ok =@ $this->outputTo($destination);
+        $ok = $this->outputTo($destination);
         if (!$ok) {
-            throw new UploadException('Cannot save file [error: %s]', ['@error']);
+            throw new UploadException('Cannot save file [error: %s]', '@error');
         }
 
         return $destination;
@@ -261,9 +261,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
         $source = $this->getSource();
         $destination = $this->getDestination();
 
-        $ok =@ copy($source, $destination);
+        $ok = copy($source, $destination);
         if (!$ok) {
-            throw new UploadException('Cannot move file [error: %s]', ['@error']);
+            throw new UploadException('Cannot move file [error: %s]', '@error');
         }
 
         unlink($source); // Remove source instantly.
@@ -283,9 +283,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
         $source = $this->getSource();
         $destination = $this->getDestination($name, $nameAppendix);
 
-        $ok =@ copy($source, $destination);
+        $ok = copy($source, $destination);
         if (!$ok) {
-            throw new UploadException('Cannot move file [error: %s]', ['@error']);
+            throw new UploadException('Cannot move file [error: %s]', '@error');
         }
 
         unlink($source); // Remove source instantly.
@@ -358,7 +358,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
         }
 
         if (empty($info)) {
-            throw new UploadException('Failed to get source info [error: %s]', ['@error']);
+            throw new UploadException('Failed to get source info [error: %s]', '@error');
         }
 
         // Add suggestive names.

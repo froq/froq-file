@@ -362,7 +362,7 @@ final class ImageObject extends AbstractObject implements Stringable
         }
 
         $mimeType = $mimeType ?? mime_content_type($file) ?: null;
-        $resource =@ imagecreatefromstring(file_get_contents($file));
+        $resource = imagecreatefromstring(file_get_contents($file));
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }
@@ -380,7 +380,7 @@ final class ImageObject extends AbstractObject implements Stringable
     public static function fromString(string $string, string $mimeType = null, array $options = null): ImageObject
     {
         $mimeType = $mimeType ?? getimagesizefromstring($string)['mime'] ?? null;
-        $resource =@ imagecreatefromstring($string);
+        $resource = imagecreatefromstring($string);
         if (!$resource) {
             throw new FileException('Cannot create resource [error: %s]', ['@error']);
         }

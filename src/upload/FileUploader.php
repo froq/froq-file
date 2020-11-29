@@ -27,9 +27,9 @@ final class FileUploader extends AbstractUploader
         $source = $this->getSource();
         $destination = $this->getDestination();
 
-        $ok =@ copy($source, $destination);
+        $ok = copy($source, $destination);
         if (!$ok) {
-            throw new UploadException('Cannot save file [error: %s]', ['@error']);
+            throw new UploadException('Cannot save file [error: %s]', '@error');
         }
 
         return $destination;
@@ -47,9 +47,9 @@ final class FileUploader extends AbstractUploader
         $source = $this->getSource();
         $destination = $this->getDestination($name, $nameAppendix);
 
-        $ok =@ copy($source, $destination);
+        $ok = copy($source, $destination);
         if (!$ok) {
-            throw new UploadException('Cannot save file [error: %s]', ['@error']);
+            throw new UploadException('Cannot save file [error: %s]', '@error');
         }
 
         return $destination;
@@ -63,9 +63,9 @@ final class FileUploader extends AbstractUploader
         $source = $this->getSource();
         $destination = $this->getDestination();
 
-        $ok =@ copy($source, $destination);
+        $ok = copy($source, $destination);
         if (!$ok) {
-            throw new UploadException('Cannot move file [error: %s]', ['@error']);
+            throw new UploadException('Cannot move file [error: %s]', '@error');
         }
 
         unlink($source); // Remove source instantly.
@@ -85,9 +85,9 @@ final class FileUploader extends AbstractUploader
         $source = $this->getSource();
         $destination = $this->getDestination($name, $nameAppendix);
 
-        $ok =@ copy($source, $destination);
+        $ok = copy($source, $destination);
         if (!$ok) {
-            throw new UploadException('Cannot move file [error: %s]', ['@error']);
+            throw new UploadException('Cannot move file [error: %s]', '@error');
         }
 
         unlink($source); // Remove source instantly.

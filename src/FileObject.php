@@ -349,9 +349,9 @@ final class FileObject extends AbstractObject implements Stringable
         }
 
         $mode = $options['mode'] ?? self::$optionsDefault['mode'];
-        $resource =@ fopen($file, $mode);
+        $resource = fopen($file, $mode);
         if (!$resource) {
-            throw new FileException('Cannot create resource [error: %s]', ['@error']);
+            throw new FileException('Cannot create resource [error: %s]', '@error');
         }
 
         return new FileObject($resource, $mimeType, $options);
@@ -364,9 +364,9 @@ final class FileObject extends AbstractObject implements Stringable
     public static function fromString(string $string, string $mimeType = null, array $options = null): FileObject
     {
         $mode = $options['mode'] ?? self::$optionsDefault['mode'];
-        $resource =@ fopen('php://temp', $mode);
+        $resource = fopen('php://temp', $mode);
         if (!$resource) {
-            throw new FileException('Cannot create resource [error: %s]', ['@error']);
+            throw new FileException('Cannot create resource [error: %s]', '@error');
         }
 
         fwrite($resource, $string) && fseek($resource, 0);
