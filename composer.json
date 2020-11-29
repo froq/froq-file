@@ -3,7 +3,7 @@
     "homepage": "https://github.com/froq/froq-file",
     "description": "Froq! File.",
     "keywords": ["froq", "file"],
-    "license": "MIT",
+    "license": "Apache-2.0",
     "authors": [
         {"name": "Kerem Güneş", "email": "k-gun@mail.com"}
     ],
