@@ -65,21 +65,23 @@ abstract class AbstractUploader
 
         if (!$source) {
             throw new UploadException(
-                'No valid source given, "source", "file" or "tmp_name" can not be empty',
+                "No valid source given, 'source', 'file' or 'tmp_name' can not be empty",
                 null, UploadError::NO_VALID_FILE
             );
         }
 
         if (!is_string($source) || !is_file($source)) {
             throw new UploadException(
-                'No valid source file "%s" given by "source", "file" or "tmp_name"',
+                "No valid source file '%s' given by 'source', 'file' or 'tmp_name'",
                 [$source], UploadError::NO_VALID_SOURCE
             );
         }
 
-        $error = $error ? (UploadError::MESSAGES[$error] ?? 'Unknown file upload error') : null;
         if ($error) {
-            throw new UploadException($error, null, UploadError::INTERNAL);
+            throw new UploadException(
+                UploadError::MESSAGES[$error] ?? 'Unknown upload error',
+                null, UploadError::INTERNAL
+            );
         }
 
         $name ??= uniqid();
@@ -88,57 +90,58 @@ abstract class AbstractUploader
         $options = array_merge($this->options, $options ?? []);
         extract($options, EXTR_PREFIX_ALL, 'options');
 
-        $maxFileSize = FileUtil::convertBytes((string) $options_maxFileSize);
-        if ($maxFileSize && $size > $maxFileSize) {
-            throw new UploadException(
-                'File size exceeded, "maxFileSize" option is "%s" (%s bytes)',
-                [$options_maxFileSize, $maxFileSize], UploadError::OPTION_SIZE_EXCEEDED
-            );
+        if ($options_maxFileSize != null) {
+            $maxFileSize = FileUtil::convertBytes((string) $options_maxFileSize);
+            if ($maxFileSize && $size > $maxFileSize) {
+                throw new UploadException(
+                    "File size exceeded, 'maxFileSize' option is '%s' (%s bytes)",
+                    [$options_maxFileSize, $maxFileSize], UploadError::OPTION_SIZE_EXCEEDED
+                );
+            }
         }
 
         // Type & extension security.
-        if (!$options_allowedTypes || !$options_allowedExtensions) {
+        if ($options_allowedTypes == null || $options_allowedExtensions == null) {
             throw new UploadException(
-                'Option "allowedTypes" and "allowedExtensions" must not be empty for '.
-                'security reasons, please provide both types and extensions you allow (ie: for '.
-                'types "image/jpeg,image/png" and for extensions "jpg,jpeg", or "*" to allow all)',
+                "Option 'allowedTypes' and 'allowedExtensions' must not be empty for ".
+                "security reasons, please provide both types and extensions you allow (ie: for ".
+                "types 'image/jpeg,image/png' and for extensions 'jpg,jpeg', or '*' to allow all)",
                 null, UploadError::OPTION_EMPTY
             );
         }
 
-        $extension = pathinfo($name, PATHINFO_EXTENSION);
-        if (!$extension && $options_allowEmptyExtensions === false) {
+        $extension = Mime::getExtension($name);
+        if ($extension == null && $options_allowEmptyExtensions === false) {
             throw new UploadException(
                 'Empty extensions not allowed via options',
                 null, UploadError::OPTION_EMPTY_EXTENSION
             );
         }
 
-        // Type @override.
-        try {
+        try { // @override.
             $type = Mime::getType($source);
         } catch (MimeException $e) {
             throw new UploadException($e);
         }
 
         if ($options_allowedTypes !== '*'
-            && !in_array($type, explode(',', (string) $options_allowedTypes))) {
+            && !in_array($type, explode(',', $options_allowedTypes))) {
             throw new UploadException(
-                'Type "%s" not allowed via options, allowed types: "%s"'.
+                "Type '%s' not allowed via options, allowed types: '%s'".
                 [$type, $options_allowedTypes], UploadError::OPTION_NOT_ALLOWED_TYPE
             );
         }
 
         $extension = $extension ?: Mime::getExtensionByType($type);
         if ($extension && $options_allowedExtensions !== '*'
-            && !in_array($extension, explode(',', (string) $options_allowedExtensions))) {
+            && !in_array($extension, explode(',', $options_allowedExtensions))) {
             throw new UploadException(
-                'Extension "%s" not allowed via options, allowed extensions: "%s"',
+                "Extension '%s' not allowed via options, allowed extensions: '%s'",
                 [$extension, $options_allowedExtensions], UploadError::OPTION_NOT_ALLOWED_EXTENSION
             );
         }
 
-        $directory = trim((string) ($file['directory'] ?? $options['directory'] ?? ''));
+        $directory = trim($file['directory'] ?? $options['directory'] ?? '');
         if (!$directory) {
             throw new UploadException(
                 'Directory must not be empty',
@@ -157,7 +160,7 @@ abstract class AbstractUploader
         }
 
         $this->source   = $source;
-        $this->fileInfo = ['type' => $type, 'name'      => $this->prepareName($name),
+        $this->fileInfo = ['type' => $type, 'name' => $this->prepareName($name),
                            'size' => $size, 'extension' => $extension];
         $this->options  = ['directory' => $directory] + $options;
     }
@@ -213,9 +216,9 @@ abstract class AbstractUploader
             if (strpos($name, '.')) {
                 $extension = pathinfo($name, PATHINFO_EXTENSION);
                 if ($extension && $this->options['allowedExtensions'] !== '*'
-                    && !in_array($extension, explode(',', (string) $this->options['allowedExtensions']))) {
+                    && !in_array($extension, explode(',', $this->options['allowedExtensions']))) {
                     throw new UploadException(
-                        'Extension "%s" not allowed via options, allowed extensions: "%s"',
+                        "Extension '%s' not allowed via options, allowed extensions: '%s'",
                         [$extension, $this->options['allowedExtensions']], UploadError::OPTION_NOT_ALLOWED_EXTENSION
                     );
                 }
@@ -224,7 +227,7 @@ abstract class AbstractUploader
             $name = $this->prepareName($name, $nameAppendix);
         }
 
-        $destination = $this->options['directory'] . DIRECTORY_SEPARATOR . ($name ?? $this->fileInfo['name']);
+        $destination = $this->options['directory'] . '/' . ($name ?? $this->fileInfo['name']);
         if ($extension != null) {
             $destination = $destination .'.'. $extension;
         }
@@ -258,8 +261,8 @@ abstract class AbstractUploader
 
             $hashAlgo = $hashAlgos[$this->options['hashLength'] ?? $hashLengthDefault] ?? null;
             if (!$hashAlgo) {
-                throw new UploadException('Only "8,16,32,40" are accepted as "hashLength" '.
-                    'option, "%s" given', [$this->options['hashLength']]);
+                throw new UploadException("Only '8,16,32,40' are accepted as 'hashLength' option, '%s' given",
+                    $this->options['hashLength']);
             }
 
             if ($hash == 'rand') {
@@ -269,8 +272,8 @@ abstract class AbstractUploader
             } elseif ($hash == 'fileName') {
                 $name = hash($hashAlgo, $name);
             } else {
-                throw new UploadException('Only "rand,file,fileName" are accepted as "hash" '.
-                    'option, "%s" given', [$hash]);
+                throw new UploadException("Only 'rand,file,fileName' are accepted as 'hash' option, '%s' given",
+                    $hash);
             }
 
             if (!$name) {
@@ -320,6 +323,7 @@ abstract class AbstractUploader
 
     /**
      * Clear.
+     * @param  bool $force
      * @return void
      */
     abstract public function clear(bool $force = false): void;

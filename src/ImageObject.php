@@ -58,7 +58,7 @@ final class ImageObject extends AbstractObject implements Stringable
     public function __construct($resource = null, string $mimeType = null, array $options = null)
     {
         if ($mimeType && !in_array($mimeType, self::$mimeTypes)) {
-            throw new FileException('Invalid MIME type "%s" given, valids are: %s',
+            throw new FileException("Invalid MIME type '%s' given, valids are: %s",
                 [$mimeType, join(', ', self::$mimeTypes)]);
         }
 

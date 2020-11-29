@@ -453,7 +453,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
         $type = $this->getInfo()['type'];
         if (!in_array($type, self::SUPPORTED_TYPES)) {
-            throw new UploadException('Unsupported image type, only "jpeg, png, gif, webp" are accepted');
+            throw new UploadException('Unsupported image type, only jpeg, png, gif, webp are accepted');
         }
 
         switch ($type) {
@@ -479,13 +479,13 @@ final class ImageUploader extends AbstractUploader implements Stringable
     {
         $destinationResource = $this->getDestinationResource();
         if ($destinationResource == null) {
-            throw new UploadException('No destination resource created yet, call one of these method '.
-                'first: resample(), resize(), crop() or cropBy()');
+            throw new UploadException('No destination resource created yet, call one of these method '
+                . 'first: resample(), resize(), crop() or cropBy()');
         }
 
         $type = $this->getInfo()['type'];
         if (!in_array($type, self::SUPPORTED_TYPES)) {
-            throw new UploadException('Unsupported image type, only "jpeg, png, gif, webp" are accepted');
+            throw new UploadException('Unsupported image type, only jpeg, png, gif, webp are accepted');
         }
 
         switch ($type) {
@@ -514,13 +514,13 @@ final class ImageUploader extends AbstractUploader implements Stringable
     {
         $destinationResource = $this->getDestinationResource();
         if ($destinationResource == null) {
-            throw new UploadException('No destination resource created yet, call one of these method '.
-                'first: resample(), resize(), crop() or cropBy()');
+            throw new UploadException('No destination resource created yet, call one of these method '
+                . 'first: resample(), resize(), crop() or cropBy()');
         }
 
         $type = $this->getInfo()['type'];
         if (!in_array($type, self::SUPPORTED_TYPES)) {
-            throw new UploadException('Unsupported image type, only "jpeg, png, gif, webp" are accepted');
+            throw new UploadException('Unsupported image type, only jpeg, png, gif, webp are accepted');
         }
 
         switch ($type) {

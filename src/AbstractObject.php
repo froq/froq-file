@@ -62,17 +62,15 @@ abstract class AbstractObject
         $resource = $resource ?? tmpfile();
 
         if (!is_resource($resource)) {
-            throw new FileException('Resource must be a "gd" or "stream" resource, "%s" given',
-                [gettype($resource)]);
+            throw new FileException("Resource must be a 'gd' or 'stream' resource, '%s' given",
+                gettype($resource));
         }
 
         $resourceType = get_resource_type($resource);
         if ($this instanceof FileObject && $resourceType != 'stream') {
-            throw new FileException('Resource type must be "stream", "%s" given',
-                [$resourceType]);
+            throw new FileException("Resource type must be 'stream', '%s' given", $resourceType);
         } elseif ($this instanceof ImageObject && $resourceType != 'gd') {
-            throw new FileException('Resource type must be "gd", "%s" given',
-                [$resourceType]);
+            throw new FileException("Resource type must be 'gd', '%s' given", $resourceType);
         }
 
         $this->resource = $resource;
