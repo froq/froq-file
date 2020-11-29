@@ -138,7 +138,7 @@ abstract class AbstractUploader
             );
         }
 
-        $directory = trim($file['directory'] ?: $options['directory'] ?: '');
+        $directory = trim((string) ($file['directory'] ?? $options['directory'] ?? ''));
         if (!$directory) {
             throw new UploadException(
                 'Directory must not be empty',
