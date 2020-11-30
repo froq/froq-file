@@ -111,7 +111,7 @@ final class Util
                     $file, FileError::DIRECTORY_GIVEN);
             }
         } else {
-            $error = $error ?? error_get_last()['message'] ?? 'Unknown error';
+            $error = $error ?? error_message() ?? 'Unknown error';
             if (stripos($error, 'valid path')) {
                 $error = new FileError("No valid path '%s' given",
                     strtr($file, ["\0" => "\\0"]), FileError::NO_VALID_PATH);
