@@ -107,20 +107,20 @@ final class Util
             fclose($fp);
 
             if (is_dir($file)) {
-                $error = new FileError('Given path "%s" is a directory', [$file],
-                    FileError::DIRECTORY_GIVEN);
+                $error = new FileError("Given path '%s' is a directory",
+                    $file, FileError::DIRECTORY_GIVEN);
             }
         } else {
             $error = $error ?? error_get_last()['message'] ?? 'Unknown error';
             if (stripos($error, 'valid path')) {
-                $error = new FileError('No valid path "%s" given', [strtr($file, ["\0" => "\\0"])],
-                    FileError::NO_VALID_PATH);
+                $error = new FileError("No valid path '%s' given",
+                    strtr($file, ["\0" => "\\0"]), FileError::NO_VALID_PATH);
             } elseif (stripos($error, 'no such file')) {
-                $error = new FileError('No file such "%s" is exists', [$file],
-                    FileError::NO_SUCH_FILE);
+                $error = new FileError("No file such '%s' is exists",
+                    $file, FileError::NO_SUCH_FILE);
             } elseif (stripos($error, 'permission denied')) {
-                $error = new FileError('No permission for accessing to "%s" file', [$file],
-                    FileError::NO_PERMISSION);
+                $error = new FileError("No permission for accessing to '%s' file",
+                    $file, FileError::NO_PERMISSION);
             } else {
                 $error = new FileError($error);
             }

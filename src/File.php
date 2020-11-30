@@ -125,14 +125,14 @@ final class File
             if ($mode === -1) {
                 $ret = fileperms($file);
                 if ($ret === false) {
-                    throw new FileError('Cannot get file stat for "%s"', [$file]);
+                    throw new FileError("Cannot get file stat for '%s'", $file);
                 }
             }
             // Set mode.
             else {
                 $ret = chmod($file, $mode);
                 if ($ret === false) {
-                    throw new FileError('Cannot set file mode [error: %s, file: %s]', ['@error', $file]);
+                    throw new FileError("Cannot set file mode [error: %s, file: %s]", ['@error', $file]);
                 }
                 $ret = $mode;
             }
@@ -146,7 +146,7 @@ final class File
         // Get full permissions.
         $perms = fileperms($file);
         if ($perms === false) {
-            throw new FileError('Cannot get file stat for "%s"', [$file]);
+            throw new FileError("Cannot get file stat for '%s'", $file);
         }
 
         // Source http://php.net/fileperms.
