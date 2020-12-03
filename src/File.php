@@ -16,36 +16,38 @@ use froq\file\{FileError, Util as FileUtil};
  * @package froq\file
  * @object  froq\file\File
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   3.0, 4.0 Made static, added getType(),getExtension(),read(),write(),mode(), moved all
- *          other stuff into AbstractUploader.
+ * @since   3.0, 4.0 Made static, added getType(),getExtension(),read(),write(),mode(), moved all other stuff
+ *          into AbstractUploader.
  * @static
  */
 final class File
 {
     /**
-     * Get type.
+     * Get file type.
+     *
      * @param  string $file
-     * @return ?string
+     * @return string|null
      */
-    public static function getType(string $file): ?string
+    public static function getType(string $file): string|null
     {
-        try { return Mime::getType($file); } catch (MimeException $e) {
-            return null; // Error.
-        }
+        try { return Mime::getType($file); }
+            catch (MimeException) { return null; }
     }
 
     /**
-     * Get extension.
+     * Get file extension.
+     *
      * @param  string $file
-     * @return ?string
+     * @return string|null
      */
-    public static function getExtension(string $file): ?string
+    public static function getExtension(string $file): string|null
     {
         return Mime::getExtension($file);
     }
 
     /**
-     * Is exists.
+     * Check whether a file is existing.
+     *
      * @param  string $file
      * @return bool
      */
@@ -55,7 +57,8 @@ final class File
     }
 
     /**
-     * Is readable.
+     * Check whether a file is readable.
+     *
      * @param  string $file
      * @return bool
      */
@@ -65,7 +68,8 @@ final class File
     }
 
     /**
-     * Is writable.
+     * Check whether a file is writable.
+     *
      * @param  string $file
      * @return bool
      */
@@ -75,43 +79,56 @@ final class File
     }
 
     /**
-     * Read.
-     * @param  string $file
+     * Read entire contents from a file/resource.
+     *
+     * @param  string|resource $file
      * @return string
      * @throws froq\file\FileError
      * @since  4.0
      */
-    public static function read(string $file): string
+    public static function read($file): string
     {
-        $ret = file_get_contents($file);
-        if ($ret !== false) {
-            return $ret;
+        $ret = match ($type = get_type($file)) {
+            'string' => file_get_contents($file),
+            'resource (stream)' => stream_get_contents($file, -1, 0),
+            default => throw new FileError('Invalid file type %s, valids are: string|resource', $type)
+        };
+
+        if ($ret === false) {
+            throw new FileError('Cannot read file [error: %s, file: %s]', ['@error', $file]);
         }
 
-        throw new FileError('Cannot read file [error: %s, file: %s]', ['@error', $file]);
+        return $ret;
     }
 
     /**
-     * Write.
-     * @param  string $file
-     * @param  string $contents
-     * @param  int    $flags
+     * Write given contents entirely into a file/resource.
+     *
+     * @param  string|resource $file
+     * @param  string          $contents
+     * @param  int             $flags
      * @return bool
      * @throws froq\file\FileError
      * @since  4.0
      */
-    public static function write(string $file, string $contents, int $flags = 0): bool
+    public static function write($file, string $contents, int $flags = 0): bool
     {
-        $ret = file_put_contents($file, $contents, $flags);
-        if ($ret !== false) {
-            return true;
+        $ret = match ($type = get_type($file)) {
+            'string' => file_set_contents($file, $contents, $flags),
+            'resource (stream)' => stream_set_contents($file, $contents),
+            default => throw new FileError('Invalid file type %s, valids are: string|resource', $type)
+        };
+
+        if ($ret === false) {
+            throw new FileError('Cannot write file [error: %s, file: %s]', ['@error', $file]);
         }
 
-        throw new FileError('Cannot write file [error: %s, file: %s]', ['@error', $file]);
+        return true;
     }
 
     /**
-     * Mode.
+     * Set/get file mode.
+     *
      * @param  string   $file
      * @param  int|null $mode
      * @return string
@@ -138,9 +155,9 @@ final class File
             }
 
             // Compare.
-            // $mode = file_mode($file, -1)
+            // $mode = File::mode($file, -1)
             // $mode === '644' or octdec($mode) === 0644
-            return $ret ?  decoct($ret & 0777) : null;
+            return $ret ? decoct($ret & 0777) : null;
         }
 
         // Get full permissions.
