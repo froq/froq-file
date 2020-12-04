@@ -228,21 +228,20 @@ final class ImageUploader extends AbstractUploader implements Stringable
     /**
      * @inheritDoc froq\file\upload\AbstractUploader
      */
-    public function saveAs(string $name, string $nameAppendix = null,
-        bool $useNewDimensionsAsNameAppendix = false): string
+    public function saveAs(string $name, string $appendix = null, bool $useNewDimensionsAsAppendix = false): string
     {
         if ($name == '') {
             throw new UploadException('Name must not be empty');
         }
 
-        if ($useNewDimensionsAsNameAppendix) {
+        if ($useNewDimensionsAsAppendix) {
             $newDimensions = $this->getNewDimensions();
-            $nameAppendix = ($nameAppendix == null)
+            $appendix = ($appendix == null)
                 ? vsprintf('%dx%d', $newDimensions)
-                : vsprintf('%dx%d-%s', array_merge($newDimensions, [$nameAppendix]));
+                : vsprintf('%dx%d-%s', array_merge($newDimensions, [$appendix]));
         }
 
-        $destination = $this->getDestination($name, $nameAppendix);
+        $destination = $this->getDestination($name, $appendix);
 
         $ok = $this->outputTo($destination);
         if (!$ok) {
@@ -273,14 +272,14 @@ final class ImageUploader extends AbstractUploader implements Stringable
     /**
      * @inheritDoc froq\file\upload\AbstractUploader
      */
-    public function moveAs(string $name, string $nameAppendix = null): string
+    public function moveAs(string $name, string $appendix = null): string
     {
         if ($name == '') {
             throw new UploadException('Name must not be empty');
         }
 
         $source = $this->getSource();
-        $destination = $this->getDestination($name, $nameAppendix);
+        $destination = $this->getDestination($name, $appendix);
 
         $ok = copy($source, $destination);
         if (!$ok) {
