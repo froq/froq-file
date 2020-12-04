@@ -75,12 +75,12 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * Resize.
      * @param  int  $width
      * @param  int  $height
-     * @param  bool $proportional
-     * @param  bool $fixExtraDimensions
+     * @param  bool $proportion
+     * @param  bool $adjust
      * @return self
      * @throws froq\file\upload\UploadException
      */
-    public function resize(int $width, int $height, bool $proportional = true, bool $fixExtraDimensions = true): self
+    public function resize(int $width, int $height, bool $adjust = true, bool $proportion = true): self
     {
         // Fill/ensure info.
         $this->fillInfo();
@@ -93,13 +93,13 @@ final class ImageUploader extends AbstractUploader implements Stringable
         [$origWidth, $origHeight] = $info = $this->getInfo();
 
         // Use original width/height if given ones excessive.
-        if ($fixExtraDimensions) {
+        if ($adjust) {
             if ($width > $origWidth) $width = $origWidth;
             if ($height > $origHeight) $height = $origHeight;
         }
 
         $newWidth = $newHeight = 0;
-        if ($proportional) {
+        if ($proportion) {
             $factor    = (
                 $width == -1 ? $height / $origHeight : (
                     $height == -1 ? $width / $origWidth : (
@@ -151,11 +151,11 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @param  int|null $height
      * @param  int|null $x
      * @param  int|null $y
-     * @param  bool     $proportional
+     * @param  bool     $proportion
      * @return self
      * @throws froq\file\upload\UploadException
      */
-    public function crop(int $width, int $height = null, int $x = null, int $y = null, bool $proportional = false): self
+    public function crop(int $width, int $height = null, int $x = null, int $y = null, bool $proportion = false): self
     {
         // Fill/ensure info.
         $this->fillInfo();
@@ -170,7 +170,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
         [$origWidth, $origHeight] = $info = $this->getInfo();
 
-        if (!$proportional) {
+        if (!$proportion) {
             $cropWidth  = $width;
             $cropHeight = $height;
             $divisionBy = 2;
