@@ -14,7 +14,7 @@ use froq\common\interfaces\Stringable;
 /**
  * Image Object.
  *
- * Represents a image object entity which aims to work with image resources in OOP style.
+ * Represents an image object entity which aims to work with image resources in OOP style.
  *
  * @package froq\file
  * @object  froq\file\ImageObject
@@ -340,8 +340,7 @@ final class ImageObject extends AbstractObject implements Stringable
      */
     public static function fromFile(string $file, string $mime = null, array $options = null): static
     {
-        FileUtil::errorCheck($file, $error);
-        if ($error != null) {
+        if (FileUtil::errorCheck($file, $error)) {
             throw new FileException($error->getMessage(), null, $error->getCode());
         }
 

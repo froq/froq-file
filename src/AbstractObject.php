@@ -13,7 +13,7 @@ use froq\common\traits\{OptionTrait, ApplyTrait};
 /**
  * Abstract Object.
  *
- * Represents a abstract object entity which aims to work with file/image resources in OOP style.
+ * Represents an abstract object entity which aims to work with file/image resources in OOP style.
  *
  * @package froq\file
  * @object  froq\file\AbstractObject

@@ -378,8 +378,7 @@ final class FileObject extends AbstractObject implements Stringable
      */
     public static function fromFile(string $file, string $mime = null, array $options = null): static
     {
-        FileUtil::errorCheck($file, $error);
-        if ($error != null) {
+        if (FileUtil::errorCheck($file, $error)) {
             throw new FileException($error->getMessage(), null, $error->getCode());
         }
 

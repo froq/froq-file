@@ -24,18 +24,16 @@ final class Mime
 {
     /**
      * Get type.
+     *
      * @param  string $file
      * @param  bool   $errorCheck
-     * @return ?string
+     * @return string|null
      * @throws froq\file\MimeException
      */
-    public static function getType(string $file, bool $errorCheck = true): ?string
+    public static function getType(string $file, bool $errorCheck = true): string|null
     {
-        if ($errorCheck) {
-            FileUtil::errorCheck($file, $error);
-            if ($error != null) {
-                throw new MimeException($error->getMessage(), null, $error->getCode());
-            }
+        if ($errorCheck && FileUtil::errorCheck($file, $error)) {
+            throw new MimeException($error->getMessage(), null, $error->getCode());
         }
 
         $type = null;
@@ -46,7 +44,7 @@ final class Mime
             if ($type === false) {
                 throw new MimeException('@error');
             }
-        } catch (Error $e) {
+        } catch (Error) {
             try {
                 // This function may be not available.
                 $exec = exec('file -i '. escapeshellarg($file));
@@ -56,7 +54,7 @@ final class Mime
                         $type = 'directory';
                     }
                 }
-            } catch (Error $e) {}
+            } catch (Error) {}
         }
 
         // Try by extension.
@@ -72,24 +70,23 @@ final class Mime
 
     /**
      * Get extension.
+     *
      * @param  string $file
-     * @return ?string
+     * @return string|null
      * @since  3.0
      */
-    public static function getExtension(string $file): ?string
+    public static function getExtension(string $file): string|null
     {
-        if (ctype_print($file)) { // Safe.
-            return pathinfo($file, PATHINFO_EXTENSION) ?: null;
-        }
-        return null;
+        return file_extension($file, false);
     }
 
     /**
-     * Get type by extension.
+     * Get a file type by extension.
+     *
      * @param  string $extension
-     * @return ?string
+     * @return string|null
      */
-    public static function getTypeByExtension(string $extension): ?string
+    public static function getTypeByExtension(string $extension): string|null
     {
         $search = strtolower($extension);
 
@@ -103,12 +100,13 @@ final class Mime
     }
 
     /**
-     * Get extension by type.
+     * Get a file extension by type.
+     *
      * @param  string $type
      * @param  int    $i
-     * @return ?string
+     * @return string|null
      */
-    public static function getExtensionByType(string $type, int $i = 0): ?string
+    public static function getExtensionByType(string $type, int $i = 0): string|null
     {
         $search = strtolower($type);
 
