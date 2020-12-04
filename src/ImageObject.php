@@ -14,6 +14,8 @@ use froq\common\interfaces\Stringable;
 /**
  * Image Object.
  *
+ * Represents a image object entity which aims to work with image resources in OOP style.
+ *
  * @package froq\file
  * @object  froq\file\ImageObject
  * @author  Kerem Güneş <k-gun@mail.com>
@@ -21,85 +23,75 @@ use froq\common\interfaces\Stringable;
  */
 final class ImageObject extends AbstractObject implements Stringable
 {
-    /**
-     * Mime types.
-     * @const string
-     */
-    public const MIME_TYPE_JPEG = 'image/jpeg',
-                 MIME_TYPE_PNG  = 'image/png',
-                 MIME_TYPE_GIF  = 'image/gif',
-                 MIME_TYPE_WEBP = 'image/webp';
+    /** @const string */
+    public const MIME_JPEG = 'image/jpeg', MIME_PNG  = 'image/png',
+                 MIME_GIF  = 'image/gif', MIME_WEBP = 'image/webp';
                  // Far enough for now..
-                 /* MIME_TYPE_WBMP = 'image/vnd.wap.wbmp',
-                 MIME_TYPE_BMP  = 'image/bmp',
-                 MIME_TYPE_XBM  = 'image/xbm',
-                 MIME_TYPE_XPM  = 'image/x-xpixmap'; */
+                 /* MIME_WBMP = 'image/vnd.wap.wbmp',
+                 MIME_BMP  = 'image/bmp',
+                 MIME_XBM  = 'image/xbm',
+                 MIME_XPM  = 'image/x-xpixmap'; */
 
-    /**
-     * Mime types.
-     * @var array
-     */
-    private static array $mimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp',
+    /** @var array */
+    private static array $mimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp',
         /* 'image/vnd.wap.wbmp', 'image/bmp', 'image/xbm', 'image/x-xpixmap' */];
 
-    /**
-     * Options default.
-     * @var array
-     */
+    /** @var array */
     private static array $optionsDefault = ['jpegQuality' => -1, 'webpQuality' => -1,
         'pngZipLevel' => -1, 'pngFilters' => -1];
 
     /**
      * Constructor.
      * @param  resource|null $resource
-     * @param  string|null   $mimeType
+     * @param  string|null   $mime
      * @throws froq\file\FileException
      */
-    public function __construct($resource = null, string $mimeType = null, array $options = null)
+    public function __construct($resource = null, string $mime = null, array $options = null)
     {
-        if ($mimeType && !in_array($mimeType, self::$mimeTypes)) {
-            throw new FileException("Invalid MIME type '%s' given, valids are: %s",
-                [$mimeType, join(', ', self::$mimeTypes)]);
+        if ($mime && !in_array($mime, self::$mimes)) {
+            throw new FileException("Invalid MIME '%s', valids are: %s", [$mime, join(', ', self::$mimes)]);
         }
 
         $this->setOptionsDefault($options, self::$optionsDefault);
 
-        parent::__construct($resource, $mimeType);
+        parent::__construct($resource, $mime);
     }
 
     /**
-     * Get mime types..
+     * Get mimes.
+     *
      * @return array
      */
-    public function getMimeTypes(): array
+    public function getMimes(): array
     {
-        return self::$mimeTypes;
+        return self::$mimes;
     }
 
     /**
-     * Copy.
+     * Get a copy of image object as a new `ImageObject`.
+     *
      * @return froq\file\ImageObject
      */
     public function copy(): ImageObject
     {
         $this->resourceCheck();
 
-        return new ImageObject($this->createResourceCopy(), $this->mimeType);
+        return new ImageObject($this->createResourceCopy(), $this->mime);
     }
 
     /**
-     * Size.
-     * @return ?int
+     * Get image size.
+     *
+     * @return int|null
      */
-    public function size(): ?int
+    public function size(): int|null
     {
-        $contents = $this->getContents();
-
-        return ($contents !== null) ? strlen($contents) : null;
+        return ($contents = $this->getContents()) ? strlen($contents) : null;
     }
 
     /**
-     * Valid.
+     * Validate image resource.
+     *
      * @return bool
      */
     public function valid(): bool
@@ -107,38 +99,36 @@ final class ImageObject extends AbstractObject implements Stringable
         try {
             $this->resourceCheck();
             return true;
-        } catch (FileException $e) {
+        } catch (FileException) {
             return false;
         }
     }
 
     /**
-     * Resize.
-     * @param  int $width
-     * @param  int $height
+     * Resize image.
+     *
+     * @param  int        $width
+     * @param  int        $height
+     * @param  array|null $options
      * @return self
      */
-    public function resize(int $width, int $height): self
+    public function resize(int $width, int $height, array $options = null): self
     {
         $temp = null;
 
-        if ($this->resourceFile != null) {
-            if (is_resource($this->resourceFile)) {
-                $temp = new FileObject($this->resourceFile);
-                $file = $temp->getPath();
-            } elseif (is_string($this->resourceFile) && file_exists($this->resourceFile)) {
-                $file = $this->resourceFile;
-            }
+        if ($this->resourceFile && is_resource($this->resourceFile)) {
+            $temp = new FileObject($this->resourceFile);
+            $file = $temp->getPath();
         } else {
             $temp = (new FileObject)->setContents($this->getContents());
             $file = $temp->getPath();
         }
 
         $image = (new ImageUploader(
-            ['type' => $this->mimeType, 'file' => $file, 'directory' => '/tmp'],
+            ['type' => $this->mime, 'file' => $file, 'directory' => '/tmp'],
             ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
              'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
-        ))->resize($width, $height);
+        ))->resize($width, $height, $options);
 
         $temp && $temp->free();
 
@@ -148,32 +138,30 @@ final class ImageObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Crop.
-     * @param  int      $width
-     * @param  int|null $height
+     * Crop image.
+     *
+     * @param  int        $width
+     * @param  int|null   $height
+     * @param  array|null $options
      * @return self
      */
-    public function crop(int $width, int $height = null): self
+    public function crop(int $width, int $height = null, array $options = null): self
     {
         $temp = null;
 
-        if ($this->resourceFile != null) {
-            if (is_resource($this->resourceFile)) {
-                $temp = new FileObject($this->resourceFile);
-                $file = $temp->getPath();
-            } elseif (is_string($this->resourceFile) && file_exists($this->resourceFile)) {
-                $file = $this->resourceFile;
-            }
+        if ($this->resourceFile && is_resource($this->resourceFile)) {
+            $temp = new FileObject($this->resourceFile);
+            $file = $temp->getPath();
         } else {
             $temp = (new FileObject)->setContents($this->getContents());
             $file = $temp->getPath();
         }
 
         $image = (new ImageUploader(
-            ['type' => $this->mimeType, 'file' => $file, 'directory' => '/tmp'],
+            ['type' => $this->mime, 'file' => $file, 'directory' => '/tmp'],
             ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
              'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
-        ))->crop($width, $height);
+        ))->crop($width, $height, $options);
 
         $temp && $temp->free();
 
@@ -183,7 +171,8 @@ final class ImageObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Get dimensions.
+     * Get image dimensions.
+     *
      * @return array
      */
     public function getDimensions(): array
@@ -194,35 +183,34 @@ final class ImageObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Get info.
-     * @return ?array
+     * Get image info, with EXIF data if available.
+     *
+     * @return array|null
      */
-    public function getInfo(): ?array
+    public function getInfo(): array|null
     {
-        if ($contents = $this->getContents()) {
-            $info = getimagesizefromstring($contents) ?: null;
-            if ($info) {
-                $info += [
-                    'width'      => $info[0], 'height' => $info[1],
-                    'type'       => $info[2], 'size'   => strlen($contents),
-                    'extension'  => image_type_to_extension($info[2]),
-                    'exif'       => null,
-                ];
+        if (($contents = $this->getContents())
+            && ($info = getimagesizefromstring($contents))) {
+            $info += [
+                'width'      => $info[0], 'height' => $info[1],
+                'type'       => $info[2], 'size'   => strlen($contents),
+                'extension'  => image_type_to_extension($info[2]),
+                'exif'       => null,
+            ];
 
-                // For only JPEG (and also PNG? https://stackoverflow.com/q/9542359/362780).
-                if ($info['type'] == 2 && function_exists('exif_read_data')) {
-                    $fp = fopen('php://temp/maxmemory:'. $info['size'], 'w+b');
-                    fwrite($fp, $contents);
-                    $info['exif'] = exif_read_data($fp);
-                    fclose($fp);
+            // For only JPEG (and also PNG? https://stackoverflow.com/q/9542359/362780).
+            if ($info['type'] == 2 && function_exists('exif_read_data')) {
+                $fp = fopen('php://temp/maxmemory:'. $info['size'], 'w+b');
+                fwrite($fp, $contents);
+                $info['exif'] = exif_read_data($fp);
+                fclose($fp);
 
-                    if ($info['exif']) {
-                        // I don't understand why all keys ain't uniform.
-                        $info['exif'] = array_map(
-                            fn($v) => is_array($v) ? array_change_key_case($v) : $v,
-                            array_change_key_case($info['exif'])
-                        );
-                    }
+                // I don't understand why all keys ain't uniform.
+                if ($info['exif']) {
+                    $info['exif'] = array_map(
+                        fn($v) => is_array($v) ? array_change_key_case($v) : $v,
+                        array_change_key_case($info['exif'])
+                    );
                 }
             }
 
@@ -233,7 +221,8 @@ final class ImageObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Set contents..
+     * Set image contents as binary format.
+     *
      * @param  string $contents
      * @return self
      */
@@ -241,31 +230,31 @@ final class ImageObject extends AbstractObject implements Stringable
     {
         $this->resourceCheck();
 
-        imagedestroy($this->resource);
+        unset($this->resource);
         $this->resource = imagecreatefromstring($contents);
 
         return $this;
     }
 
     /**
-     * Get contents..
-     * @return ?string
+     * Get image contents as binary format.
+     *
+     * @return string|null
      * @throws froq\file\FileException
      */
-    public function getContents(): ?string
+    public function getContents(): string|null
     {
-        if ($this->resourceFile != null) {
-            if (is_resource($this->resourceFile)) {
-                return stream_get_contents($this->resourceFile, -1, 0);
-            } elseif (is_string($this->resourceFile) && file_exists($this->resourceFile)) {
-                return file_get_contents($this->resourceFile);
-            }
+        if ($this->resourceFile && is_resource($this->resourceFile)) {
+            return stream_get_contents($this->resourceFile, -1, 0);
         }
 
         $this->resourceCheck();
 
-        if ($this->mimeType == null) {
-            throw new FileException('No MIME type given yet, try after calling setMimeType()');
+        if (!isset($this->mime)) {
+            throw new FileException('No MIME given yet, try after calling setMime()');
+        }
+        if (!in_array($this->mime, self::$mimes)) {
+            throw new FileException("Invalid MIME '%s', valids are: %s", [$this->mime, join(', ', self::$mimes)]);
         }
 
         ob_start();
@@ -273,65 +262,62 @@ final class ImageObject extends AbstractObject implements Stringable
         // Without copy (that resampled copy), PNG, GIF, WEBP will be losing transparency.
         $copy = null;
 
-        switch ($this->mimeType) {
-            case self::MIME_TYPE_JPEG:
-                imagejpeg($this->resource, null, $this->options['jpegQuality']);
-                break;
-            case self::MIME_TYPE_PNG:
-                imagepng($copy = $this->createResourceCopy(), null, $this->options['pngZipLevel'],
-                    $this->options['pngFilters']);
-                break;
-            case self::MIME_TYPE_GIF:
-                imagegif($copy = $this->createResourceCopy());
-                break;
-            case self::MIME_TYPE_WEBP:
-                imagewebp($copy = $this->createResourceCopy(), null, $this->options['webpQuality']);
-                break;
-        }
+        match ($this->mime) {
+            self::MIME_JPEG => imagejpeg($this->resource, null, $this->options['jpegQuality']),
+            self::MIME_PNG  => imagepng($copy = $this->createResourceCopy(), null, $this->options['pngZipLevel'],
+                    $this->options['pngFilters']),
+            self::MIME_GIF  => imagegif($copy = $this->createResourceCopy()),
+            self::MIME_WEBP => imagewebp($copy = $this->createResourceCopy(), null, $this->options['webpQuality']),
+        };
 
         $copy && $this->removeResourceCopy($copy);
 
-        return ob_get_length() !== false ? ob_get_clean() : null;
+        return ob_get_clean() ?: null;
     }
 
     /**
-     * Is jpeg.
+     * Check whether image type is JPEG or not.
+     *
      * @return bool
      */
     public function isJpeg(): bool
     {
-        return ($this->mimeType == self::MIME_TYPE_JPEG);
+        return ($this->mime == self::MIME_JPEG);
     }
 
     /**
-     * Is png.
+     * Check whether image type is PNG or not.
+     *
      * @return bool
      */
     public function isPng(): bool
     {
-        return ($this->mimeType == self::MIME_TYPE_PNG);
+        return ($this->mime == self::MIME_PNG);
     }
 
     /**
-     * Is gif.
+     * Check whether image type is GIF or not.
+     *
      * @return bool
      */
     public function isGif(): bool
     {
-        return ($this->mimeType == self::MIME_TYPE_GIF);
+        return ($this->mime == self::MIME_GIF);
     }
 
     /**
-     * Is webp.
+     * Check whether image type is WEBP or not.
+     *
      * @return bool
      */
     public function isWebp(): bool
     {
-        return ($this->mimeType == self::MIME_TYPE_WEBP);
+        return ($this->mime == self::MIME_WEBP);
     }
 
     /**
-     * To base 64.
+     * Get Base64 contents.
+     *
      * @return string
      */
     public function toBase64(): string
@@ -340,52 +326,39 @@ final class ImageObject extends AbstractObject implements Stringable
     }
 
     /**
-     * To base 64 url.
+     * Get Base64 URL.
+     *
      * @return string
      */
     public function toBase64Url(): string
     {
-        $base64 = base64_encode($this->getContents());
-
-        return 'data:'. $this->mimeType .';base64,'. $base64;
+        return 'data:' . $this->mime . ';base64,' . $this->toBase64();
     }
 
     /**
      * @inheritDoc froq\file\AbstractObject
-     * @implement
      */
-    public static function fromFile(string $file, string $mimeType = null, array $options = null): ImageObject
+    public static function fromFile(string $file, string $mime = null, array $options = null): static
     {
         FileUtil::errorCheck($file, $error);
         if ($error != null) {
             throw new FileException($error->getMessage(), null, $error->getCode());
         }
 
-        $mimeType = $mimeType ?? mime_content_type($file) ?: null;
-        $resource = imagecreatefromstring(file_get_contents($file));
-        if (!$resource) {
-            throw new FileException('Cannot create resource [error: %s]', '@error');
-        }
-
-        $image = new ImageObject($resource, $mimeType, $options);
-        $image->resourceFile = $file; // Stored for speed up resize(), crop(), getContents().
-
-        return $image;
+        return self::fromString(file_get_contents($file), mime_content_type($file), $options);
     }
 
     /**
      * @inheritDoc froq\file\AbstractObject
-     * @implement
      */
-    public static function fromString(string $string, string $mimeType = null, array $options = null): ImageObject
+    public static function fromString(string $string, string $mime = null, array $options = null): static
     {
-        $mimeType = $mimeType ?? getimagesizefromstring($string)['mime'] ?? null;
         $resource = imagecreatefromstring($string);
-        if (!$resource) {
-            throw new FileException('Cannot create resource [error: %s]', '@error');
-        }
+        $resource || throw new FileException('Cannot create resource [error: %s]', '@error');
 
-        $image = new ImageObject($resource, $mimeType, $options);
+        $mime || $mime = (getimagesizefromstring($string)['mime'] ?? null);
+
+        $image = new static($resource, $mime, $options);
         $image->resourceFile = tmpfile(); // Stored for speed up resize(), crop(), getContents().
         fwrite($image->resourceFile, $string);
 

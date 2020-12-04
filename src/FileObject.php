@@ -13,6 +13,8 @@ use froq\common\interfaces\Stringable;
 /**
  * File Object.
  *
+ * Represents a file object entity which aims to work with file resources in OOP style.
+ *
  * @package froq\file
  * @object  froq\file\FileObject
  * @author  Kerem Güneş <k-gun@mail.com>
@@ -20,31 +22,30 @@ use froq\common\interfaces\Stringable;
  */
 final class FileObject extends AbstractObject implements Stringable
 {
-    /**
-     * Options default.
-     * @var array
-     */
+    /** @var array */
     private static array $optionsDefault = ['mode' => 'r+b'];
 
     /**
      * Constructor.
+     *
      * @param resource|null $resource
-     * @param string|null   $mimeType
+     * @param string|null   $mime
      * @param array|null    $options
      */
-    public function __construct($resource = null, string $mimeType = null, array $options = null)
+    public function __construct($resource = null, string $mime = null, array $options = null)
     {
         $this->setOptionsDefault($options, self::$optionsDefault);
 
-        parent::__construct($resource, $mimeType);
+        parent::__construct($resource, $mime);
     }
 
     /**
-     * Write.
+     * Write some content of file.
+     *
      * @param  string $content
-     * @return ?int
+     * @return int|null
      */
-    public function write(string $content): ?int
+    public function write(string $content): int|null
     {
         $this->resourceCheck();
 
@@ -54,11 +55,12 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Read..
+     * Read some content of file by length.
+     *
      * @param  int $length
-     * @return ?string
+     * @return string|null
      */
-    public function read(int $length): ?string
+    public function read(int $length): string|null
     {
         $this->resourceCheck();
 
@@ -68,10 +70,11 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Read char.
-     * @return ?string
+     * Read a character from file.
+     *
+     * @return string|null
      */
-    public function readChar(): ?string
+    public function readChar(): string|null
     {
         $this->resourceCheck();
 
@@ -81,10 +84,11 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Read line.
-     * @return ?string
+     * Read a line from file.
+     *
+     * @return string|null
      */
-    public function readLine(int $length = 1024): ?string
+    public function readLine(int $length = 1024): string|null
     {
         $this->resourceCheck();
 
@@ -94,7 +98,8 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Rewind.
+     * Rewind file.
+     *
      * @return self
      */
     public function rewind(): self
@@ -107,7 +112,8 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Empty.
+     * Empty file.
+     *
      * @return self
      */
     public function empty(): self
@@ -120,18 +126,20 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Copy.
+     * Get a copy of file object as a new `FileObject`.
+     *
      * @return froq\file\FileObject
      */
     public function copy(): FileObject
     {
         $this->resourceCheck();
 
-        return new FileObject($this->createResourceCopy(), $this->mimeType);
+        return new FileObject($this->createResourceCopy(), $this->mime);
     }
 
     /**
-     * Lock.
+     * Lock file.
+     *
      * @param  bool $block
      * @return bool
      */
@@ -143,7 +151,8 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Unlock.
+     * Unlock file.
+     *
      * @return bool
      */
     public function unlock(): bool
@@ -154,28 +163,31 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Size.
-     * @return ?int
+     * Get file size.
+     *
+     * @return int|null
      */
-    public function size(): ?int
+    public function size(): int|null
     {
         return $this->getStat()['size'] ?? null;
     }
 
     /**
-     * Offset.
+     * Get/set file offset.
+     *
      * @param  int|null $where
      * @param  int|null $whence
-     * @return ?int|?bool
+     * @return int|bool|null
      */
-    public function offset(int $where = null, int $whence = null)
+    public function offset(int $where = null, int $whence = null): int|bool|null
     {
         return ($where === null) ? $this->getPosition()
-             : $this->setPosition($where, $whence ?? SEEK_SET);
+            : $this->setPosition($where, $whence ?? SEEK_SET);
     }
 
     /**
-     * Valid.
+     * Validator.
+     *
      * @return bool
      */
     public function valid(): bool
@@ -184,38 +196,37 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Set position.
+     * Set file pointer position.
+     *
      * @param  int $where
      * @param  int $whence
-     * @return ?bool
+     * @return bool
      */
-    public function setPosition(int $where, int $whence = SEEK_SET): ?bool
+    public function setPosition(int $where, int $whence = SEEK_SET): bool
     {
         $this->resourceCheck();
 
-        $ret = fseek($this->resource, $where, $whence);
-
-        return ($ret === 0) ? true : null;
+        return !fseek($this->resource, $where, $whence);
     }
 
     /**
-     * Get position.
-     * @return ?int
+     * Get file pointer position.
+     *
+     * @return int|null
      */
-    public function getPosition(): ?int
+    public function getPosition(): int|null
     {
         $this->resourceCheck();
 
-        $ret = ftell($this->resource);
-
-        return ($ret !== false) ? $ret : null;
+        return is_int($ret = ftell($this->resource)) ? $ret : null;
     }
 
     /**
-     * Get stat..
-     * @return ?array
+     * Get file stat.
+     *
+     * @return array|null
      */
-    public function getStat(): ?array
+    public function getStat(): array|null
     {
         $this->resourceCheck();
 
@@ -223,10 +234,11 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Get metadata.
-     * @return ?array
+     * Get file metadata.
+     *
+     * @return array|null
      */
-    public function getMetadata(): ?array
+    public function getMetadata(): array|null
     {
         $this->resourceCheck();
 
@@ -234,10 +246,11 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Get info..
-     * @return ?array
+     * Get file info.
+     *
+     * @return array|null
      */
-    public function getInfo(): ?array
+    public function getInfo(): array|null
     {
         $this->resourceCheck();
 
@@ -248,45 +261,65 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Get name.
-     * @return ?string
+     * Get file name.
+     *
+     * @return string|null
      */
-    public function getName(): ?string
+    public function getName(): string|null
     {
-        return basename($this->getMetadata()['uri'] ?? '') ?: null;
+        return $this->getPathInfo('dirname');
     }
 
     /**
-     * Get directory.
-     * @return ?string
+     * Get file extension.
+     *
+     * @return string|null
      */
-    public function getDirectory(): ?string
+    public function getExtension(): string|null
     {
-        return dirname($this->getMetadata()['uri'] ?? '') ?: null;
+        return $this->getPathInfo('extension');
     }
 
     /**
-     * Get path.
-     * @return ?string
+     * Get file directory.
+     *
+     * @return string|null
      */
-    public function getPath(): ?string
+    public function getDirectory(): string|null
+    {
+        return $this->getPathInfo('dirname');
+    }
+
+    /**
+     * Get file path.
+     *
+     * @return string|null
+     */
+    public function getPath(): string|null
     {
         return $this->getMetadata()['uri'] ?? null;
     }
 
     /**
-     * Get path info.
-     * @return ?array
+     * Get file path info.
+     *
+     * @param  string|null $component
+     * @return string|array|null
      */
-    public function getPathInfo(): ?array
+    public function getPathInfo(string $component = null): string|array|null
     {
-        $uri = $this->getMetadata()['uri'] ?? null;
+        $path = $this->getPath();
 
-        return $uri ? [$uri, dirname($uri), basename($uri)] : null;
+        if ($path && !strpfx($path, 'php://temp')) {
+            return get_path_info($path, $component);
+        }
+
+        return null;
     }
 
     /**
-     * Set contents.
+     * Set file contents.
+     *
      * @param  string $contents
      * @return self
      */
@@ -297,18 +330,19 @@ final class FileObject extends AbstractObject implements Stringable
         // Without this, stats won't be resetted.
         rewind($this->resource);
 
-        ftruncate($this->resource, 0)
-            && fwrite($this->resource, $contents)
-                && fseek($this->resource, 0);
+        ftruncate($this->resource, 0);
+        fwrite($this->resource, $contents);
+        fseek($this->resource, 0);
 
         return $this;
     }
 
     /**
-     * Get contents.
-     * @return ?string
+     * Get file contents.
+     *
+     * @return string|null
      */
-    public function getContents(): ?string
+    public function getContents(): string|null
     {
         $this->resourceCheck();
 
@@ -320,7 +354,8 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Is ended..
+     * Check end-of-file state.
+     *
      * @return bool
      */
     public function isEnded(): bool
@@ -329,7 +364,8 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Is empty.
+     * Check empty state.
+     *
      * @return bool
      */
     public function isEmpty(): bool
@@ -339,9 +375,8 @@ final class FileObject extends AbstractObject implements Stringable
 
     /**
      * @inheritDoc froq\file\AbstractObject
-     * @implement
      */
-    public static function fromFile(string $file, string $mimeType = null, array $options = null): FileObject
+    public static function fromFile(string $file, string $mime = null, array $options = null): static
     {
         FileUtil::errorCheck($file, $error);
         if ($error != null) {
@@ -350,28 +385,25 @@ final class FileObject extends AbstractObject implements Stringable
 
         $mode = $options['mode'] ?? self::$optionsDefault['mode'];
         $resource = fopen($file, $mode);
-        if (!$resource) {
-            throw new FileException('Cannot create resource [error: %s]', '@error');
-        }
 
-        return new FileObject($resource, $mimeType, $options);
+        $resource || throw new FileException('Cannot create resource [error: %s]', '@error');
+
+        return new static($resource, $mime, $options);
     }
 
     /**
      * @inheritDoc froq\file\AbstractObject
-     * @implement
      */
-    public static function fromString(string $string, string $mimeType = null, array $options = null): FileObject
+    public static function fromString(string $string, string $mime = null, array $options = null): static
     {
         $mode = $options['mode'] ?? self::$optionsDefault['mode'];
         $resource = fopen('php://temp', $mode);
-        if (!$resource) {
-            throw new FileException('Cannot create resource [error: %s]', '@error');
-        }
+
+        $resource || throw new FileException('Cannot create resource [error: %s]', '@error');
 
         fwrite($resource, $string) && fseek($resource, 0);
 
-        return new FileObject($resource, $mimeType, $options);
+        return new static($resource, $mime, $options);
     }
 
     /**
