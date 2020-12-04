@@ -73,14 +73,13 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
     /**
      * Resize.
-     * @param  int  $width
-     * @param  int  $height
-     * @param  bool $proportion
-     * @param  bool $adjust
+     * @param  int        $width
+     * @param  int        $height
+     * @param  array|null $options
      * @return self
      * @throws froq\file\upload\UploadException
      */
-    public function resize(int $width, int $height, bool $adjust = true, bool $proportion = true): self
+    public function resize(int $width, int $height, array $options = null): self
     {
         // Fill/ensure info.
         $this->fillInfo();
@@ -91,15 +90,16 @@ final class ImageUploader extends AbstractUploader implements Stringable
         }
 
         [$origWidth, $origHeight] = $info = $this->getInfo();
+        @ ['adjust' => $adjust, 'proportion' => $proportion] = $options; // @defaults=true
 
         // Use original width/height if given ones excessive.
-        if ($adjust) {
+        if ($adjust !== false) {
             if ($width > $origWidth) $width = $origWidth;
             if ($height > $origHeight) $height = $origHeight;
         }
 
         $newWidth = $newHeight = 0;
-        if ($proportion) {
+        if ($proportion !== false) {
             $factor    = (
                 $width == -1 ? $height / $origHeight : (
                     $height == -1 ? $width / $origWidth : (
@@ -147,15 +147,13 @@ final class ImageUploader extends AbstractUploader implements Stringable
 
     /**
      * Crop.
-     * @param  int      $width
-     * @param  int|null $height
-     * @param  int|null $x
-     * @param  int|null $y
-     * @param  bool     $proportion
+     * @param  int        $width
+     * @param  int|null   $height
+     * @param  array|null $options
      * @return self
      * @throws froq\file\upload\UploadException
      */
-    public function crop(int $width, int $height = null, int $x = null, int $y = null, bool $proportion = false): self
+    public function crop(int $width, int $height = null, array $options = null): self
     {
         // Fill/ensure info.
         $this->fillInfo();
@@ -166,19 +164,20 @@ final class ImageUploader extends AbstractUploader implements Stringable
         }
 
         // Square crops.
-        $height = $height ?? $width;
+        $height ??= $width;
 
         [$origWidth, $origHeight] = $info = $this->getInfo();
+        @ ['x' => $x, 'y' => $y, 'proportion' => $proportion] = $options; // @defaults=null
 
-        if (!$proportion) {
-            $cropWidth  = $width;
-            $cropHeight = $height;
-            $divisionBy = 2;
-        } else {
-            $factor     = ($width > $height) ? $width : $height;
+        if ($proportion) {
+            $factor     = max($width, $height);
             $cropWidth  = (int) (0.5 * $factor);
             $cropHeight = (int) (0.5 * $factor);
             $divisionBy = 4;
+        } else {
+            $cropWidth  = $width;
+            $cropHeight = $height;
+            $divisionBy = 2;
         }
 
         $x ??= (int) (($origWidth - $cropWidth) / $divisionBy);
