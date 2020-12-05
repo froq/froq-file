@@ -84,8 +84,8 @@ abstract class AbstractUploader
         // Type & extension security.
         if (empty($option_allowedTypes) || empty($option_allowedExtensions)) {
             throw new UploadException(
-                "Option 'allowedTypes' and 'allowedExtensions' must not be empty for " .
-                "security reasons, please provide both types and extensions you allow (ie: for " .
+                "Option 'allowedTypes' and 'allowedExtensions' must not be empty for ".
+                "security reasons, please provide both types and extensions you allow (ie: for ".
                 "types 'image/jpeg,image/png' and for extensions 'jpg,jpeg', or '*' to allow all)",
                 null, UploadError::OPTION_EMPTY
             );
