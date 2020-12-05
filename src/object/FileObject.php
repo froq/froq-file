@@ -5,9 +5,10 @@
  */
 declare(strict_types=1);
 
-namespace froq\file;
+namespace froq\file\object;
 
-use froq\file\{AbstractObject, FileException, Util as FileUtil};
+use froq\file\Util as FileUtil;
+use froq\file\object\{AbstractObject, ObjectException};
 use froq\common\interfaces\Stringable;
 
 /**
@@ -15,29 +16,15 @@ use froq\common\interfaces\Stringable;
  *
  * Represents a file object entity which aims to work with file resources in OOP style.
  *
- * @package froq\file
- * @object  froq\file\FileObject
+ * @package froq\file\object
+ * @object  froq\file\object\FileObject
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   4.0
+ * @since   4.0, 5.0 Moved to object directory.
  */
 final class FileObject extends AbstractObject implements Stringable
 {
     /** @var array */
-    private static array $optionsDefault = ['mode' => 'r+b'];
-
-    /**
-     * Constructor.
-     *
-     * @param resource|null $resource
-     * @param string|null   $mime
-     * @param array|null    $options
-     */
-    public function __construct($resource = null, string $mime = null, array $options = null)
-    {
-        $this->setOptionsDefault($options, self::$optionsDefault);
-
-        parent::__construct($resource, $mime);
-    }
+    protected static array $optionsDefault = ['mode' => 'r+b'];
 
     /**
      * Write some content of file.
@@ -128,7 +115,7 @@ final class FileObject extends AbstractObject implements Stringable
     /**
      * Get a copy of file object as a new `FileObject`.
      *
-     * @return froq\file\FileObject
+     * @return froq\file\object\FileObject
      */
     public function copy(): FileObject
     {
@@ -374,31 +361,31 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * @inheritDoc froq\file\AbstractObject
+     * @inheritDoc froq\file\object\AbstractObject
      */
     public static function fromFile(string $file, string $mime = null, array $options = null): static
     {
         if (FileUtil::errorCheck($file, $error)) {
-            throw new FileException($error->getMessage(), null, $error->getCode());
+            throw new ObjectException($error->getMessage(), null, $error->getCode());
         }
 
         $mode = $options['mode'] ?? self::$optionsDefault['mode'];
         $resource = fopen($file, $mode);
 
-        $resource || throw new FileException('Cannot create resource [error: %s]', '@error');
+        $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
 
-        return new static($resource, $mime, $options);
+        return new static($resource, $mime ?? mime_content_type($file), $options);
     }
 
     /**
-     * @inheritDoc froq\file\AbstractObject
+     * @inheritDoc froq\file\object\AbstractObject
      */
     public static function fromString(string $string, string $mime = null, array $options = null): static
     {
         $mode = $options['mode'] ?? self::$optionsDefault['mode'];
         $resource = fopen('php://temp', $mode);
 
-        $resource || throw new FileException('Cannot create resource [error: %s]', '@error');
+        $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
 
         fwrite($resource, $string) && fseek($resource, 0);
 

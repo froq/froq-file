@@ -5,9 +5,10 @@
  */
 declare(strict_types=1);
 
-namespace froq\file;
+namespace froq\file\object;
 
-use froq\file\{AbstractObject, FileException, Util as FileUtil, FileObject};
+use froq\file\Util as FileUtil;
+use froq\file\object\{AbstractObject, ObjectException, FileObject};
 use froq\file\upload\ImageUploader;
 use froq\common\interfaces\Stringable;
 
@@ -16,46 +17,23 @@ use froq\common\interfaces\Stringable;
  *
  * Represents an image object entity which aims to work with image resources in OOP style.
  *
- * @package froq\file
- * @object  froq\file\ImageObject
+ * @package froq\file\object
+ * @object  froq\file\object\ImageObject
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   4.0
+ * @since   4.0, 5.0 Moved to object directory.
  */
 final class ImageObject extends AbstractObject implements Stringable
 {
     /** @const string */
     public const MIME_JPEG = 'image/jpeg', MIME_PNG  = 'image/png',
-                 MIME_GIF  = 'image/gif', MIME_WEBP = 'image/webp';
-                 // Far enough for now..
-                 /* MIME_WBMP = 'image/vnd.wap.wbmp',
-                 MIME_BMP  = 'image/bmp',
-                 MIME_XBM  = 'image/xbm',
-                 MIME_XPM  = 'image/x-xpixmap'; */
+                 MIME_GIF  = 'image/gif',  MIME_WEBP = 'image/webp';
 
     /** @var array */
-    private static array $mimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp',
-        /* 'image/vnd.wap.wbmp', 'image/bmp', 'image/xbm', 'image/x-xpixmap' */];
+    protected static array $mimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
     /** @var array */
-    private static array $optionsDefault = ['jpegQuality' => -1, 'webpQuality' => -1,
+    protected static array $optionsDefault = ['jpegQuality' => -1, 'webpQuality' => -1,
         'pngZipLevel' => -1, 'pngFilters' => -1];
-
-    /**
-     * Constructor.
-     * @param  resource|null $resource
-     * @param  string|null   $mime
-     * @throws froq\file\FileException
-     */
-    public function __construct($resource = null, string $mime = null, array $options = null)
-    {
-        if ($mime && !in_array($mime, self::$mimes)) {
-            throw new FileException("Invalid MIME '%s', valids are: %s", [$mime, join(', ', self::$mimes)]);
-        }
-
-        $this->setOptionsDefault($options, self::$optionsDefault);
-
-        parent::__construct($resource, $mime);
-    }
 
     /**
      * Get mimes.
@@ -99,7 +77,7 @@ final class ImageObject extends AbstractObject implements Stringable
         try {
             $this->resourceCheck();
             return true;
-        } catch (FileException) {
+        } catch (ObjectException) {
             return false;
         }
     }
@@ -228,7 +206,7 @@ final class ImageObject extends AbstractObject implements Stringable
      * Get image contents as binary format.
      *
      * @return string|null
-     * @throws froq\file\FileException
+     * @throws froq\file\object\ObjectException
      */
     public function getContents(): string|null
     {
@@ -239,10 +217,10 @@ final class ImageObject extends AbstractObject implements Stringable
         $this->resourceCheck();
 
         if (!isset($this->mime)) {
-            throw new FileException('No MIME given yet, try after calling setMime()');
+            throw new ObjectException('No MIME given yet, try after calling setMime()');
         }
         if (!in_array($this->mime, self::$mimes)) {
-            throw new FileException("Invalid MIME '%s', valids are: %s", [$this->mime, join(', ', self::$mimes)]);
+            throw new ObjectException("Invalid MIME '%s', valids are: %s", [$this->mime, join(', ', self::$mimes)]);
         }
 
         ob_start();
@@ -324,26 +302,26 @@ final class ImageObject extends AbstractObject implements Stringable
     }
 
     /**
-     * @inheritDoc froq\file\AbstractObject
+     * @inheritDoc froq\file\object\AbstractObject
      */
     public static function fromFile(string $file, string $mime = null, array $options = null): static
     {
         if (FileUtil::errorCheck($file, $error)) {
-            throw new FileException($error->getMessage(), null, $error->getCode());
+            throw new ObjectException($error->getMessage(), null, $error->getCode());
         }
 
-        return self::fromString(file_get_contents($file), mime_content_type($file), $options);
+        return self::fromString(file_get_contents($file), $mime ?? mime_content_type($file), $options);
     }
 
     /**
-     * @inheritDoc froq\file\AbstractObject
+     * @inheritDoc froq\file\object\AbstractObject
      */
     public static function fromString(string $string, string $mime = null, array $options = null): static
     {
         $resource = imagecreatefromstring($string);
-        $resource || throw new FileException('Cannot create resource [error: %s]', '@error');
+        $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
 
-        $mime || $mime = (getimagesizefromstring($string)['mime'] ?? null);
+        $mime || $mime = getimagesizefromstring($string)['mime'] ?? null;
 
         $image = new static($resource, $mime, $options);
         $image->resourceFile = tmpfile(); // Stored for speed up resize(), crop(), getContents().

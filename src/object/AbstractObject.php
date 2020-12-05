@@ -5,9 +5,9 @@
  */
 declare(strict_types=1);
 
-namespace froq\file;
+namespace froq\file\object;
 
-use froq\file\{FileException, FileObject, ImageObject};
+use froq\file\object\{ObjectException, FileObject, ImageObject};
 use froq\common\traits\{OptionTrait, ApplyTrait};
 
 /**
@@ -15,10 +15,10 @@ use froq\common\traits\{OptionTrait, ApplyTrait};
  *
  * Represents an abstract object entity which aims to work with file/image resources in OOP style.
  *
- * @package froq\file
- * @object  froq\file\AbstractObject
+ * @package froq\file\object
+ * @object  froq\file\object\AbstractObject
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   4.0
+ * @since   4.0, 5.0 Moved to object directory.
  */
 abstract class AbstractObject
 {
@@ -49,20 +49,24 @@ abstract class AbstractObject
      *
      * @param  resource|GDImage|null $resource
      * @param  string|null           $mime
-     * @throws froq\file\FileException
+     * @throws froq\file\ObjectException
      */
-    public function __construct($resource = null, string $mime = null)
+    public function __construct($resource = null, string $mime = null, array $options = null)
     {
         if ($this instanceof FileObject) {
             // Open a temporary file when none given.
             $resource ??= tmpfile();
 
             if (!is_type_of($resource, 'stream')) {
-                throw new FileException("Resource type must be stream, '%s' given", get_type($resource));
+                throw new ObjectException("Resource type must be stream, '%s' given", get_type($resource));
             }
 
             $this->resourceType = 'file';
         } elseif ($this instanceof ImageObject) {
+            if ($mime && !in_array($mime, static::$mimes)) {
+                throw new ObjectException("Invalid MIME '%s', valids are: %s", [$mime, join(', ', static::$mimes)]);
+            }
+
             // When a resource given, eg: fopen('path/to/file.jpg', 'rb').
             if (is_stream($resource)) {
                 $temp = ImageObject::fromString(freadall($resource));
@@ -70,7 +74,7 @@ abstract class AbstractObject
             }
 
             if (!is_type_of($resource, 'GDImage')) {
-                throw new FileException("Resource type must be GDImage, '%s' given", get_type($resource));
+                throw new ObjectException("Resource type must be GDImage, '%s' given", get_type($resource));
             }
 
             $this->resourceType = 'image';
@@ -78,6 +82,8 @@ abstract class AbstractObject
 
         $this->resource = $resource;
         $this->mime = $mime;
+
+        $this->setOptionsDefault($options, static::$optionsDefault);
     }
 
     /**
@@ -170,7 +176,7 @@ abstract class AbstractObject
             return true;
         }
 
-        throw new FileException('Invalid resource copy, valids are: stream, GDImage');
+        throw new ObjectException('Invalid resource copy, valids are: stream, GDImage');
     }
 
     /**
@@ -232,11 +238,11 @@ abstract class AbstractObject
      * @param  string|null $mime
      * @param  array|null  $options
      * @return static
-     * @throws froq\file\FileException
+     * @throws froq\file\object\ObjectException
      */
     public static final function fromResource($resource, string $mime = null, array $options = null): static
     {
-        $resource || throw new FileException('Empty resource given');
+        $resource || throw new ObjectException('Empty resource given');
 
         return new static($resource, $mime, $options);
     }
@@ -251,8 +257,9 @@ abstract class AbstractObject
      */
     public static final function fromTemporaryResource(string $mime = null, array $options = null): static
     {
-        (static::class == FileObject::class)
-            || throw new FileException('Method %s() available for only %s', [__function__, FileObject::class]);
+        if (static::class != FileObject::class) {
+            throw new ObjectException('Method %s() available for only %s', [__function__, FileObject::class]);
+        }
 
         return new static(tmpfile(), $mime, $options);
     }
@@ -261,19 +268,19 @@ abstract class AbstractObject
      * Check resource validity.
      *
      * @return void
-     * @throws froq\file\FileException
+     * @throws froq\file\object\ObjectException
      */
     protected final function resourceCheck(): void
     {
         if ($this->freed) {
-            throw new FileException('No resource to process with, it is freed');
+            throw new ObjectException('No resource to process with, it is freed');
         }
 
         if (empty($this->resource) || (
                !is_type_of($this->resource, 'stream')
             && !is_type_of($this->resource, 'GDImage')
         )) {
-            throw new FileException('No resource to process with, it is not valid');
+            throw new ObjectException('No resource to process with, it is not valid');
         }
     }
 
@@ -284,7 +291,7 @@ abstract class AbstractObject
      * @param  string|null $mime
      * @param  array|null  $options
      * @return static
-     * @throws froq\file\FileException
+     * @throws froq\file\object\ObjectException
      */
     abstract public static function fromFile(string $file, string $mime = null, array $options = null): static;
 
@@ -295,7 +302,7 @@ abstract class AbstractObject
      * @param  string|null $mime
      * @param  array|null  $options
      * @return static
-     * @throws froq\file\FileException
+     * @throws froq\file\object\ObjectException
      */
     abstract public static function fromString(string $string, string $mime = null, array $options = null): static;
 }
