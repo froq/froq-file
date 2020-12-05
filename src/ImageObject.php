@@ -114,25 +114,19 @@ final class ImageObject extends AbstractObject implements Stringable
      */
     public function resize(int $width, int $height, array $options = null): self
     {
-        $temp = null;
+        $temp = is_resource($this->resourceFile)
+            ? new FileObject($this->resourceFile)
+            : (new FileObject)->setContents($this->getContents());
 
-        if ($this->resourceFile && is_resource($this->resourceFile)) {
-            $temp = new FileObject($this->resourceFile);
-            $file = $temp->getPath();
-        } else {
-            $temp = (new FileObject)->setContents($this->getContents());
-            $file = $temp->getPath();
-        }
-
-        $image = (new ImageUploader(
-            ['type' => $this->mime, 'file' => $file, 'directory' => '/tmp'],
+        $resource = (new ImageUploader(
+            ['type' => $this->mime, 'file' => $temp->getPath(), 'directory' => '/tmp'],
             ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
              'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
-        ))->resize($width, $height, $options);
+        ))->resize($width, $height, $options)->getDestinationImage();
 
-        $temp && $temp->free();
+        $temp->free();
 
-        $this->resource = $image->getDestinationResource();
+        $this->resource = $resource;
 
         return $this;
     }
@@ -147,25 +141,19 @@ final class ImageObject extends AbstractObject implements Stringable
      */
     public function crop(int $width, int $height = null, array $options = null): self
     {
-        $temp = null;
+        $temp = is_resource($this->resourceFile)
+            ? new FileObject($this->resourceFile)
+            : (new FileObject)->setContents($this->getContents());
 
-        if ($this->resourceFile && is_resource($this->resourceFile)) {
-            $temp = new FileObject($this->resourceFile);
-            $file = $temp->getPath();
-        } else {
-            $temp = (new FileObject)->setContents($this->getContents());
-            $file = $temp->getPath();
-        }
-
-        $image = (new ImageUploader(
-            ['type' => $this->mime, 'file' => $file, 'directory' => '/tmp'],
+        $resource = (new ImageUploader(
+            ['type' => $this->mime, 'file' => $temp->getPath(), 'directory' => '/tmp'],
             ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
              'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
-        ))->crop($width, $height, $options);
+        ))->crop($width, $height, $options)->getDestinationImage();
 
-        $temp && $temp->free();
+        $temp->free();
 
-        $this->resource = $image->getDestinationResource();
+        $this->resource = $resource;
 
         return $this;
     }
@@ -230,7 +218,7 @@ final class ImageObject extends AbstractObject implements Stringable
     {
         $this->resourceCheck();
 
-        unset($this->resource);
+        $this->resource = null; // Void old.
         $this->resource = imagecreatefromstring($contents);
 
         return $this;
@@ -244,8 +232,8 @@ final class ImageObject extends AbstractObject implements Stringable
      */
     public function getContents(): string|null
     {
-        if ($this->resourceFile && is_resource($this->resourceFile)) {
-            return stream_get_contents($this->resourceFile, -1, 0);
+        if (is_resource($this->resourceFile)) {
+            return freadall($this->resourceFile);
         }
 
         $this->resourceCheck();
@@ -276,7 +264,7 @@ final class ImageObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Check whether image type is JPEG or not.
+     * Check whether image type is JPEG.
      *
      * @return bool
      */
@@ -286,7 +274,7 @@ final class ImageObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Check whether image type is PNG or not.
+     * Check whether image type is PNG.
      *
      * @return bool
      */
@@ -296,7 +284,7 @@ final class ImageObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Check whether image type is GIF or not.
+     * Check whether image type is GIF.
      *
      * @return bool
      */
@@ -306,7 +294,7 @@ final class ImageObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Check whether image type is WEBP or not.
+     * Check whether image type is WEBP.
      *
      * @return bool
      */
@@ -332,7 +320,7 @@ final class ImageObject extends AbstractObject implements Stringable
      */
     public function toBase64Url(): string
     {
-        return 'data:' . $this->mime . ';base64,' . $this->toBase64();
+        return 'data:' . $this->getMime() . ';base64,' . $this->toBase64();
     }
 
     /**
