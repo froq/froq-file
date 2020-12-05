@@ -23,7 +23,7 @@ use Error;
 final class Mime
 {
     /**
-     * Get type.
+     * Get file type.
      *
      * @param  string $file
      * @param  bool   $errorCheck
@@ -69,7 +69,7 @@ final class Mime
     }
 
     /**
-     * Get extension.
+     * Get file extension.
      *
      * @param  string $file
      * @return string|null
