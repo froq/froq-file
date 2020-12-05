@@ -60,7 +60,7 @@ abstract class AbstractUploader
             null, UploadError::INTERNAL
         );
 
-        // Those "file", "tmp_name" may be given (generally "tmp_name" comes from $_FILES global).
+        // Check for only these keys.
         $source = trim($file['file'] ?? $file['tmp_name'] ?? '');
         $source || throw new UploadException(
             "No valid source given, 'file' or 'tmp_name' can not be empty",
@@ -81,6 +81,16 @@ abstract class AbstractUploader
         $options = array_merge($this->options, $options ?? []);
         extract($options, EXTR_PREFIX_ALL, 'option');
 
+        // Type & extension security.
+        if (empty($option_allowedTypes) || empty($option_allowedExtensions)) {
+            throw new UploadException(
+                "Option 'allowedTypes' and 'allowedExtensions' must not be empty for " .
+                "security reasons, please provide both types and extensions you allow (ie: for " .
+                "types 'image/jpeg,image/png' and for extensions 'jpg,jpeg', or '*' to allow all)",
+                null, UploadError::OPTION_EMPTY
+            );
+        }
+
         $size ??= filesize($source);
 
         if ($option_maxFileSize > 0) {
@@ -93,17 +103,7 @@ abstract class AbstractUploader
             }
         }
 
-        // Type & extension security.
-        if (empty($option_allowedTypes) || empty($option_allowedExtensions)) {
-            throw new UploadException(
-                "Option 'allowedTypes' and 'allowedExtensions' must not be empty for " .
-                "security reasons, please provide both types and extensions you allow (ie: for " .
-                "types 'image/jpeg,image/png' and for extensions 'jpg,jpeg', or '*' to allow all)",
-                null, UploadError::OPTION_EMPTY
-            );
-        }
-
-        try { // @override.
+        try {
             $type = Mime::getType($source);
         } catch (MimeException $e) {
             throw new UploadException($e);
