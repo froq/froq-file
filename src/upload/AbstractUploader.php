@@ -13,7 +13,7 @@ use froq\file\mime\{Mime, MimeException};
 /**
  * Abstract Uploader.
  *
- * Represents an abstract updloader entity which aims to upload file/image files in OOP style.
+ * Represents an abstract updloader entity which aims to upload files/images in OOP style.
  *
  * @package froq\file\upload
  * @object  froq\file\upload\AbstractUploader
@@ -30,7 +30,7 @@ abstract class AbstractUploader
 
     /** @var array */
     protected array $options = [
-        'hash'                 => null, // Available commands: 'random', 'file' or 'fileName' (default=none).
+        'hash'                 => null, // Available commands: 'rand', 'file' or 'name' (default=none).
         'hashLength'           => null, // 8, 16, 32 or 40 (default=32).
         'maxFileSize'          => null, // In binary mode: for 2 megabytes 2048, 2048k or 2m.
         'allowedTypes'         => null, // * means all allowed or 'image/jpeg,image/png' etc.
@@ -38,8 +38,9 @@ abstract class AbstractUploader
         'allowEmptyExtensions' => null,
         'clear'                => true, // Useful to use resource files after upload etc.
         'clearSource'          => true, // Useful to display crop files after crop etc.
-        'jpegQuality'          => -1,   // Use default quality.
-        'webpQuality'          => -1,   // Use default quality.
+        'overwrite'            => false, // To prevent existing file overwrite.
+        'jpegQuality'          => -1,
+        'webpQuality'          => -1,
         'directory'            => null, // Will be set in constructor via $file or $options argument.
     ];
 
@@ -50,29 +51,21 @@ abstract class AbstractUploader
      * @param  array|null $options
      * @throws froq\file\upload\UploadException
      */
-    public final function __construct(array $file, array $options = null)
+    public function __construct(array $file, array $options = null)
     {
-        @ ['source' => $source, 'name' => $name, 'size' => $size, 'error' => $error] = $file;
+        [$name, $size, $error] = array_select($file, ['name', 'size', 'error']);
 
-        $error && throw new UploadException(
-            UploadError::MESSAGES[$error] ?? 'Unknown upload error',
-            null, UploadError::INTERNAL
-        );
+        $error && throw new UploadException(UploadError::MESSAGES[$error] ?? 'Unknown upload error',
+            null, UploadError::INTERNAL);
 
-        // Those "source", "file", "tmp_name" may be given (generally "tmp_name" comes from $_FILES global).
-        $source ??= trim($file['file'] ?? $file['tmp_name'] ?? '');
+        // Those "file", "tmp_name" may be given (generally "tmp_name" comes from $_FILES global).
+        $source = trim($file['file'] ?? $file['tmp_name'] ?? '');
+        $source || throw new UploadException("No valid source given, 'file' or 'tmp_name' can not be empty",
+            null, UploadError::NO_VALID_FILE);
 
-        $source || throw new UploadException(
-            "No valid source given, 'source', 'file' or 'tmp_name' can not be empty",
-            null, UploadError::NO_VALID_FILE
-        );
+        is_file($source) || throw new UploadException("No source file exists such '%s' given by 'file' or 'tmp_name'",
+            [$source], UploadError::NO_VALID_SOURCE);
 
-        is_file($source) || throw new UploadException(
-            "No valid source file '%s' given by 'source', 'file' or 'tmp_name'",
-            [$source], UploadError::NO_VALID_SOURCE
-        );
-
-        $name ??= self::uniqid();
         $size ??= filesize($source);
 
         $options = array_merge($this->options, $options ?? []);
@@ -81,21 +74,18 @@ abstract class AbstractUploader
         if ($option_maxFileSize != null) {
             $maxFileSize = FileUtil::convertBytes((string) $option_maxFileSize);
             if ($maxFileSize && $size > $maxFileSize) {
-                throw new UploadException(
-                    "File size exceeded, 'maxFileSize' option is '%s' (%s bytes)",
-                    [$option_maxFileSize, $maxFileSize], UploadError::OPTION_SIZE_EXCEEDED
-                );
+                throw new UploadException("File size exceeded, 'maxFileSize' option is '%s' (%s bytes)",
+                    [$option_maxFileSize, $maxFileSize], UploadError::OPTION_SIZE_EXCEEDED);
             }
         }
 
         // Type & extension security.
         if ($option_allowedTypes == null || $option_allowedExtensions == null) {
             throw new UploadException(
-                "Option 'allowedTypes' and 'allowedExtensions' must not be empty for ".
-                "security reasons, please provide both types and extensions you allow (ie: for ".
+                "Option 'allowedTypes' and 'allowedExtensions' must not be empty for " .
+                "security reasons, please provide both types and extensions you allow (ie: for " .
                 "types 'image/jpeg,image/png' and for extensions 'jpg,jpeg', or '*' to allow all)",
-                null, UploadError::OPTION_EMPTY
-            );
+                null, UploadError::OPTION_EMPTY);
         }
 
         try { // @override.
@@ -106,53 +96,42 @@ abstract class AbstractUploader
 
         $extension = Mime::getExtensionByType($type);
         if ($extension == null && $option_allowEmptyExtensions === false) {
-            throw new UploadException(
-                'Empty extensions not allowed via options',
-                null, UploadError::OPTION_EMPTY_EXTENSION
-            );
+            throw new UploadException('Empty extensions not allowed via options',
+                null, UploadError::OPTION_EMPTY_EXTENSION);
         }
 
         if ($option_allowedTypes !== '*'
             && !in_array($type, explode(',', $option_allowedTypes))) {
-            throw new UploadException(
-                "Type '%s' not allowed via options, allowed types: '%s'".
-                [$type, $option_allowedTypes], UploadError::OPTION_NOT_ALLOWED_TYPE
-            );
+            throw new UploadException("Type '%s' not allowed via options, allowed types: '%s'",
+                [$type, $option_allowedTypes], UploadError::OPTION_NOT_ALLOWED_TYPE);
         }
 
         if ($extension && $option_allowedExtensions !== '*'
             && !in_array($extension, explode(',', $option_allowedExtensions))) {
-            throw new UploadException(
-                "Extension '%s' not allowed via options, allowed extensions: '%s'",
-                [$extension, $option_allowedExtensions], UploadError::OPTION_NOT_ALLOWED_EXTENSION
-            );
+            throw new UploadException("Extension '%s' not allowed via options, allowed extensions: '%s'",
+                [$extension, $option_allowedExtensions], UploadError::OPTION_NOT_ALLOWED_EXTENSION);
         }
 
         $directory = trim($file['directory'] ?? $options['directory'] ?? '');
-        $directory || throw new UploadException(
-            'Directory must not be empty', null, UploadError::DIRECTORY_EMPTY
-        );
+        $directory || throw new UploadException('Directory must not be empty', null, UploadError::DIRECTORY_EMPTY);
 
         if (!is_dir($directory)) {
-            $ok = mkdir($directory, 0755, true);
-            $ok || throw new UploadException(
-                'Cannot make directory [error: %s]', '@error', UploadError::DIRECTORY_ERROR
-            );
+            mkdir($directory, 0755, true) || throw new UploadException('Cannot make directory [error: %s]',
+                '@error', UploadError::DIRECTORY_ERROR);
         }
 
-        $name = $this->prepareName($name);
+        // Set destination name as random UUID default, if no name given.
+        $name = $name ? $this->prepareName($name) : uuid();
 
         $this->source = $source;
-        $this->sourceInfo = ['type' => $type, 'name' => $name,
-                             'size' => $size, 'extension' => $extension];
-
-        $this->options  = ['directory' => $directory] + $options;
+        $this->sourceInfo = ['type' => $type, 'name' => $name, 'size' => $size, 'extension' => $extension];
+        $this->options = ['directory' => $directory] + $options;
     }
 
     /**
      * Destructor.
      */
-    public final function __destruct()
+    public function __destruct()
     {
         $this->clear();
     }
@@ -199,16 +178,14 @@ abstract class AbstractUploader
     {
         $extension = $this->sourceInfo['extension'];
 
-        // Check name & extension if given on runtime (with saveAs() or moveAs()).
-        if ($name != null) {
-            if (strpos($name, '.')) {
+        // Check name & extension when given with saveAs() or moveAs().
+        if ($name !== null) {
+            if (strsrc($name, '.')) {
                 $extension = file_extension($name);
                 if ($extension && $this->options['allowedExtensions'] !== '*'
                     && !in_array($extension, explode(',', $this->options['allowedExtensions']))) {
-                    throw new UploadException(
-                        "Extension '%s' not allowed via options, allowed extensions: '%s'",
-                        [$extension, $this->options['allowedExtensions']], UploadError::OPTION_NOT_ALLOWED_EXTENSION
-                    );
+                    throw new UploadException("Extension '%s' not allowed via options, allowed extensions: '%s'",
+                        [$extension, $this->options['allowedExtensions']], UploadError::OPTION_NOT_ALLOWED_EXTENSION);
                 }
             }
 
@@ -216,7 +193,7 @@ abstract class AbstractUploader
         }
 
         $destination = $this->options['directory'] .'/'. ($name ?? $this->sourceInfo['name']);
-        if ($extension != null) {
+        if ($extension !== null) {
             $destination = $destination .'.'. $extension;
         }
 
@@ -233,59 +210,60 @@ abstract class AbstractUploader
      */
     protected final function prepareName(string $name, string $appendix = null): string
     {
+        $name = trim($name);
+        $name || throw new UploadException('Empty name given');
+
         // Some security & standard stuff.
-        $name = preg_replace('~[^\w\-]~i', '-', file_name($name));
+        $name = preg_replace('~[^\w\-]~i', '-', $name);
         if (strlen($name) > 255) {
             $name = substr($name, 0, 255);
         }
 
-        $name = trim($name, '-');
-
         // Hash name if option set.
         $hash = $this->options['hash'];
-        if ($hash != null) {
+        if ($hash !== null) {
             static $hashAlgos = [8 => 'fnv1a32', 16 => 'fnv1a64', 32 => 'md5', 40 => 'sha1'],
                    $hashLengthDefault = 32;
 
             $hashAlgo = $hashAlgos[$this->options['hashLength'] ?? $hashLengthDefault] ?? null;
-            if (!$hashAlgo) {
-                throw new UploadException("Invalid 'hashLength' option '%s', valids are: 8, 16, 32, 40",
-                    $this->options['hashLength']);
-            }
+            $hashAlgo || throw new UploadException("Invalid 'hashLength' option '%s', valids are: 8, 16, 32, 40",
+                $this->options['hashLength']);
 
-            if ($hash == 'random') {
-                $name = hash($hashAlgo, self::uniqid());
-            } elseif ($hash == 'file') {
-                $name = hash_file($hashAlgo, $this->source);
-            } elseif ($hash == 'fileName') {
-                $name = hash($hashAlgo, $name);
-            } else {
-                throw new UploadException("Invalid 'hash' option '%s', valids are: random, file, fileName",
-                    $hash);
-            }
+            $name = match ($hash) {
+                'rand'  => hash($hashAlgo, uuid()),
+                'file'  => hash_file($hashAlgo, $this->source),
+                'name'  => hash($hashAlgo, $name),
+                default => throw new UploadException("Invalid 'hash' option '%s', valids are: rand, file, name",
+                    $hash),
+            };
 
-            if (!$name) {
-                throw new UploadException('Cannot hash file name [error: %s]', '@error');
-            }
+            $name || throw new UploadException('Cannot hash file name [error: %s]', '@error');
         }
 
         // Appendix like 'crop' (ie: abc123-crop.jpg).
-        if ($appendix != null) {
+        if ($appendix !== null) {
             $name .= '-'. preg_replace('~[^\w\-]~i', '', $appendix);
         }
+
+        $name = trim($name, '-');
 
         return $name;
     }
 
     /**
-     * Generate a uniq-id.
+     * Check overwrite avaibility.
      *
-     * @return string
+     * @param  string $destination
+     * @return void
+     * @throws froq\file\upload\UploadException
      * @since  5.0
      */
-    private static function uniqid(): string
+    protected final function overwriteCheck(string $destination): void
     {
-        return md5(uniqid(random_bytes(8), true));
+        if (!$this->options['overwrite'] && file_exists($destination)) {
+            throw new UploadException("Cannot overwrite existing file '%s'", $destination,
+                UploadError::OPTION_NOT_ALLOWED_OVERWRITE);
+        }
     }
 
     /**
@@ -315,7 +293,7 @@ abstract class AbstractUploader
     abstract public function move(): string;
 
     /**
-     * Move a file with given name.
+     * Move a file with given name, return its new name.
      *
      * @param  string $name
      * @param  string|null $appendix

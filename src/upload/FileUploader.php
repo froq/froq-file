@@ -12,6 +12,8 @@ use froq\file\upload\{AbstractUploader, UploadException};
 /**
  * File Uploader.
  *
+ * Represents an updloader entity which aims to upload files in OOP style.
+ *
  * @package froq\file\upload
  * @object  froq\file\upload\FileUploader
  * @author  Kerem Güneş <k-gun@mail.com>
@@ -27,10 +29,10 @@ final class FileUploader extends AbstractUploader
         $source = $this->getSource();
         $destination = $this->getDestination();
 
-        $ok = copy($source, $destination);
-        if (!$ok) {
-            throw new UploadException('Cannot save file [error: %s]', '@error');
-        }
+        $this->overwriteCheck($destination);
+
+        copy($source, $destination)
+            || throw new UploadException('Failed saving file [error: %s]', '@error');
 
         return $destination;
     }
@@ -40,17 +42,13 @@ final class FileUploader extends AbstractUploader
      */
     public function saveAs(string $name, string $appendix = null): string
     {
-        if ($name == '') {
-            throw new UploadException('Name must not be empty');
-        }
-
         $source = $this->getSource();
         $destination = $this->getDestination($name, $appendix);
 
-        $ok = copy($source, $destination);
-        if (!$ok) {
-            throw new UploadException('Cannot save file [error: %s]', '@error');
-        }
+        $this->overwriteCheck($destination);
+
+        copy($source, $destination)
+            || throw new UploadException('Failed saving file [error: %s]', '@error');
 
         return $destination;
     }
@@ -63,10 +61,10 @@ final class FileUploader extends AbstractUploader
         $source = $this->getSource();
         $destination = $this->getDestination();
 
-        $ok = copy($source, $destination);
-        if (!$ok) {
-            throw new UploadException('Cannot move file [error: %s]', '@error');
-        }
+        $this->overwriteCheck($destination);
+
+        copy($source, $destination)
+            || throw new UploadException('Failed moving file [error: %s]', '@error');
 
         unlink($source); // Remove source instantly.
 
@@ -78,17 +76,13 @@ final class FileUploader extends AbstractUploader
      */
     public function moveAs(string $name, string $appendix = null): string
     {
-        if ($name == '') {
-            throw new UploadException('Name must not be empty');
-        }
-
         $source = $this->getSource();
         $destination = $this->getDestination($name, $appendix);
 
-        $ok = copy($source, $destination);
-        if (!$ok) {
-            throw new UploadException('Cannot move file [error: %s]', '@error');
-        }
+        $this->overwriteCheck($destination);
+
+        copy($source, $destination)
+            || throw new UploadException('Failed moving file [error: %s]', '@error');
 
         unlink($source); // Remove source instantly.
 
@@ -100,11 +94,7 @@ final class FileUploader extends AbstractUploader
      */
     public function clear(bool $force = false): void
     {
-        if (!$force) {
-            if ($this->options['clearSource']) {
-                unlink($this->getSource());
-            }
-        } else {
+        if ($force || $this->options['clearSource']) {
             unlink($this->getSource());
         }
     }

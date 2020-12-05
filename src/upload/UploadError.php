@@ -31,6 +31,7 @@ class UploadError extends FileError
                  OPTION_EMPTY_EXTENSION       = 6,
                  OPTION_NOT_ALLOWED_TYPE      = 7,
                  OPTION_NOT_ALLOWED_EXTENSION = 8,
+                 OPTION_NOT_ALLOWED_OVERWRITE = 9,
                  DIRECTORY_EMPTY              = 10,
                  DIRECTORY_ERROR              = 11;
 
