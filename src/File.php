@@ -79,7 +79,7 @@ final class File
     }
 
     /**
-     * Read entire contents from a file/resource.
+     * Read entire contents from a file/stream.
      *
      * @param  string|resource $file
      * @return string
@@ -102,7 +102,7 @@ final class File
     }
 
     /**
-     * Write given contents entirely into a file/resource.
+     * Write given contents entirely into a file/stream.
      *
      * @param  string|resource $file
      * @param  string          $contents
@@ -138,23 +138,20 @@ final class File
     public static function mode(string $file, int $mode = null): string
     {
         if ($mode !== null) {
-            // Get mode.
-            if ($mode === -1) {
-                $ret = fileperms($file);
-                if ($ret === false) {
-                    throw new FileError("Cannot get file stat for '%s'", $file);
-                }
-            }
-            // Set mode.
-            else {
+            if ($mode > -1) { // Set mode.
                 $ret = chmod($file, $mode);
                 if ($ret === false) {
                     throw new FileError("Cannot set file mode [error: %s, file: %s]", ['@error', $file]);
                 }
                 $ret = $mode;
+            } else { // Get mode.
+                $ret = fileperms($file);
+                if ($ret === false) {
+                    throw new FileError("Cannot get file stat for '%s'", $file);
+                }
             }
 
-            // Compare.
+            // Comparing.
             // $mode = File::mode($file, -1)
             // $mode === '644' or octdec($mode) === 0644
             return $ret ? decoct($ret & 0777) : null;
@@ -167,16 +164,16 @@ final class File
         }
 
         // Source http://php.net/fileperms.
-        switch ($perms & 0xf000) {
-            case 0xc000: $ret = 's'; break; // Socket.
-            case 0xa000: $ret = 'l'; break; // Symbolic link.
-            case 0x8000: $ret = 'r'; break; // Regular.
-            case 0x6000: $ret = 'b'; break; // Block special.
-            case 0x4000: $ret = 'd'; break; // Directory.
-            case 0x2000: $ret = 'c'; break; // Character special.
-            case 0x1000: $ret = 'p'; break; // FIFO pipe.
-                default: $ret = 'u';        // Unknown.
-        }
+        $ret = match ($perms & 0xf000) {
+             0xc000 => 's', // Socket.
+             0xa000 => 'l', // Symbolic link.
+             0x8000 => 'r', // Regular.
+             0x6000 => 'b', // Block special.
+             0x4000 => 'd', // Directory.
+             0x2000 => 'c', // Character special.
+             0x1000 => 'p', // FIFO pipe.
+            default => 'u', // Unknown.
+        };
 
         // Owner.
         $ret .= (($perms & 0x0100) ? 'r' : '-');
