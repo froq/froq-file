@@ -100,16 +100,14 @@ abstract class AbstractUploader
                 null, UploadError::OPTION_EMPTY_EXTENSION);
         }
 
-        if (($option_allowedTypes !== '*') && (
-            !in_array($type, explode(',', $option_allowedTypes))
-        )) {
+        if ($option_allowedTypes !== '*' &&
+            !in_array($type, explode(',', $option_allowedTypes))) {
             throw new UploadException("Type '%s' not allowed via options, allowed types: '%s'",
                 [$type, $option_allowedTypes], UploadError::OPTION_NOT_ALLOWED_TYPE);
         }
 
-        if ($extension && ($option_allowedExtensions !== '*') && (
-            !in_array($extension, explode(',', $option_allowedExtensions))
-        )) {
+        if ($extension && $option_allowedExtensions !== '*' &&
+            !in_array($extension, explode(',', $option_allowedExtensions))) {
             throw new UploadException("Extension '%s' not allowed via options, allowed extensions: '%s'",
                 [$extension, $option_allowedExtensions], UploadError::OPTION_NOT_ALLOWED_EXTENSION);
         }
@@ -117,9 +115,8 @@ abstract class AbstractUploader
         $directory = trim($file['directory'] ?? $options['directory'] ?? '');
         $directory || throw new UploadException('Directory must not be empty', null, UploadError::DIRECTORY_EMPTY);
 
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true) || throw new UploadException('Cannot make directory [error: %s]',
-                '@error', UploadError::DIRECTORY_ERROR);
+        if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
+            throw new UploadException('Cannot make directory [error: %s]', '@error', UploadError::DIRECTORY_ERROR);
         }
 
         // Set destination name as random UUID default, if no name given.
@@ -184,8 +181,8 @@ abstract class AbstractUploader
         if ($name !== null) {
             if (strsrc($name, '.')) {
                 $extension = file_extension($name);
-                if ($extension && $this->options['allowedExtensions'] !== '*'
-                    && !in_array($extension, explode(',', $this->options['allowedExtensions']))) {
+                if ($extension && $this->options['allowedExtensions'] !== '*' &&
+                    !in_array($extension, explode(',', $this->options['allowedExtensions']))) {
                     throw new UploadException("Extension '%s' not allowed via options, allowed extensions: '%s'",
                         [$extension, $this->options['allowedExtensions']], UploadError::OPTION_NOT_ALLOWED_EXTENSION);
                 }
