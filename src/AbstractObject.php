@@ -29,10 +29,10 @@ abstract class AbstractObject
      */
     use OptionTrait, ApplyTrait;
 
-    /** @var ?resource */
+    /** @var resource|GDImage|null */
     protected $resource;
 
-    /** @var ?resource|?string */
+    /** @var resource|null */
     protected $resourceFile;
 
     /** @var ?string */
@@ -47,26 +47,31 @@ abstract class AbstractObject
     /**
      * Constructor.
      *
-     * @param  resource|null $resource
-     * @param  string|null   $mime
+     * @param  resource|GDImage|null $resource
+     * @param  string|null           $mime
      * @throws froq\file\FileException
      */
     public function __construct($resource = null, string $mime = null)
     {
         if ($this instanceof FileObject) {
-            $resource ??= tmpfile(); // Open a temp file.
-            (is_resource($resource) && get_resource_type($resource) == 'stream')
-                || throw new FileException("Resource type must be stream, '%s' given", get_type($resource));
+            // Open a temporary file when none given.
+            $resource ??= tmpfile();
+
+            if (!is_type_of($resource, 'stream')) {
+                throw new FileException("Resource type must be stream, '%s' given", get_type($resource));
+            }
 
             $this->resourceType = 'file';
         } elseif ($this instanceof ImageObject) {
-            if (is_resource($resource) && get_resource_type($resource) == 'stream') {
-                $temp = ImageObject::fromString(stream_get_contents($resource, -1, 0));
+            // When a resource given, eg: fopen('path/to/file.jpg', 'rb').
+            if (is_stream($resource)) {
+                $temp = ImageObject::fromString(freadall($resource));
                 [$resource, $mime] = [$temp->getResource(), $temp->getMime()];
             }
 
-            is_a($resource, 'GdImage')
-                || throw new FileException("Resource type must be GdImage, '%s' given", get_type($resource));
+            if (!is_type_of($resource, 'GDImage')) {
+                throw new FileException("Resource type must be GDImage, '%s' given", get_type($resource));
+            }
 
             $this->resourceType = 'image';
         }
@@ -78,7 +83,7 @@ abstract class AbstractObject
     /**
      * Get resource.
      *
-     * @return resource|null
+     * @return resource|GDImage|null
      */
     public final function getResource()
     {
@@ -108,62 +113,64 @@ abstract class AbstractObject
     /**
      * Create a resource copy.
      *
-     * @return resource|null
+     * @return resource|GDImage|null
      */
     public final function &createResourceCopy()
     {
-        if ($this->resource) {
-            if ($this instanceof FileObject && is_resource($this->resource)) {
-                $pos = ftell($this->resource);
-                rewind($this->resource);
-
-                $copy = fopen('php://temp', 'w+b');
-                stream_copy_to_stream($this->resource, $copy, -1, 0);
-                rewind($copy);
-
-                fseek($this->resource, $pos);
-            } elseif ($this instanceof ImageObject && is_a($this->resource, 'GdImage')) {
-                $copy = imagecreatetruecolor(
-                    $width  = imagesx($this->resource),
-                    $height = imagesy($this->resource)
-                );
-
-                if (in_array($this->mime, [ImageObject::MIME_PNG, ImageObject::MIME_GIF, ImageObject::MIME_WEBP])) {
-                    imagealphablending($copy, false);
-                    imagesavealpha($copy, true);
-                    imageantialias($copy, true);
-                    imagefill($copy, 0, 0, imagecolorallocatealpha(
-                        $copy, 255, 255, 255, 127 // Apply transparency.
-                    ));
-                }
-
-                imagecopyresampled($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
-            }
-
-            return $copy;
+        if (empty($this->resource)) {
+            return null;
         }
 
-        return null;
+        if ($this instanceof FileObject) {
+            $pos = ftell($this->resource);
+            rewind($this->resource);
+
+            $copy = fopen('php://temp', 'w+b');
+            stream_copy_to_stream($this->resource, $copy, -1, 0);
+            rewind($copy);
+
+            fseek($this->resource, $pos);
+        } elseif ($this instanceof ImageObject) {
+            $copy = imagecreatetruecolor(
+                $width  = imagesx($this->resource),
+                $height = imagesy($this->resource)
+            );
+
+            if (in_array($this->mime, [ImageObject::MIME_PNG, ImageObject::MIME_GIF, ImageObject::MIME_WEBP])) {
+                imagealphablending($copy, false);
+                imagesavealpha($copy, true);
+                imageantialias($copy, true);
+                imagefill($copy, 0, 0, imagecolorallocatealpha(
+                    $copy, 255, 255, 255, 127 // Apply transparency.
+                ));
+            }
+
+            imagecopyresampled($copy, $this->resource, 0, 0, 0, 0, $width, $height, $width, $height);
+        }
+
+        return $copy;
     }
 
     /**
      * Remove a resource copy.
      *
-     * @param  resource &$copy
+     * @param  resource|GDImage &$copy
      * @return bool|null
      */
     public final function removeResourceCopy(&$copy): bool|null
     {
-        if ($copy) {
-            if ($this instanceof FileObject && is_resource($copy)) {
-                return fclose($copy);
-            } elseif ($this instanceof ImageObject && is_a($copy, 'GdImage')) {
-                unset($copy);
-                return true;
-            }
+        if (empty($copy)) {
+            return null;
         }
 
-        return null;
+        if ($this instanceof FileObject && is_type_of($copy, 'stream')) {
+            return fclose($copy);
+        } elseif ($this instanceof ImageObject && is_type_of($copy, 'GDImage')) {
+            $copy = null;
+            return true;
+        }
+
+        throw new FileException('Invalid resource copy, valids are: stream, GDImage');
     }
 
     /**
@@ -194,19 +201,17 @@ abstract class AbstractObject
      */
     public final function free(): void
     {
-        if ($this->resource && is_resource($this->resource)) {
-            if ($this instanceof FileObject) {
-                $this->freed = fclose($this->resource);
-            } elseif ($this instanceof ImageObject) {
-                unset($this->resource);
-                $this->freed = true;
-            }
+        if ($this instanceof FileObject && is_resource($this->resource)) {
+            $this->freed = fclose($this->resource);
+        } elseif ($this instanceof ImageObject) {
+            $this->freed = true;
         }
 
-        if ($this->resourceFile && is_resource($this->resourceFile)) {
+        if (is_resource($this->resourceFile)) {
             fclose($this->resourceFile);
         }
 
+        // Void all.
         $this->resource = $this->resourceFile = $this->resourceType = null;
     }
 
@@ -263,7 +268,11 @@ abstract class AbstractObject
         if ($this->freed) {
             throw new FileException('No resource to process with, it is freed');
         }
-        if (!$this->resource || (!is_resource($this->resource) && !is_a($this->resource, 'GdImage'))) {
+
+        if (empty($this->resource) || (
+               !is_type_of($this->resource, 'stream')
+            && !is_type_of($this->resource, 'GDImage')
+        )) {
             throw new FileException('No resource to process with, it is not valid');
         }
     }
