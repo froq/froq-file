@@ -108,7 +108,7 @@ final class Util
 
             if (is_dir($file)) {
                 $error = new FileError("Given path '%s' is a directory",
-                    $file, FileError::DIRECTORY_GIVEN);
+                    get_real_path($file), FileError::DIRECTORY_GIVEN);
             } // else ok.
         } else {
             $error = $error ?? error_message() ?? 'Unknown error';
@@ -117,10 +117,10 @@ final class Util
                     strtr($file, ["\0" => "\\0"]), FileError::NO_VALID_PATH);
             } elseif (stripos($error, 'no such file')) {
                 $error = new FileError("No file exists such '%s'",
-                    $file, FileError::NO_SUCH_FILE);
+                    get_real_path($file), FileError::NO_SUCH_FILE);
             } elseif (stripos($error, 'permission denied')) {
                 $error = new FileError("No permission for accessing to '%s' file",
-                    $file, FileError::NO_PERMISSION);
+                    get_real_path($file), FileError::NO_PERMISSION);
             } else {
                 $error = new FileError($error);
             }
