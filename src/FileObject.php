@@ -242,7 +242,7 @@ final class FileObject extends AbstractObject implements Stringable
     {
         $this->resourceCheck();
 
-        return stream_get_meta_data($this->resource) ?: null;
+        return fmeta($this->resource) ?: null;
     }
 
     /**
@@ -255,7 +255,7 @@ final class FileObject extends AbstractObject implements Stringable
         $this->resourceCheck();
 
         $stat = fstat($this->resource) ?: null;
-        $meta = stream_get_meta_data($this->resource) ?: null;
+        $meta = fmeta($this->resource) ?: null;
 
         return ($stat && $meta) ? $stat + ['meta' => $meta] : null;
     }
@@ -347,7 +347,7 @@ final class FileObject extends AbstractObject implements Stringable
         $this->resourceCheck();
 
         $pos = ftell($this->resource);
-        $ret = stream_get_contents($this->resource, -1, 0);
+        $ret = freadall($this->resource);
         fseek($this->resource, $pos);
 
         return ($ret !== false) ? $ret : null;
