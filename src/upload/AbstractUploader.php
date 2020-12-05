@@ -80,7 +80,7 @@ abstract class AbstractUploader
         }
 
         // Type & extension security.
-        if ($option_allowedTypes == null || $option_allowedExtensions == null) {
+        if (empty($option_allowedTypes) || empty($option_allowedExtensions)) {
             throw new UploadException(
                 "Option 'allowedTypes' and 'allowedExtensions' must not be empty for " .
                 "security reasons, please provide both types and extensions you allow (ie: for " .
@@ -95,19 +95,21 @@ abstract class AbstractUploader
         }
 
         $extension = Mime::getExtensionByType($type);
-        if ($extension == null && $option_allowEmptyExtensions === false) {
+        if (!$extension && $option_allowEmptyExtensions === false) {
             throw new UploadException('Empty extensions not allowed via options',
                 null, UploadError::OPTION_EMPTY_EXTENSION);
         }
 
-        if ($option_allowedTypes !== '*'
-            && !in_array($type, explode(',', $option_allowedTypes))) {
+        if (($option_allowedTypes !== '*') && (
+            !in_array($type, explode(',', $option_allowedTypes))
+        )) {
             throw new UploadException("Type '%s' not allowed via options, allowed types: '%s'",
                 [$type, $option_allowedTypes], UploadError::OPTION_NOT_ALLOWED_TYPE);
         }
 
-        if ($extension && $option_allowedExtensions !== '*'
-            && !in_array($extension, explode(',', $option_allowedExtensions))) {
+        if ($extension && ($option_allowedExtensions !== '*') && (
+            !in_array($extension, explode(',', $option_allowedExtensions))
+        )) {
             throw new UploadException("Extension '%s' not allowed via options, allowed extensions: '%s'",
                 [$extension, $option_allowedExtensions], UploadError::OPTION_NOT_ALLOWED_EXTENSION);
         }
