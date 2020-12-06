@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace froq\file;
 
 use froq\file\mime\{Mime, MimeException};
-use froq\file\{FileError, Util as FileUtil};
+use froq\file\{FileException, Util as FileUtil};
 
 /**
  * File.
@@ -83,19 +83,21 @@ final class File
      *
      * @param  string|resource $file
      * @return string
-     * @throws froq\file\FileError
+     * @throws froq\file\FileException
      * @since  4.0
      */
     public static function read($file): string
     {
-        $ret = match ($type = get_type($file)) {
-            'string' => file_get_contents($file),
-            'resource (stream)' => stream_get_contents($file, -1, 0),
-            default => throw new FileError('Invalid file type %s, valids are: string|resource', $type)
-        };
+        if (is_string($file)) {
+            $ret = file_get_contents($file);
+        } elseif (is_stream($file)) {
+            $ret = stream_get_contents($file, -1, 0);
+        } else {
+            throw new FileException('Invalid file type %s, valids are: string, stream', $type);
+        }
 
         if ($ret === false) {
-            throw new FileError('Cannot read file [error: %s, file: %s]', ['@error', $file]);
+            throw new FileException('Cannot read file [error: %s, file: %s]', ['@error', $file]);
         }
 
         return $ret;
@@ -108,19 +110,21 @@ final class File
      * @param  string          $contents
      * @param  int             $flags
      * @return bool
-     * @throws froq\file\FileError
+     * @throws froq\file\FileException
      * @since  4.0
      */
     public static function write($file, string $contents, int $flags = 0): bool
     {
-        $ret = match ($type = get_type($file)) {
-            'string' => file_set_contents($file, $contents, $flags),
-            'resource (stream)' => stream_set_contents($file, $contents),
-            default => throw new FileError('Invalid file type %s, valids are: string|resource', $type)
-        };
+        if (is_string($file)) {
+            $ret = file_set_contents($file, $contents, $flags) !== null;
+        } elseif (is_stream($file)) {
+            $ret = stream_set_contents($file, $contents);
+        } else {
+            throw new FileException('Invalid file type %s, valids are: string, stream', $type);
+        }
 
         if ($ret === false) {
-            throw new FileError('Cannot write file [error: %s, file: %s]', ['@error', $file]);
+            throw new FileException('Cannot write file [error: %s, file: %s]', ['@error', $file]);
         }
 
         return true;
@@ -132,7 +136,7 @@ final class File
      * @param  string   $file
      * @param  int|null $mode
      * @return string
-     * @throws froq\file\FileError
+     * @throws froq\file\FileException
      * @since  4.0
      */
     public static function mode(string $file, int $mode = null): string
@@ -141,13 +145,14 @@ final class File
             if ($mode > -1) { // Set mode.
                 $ret = chmod($file, $mode);
                 if ($ret === false) {
-                    throw new FileError("Cannot set file mode [error: %s, file: %s]", ['@error', $file]);
+                    throw new FileException("Cannot set file mode [error: %s, file: %s]",
+                        ['@error', $file]);
                 }
                 $ret = $mode;
             } else { // Get mode.
                 $ret = fileperms($file);
                 if ($ret === false) {
-                    throw new FileError("Cannot get file stat for '%s'", $file);
+                    throw new FileException("Cannot get file stat for '%s'", $file);
                 }
             }
 
@@ -160,7 +165,7 @@ final class File
         // Get full permissions.
         $perms = fileperms($file);
         if ($perms === false) {
-            throw new FileError("Cannot get file stat for '%s'", $file);
+            throw new FileException("Cannot get file stat for '%s'", $file);
         }
 
         // Source http://php.net/fileperms.
