@@ -8,7 +8,8 @@ declare(strict_types=1);
 namespace froq\file;
 
 use froq\file\mime\{Mime, MimeException};
-use froq\file\FileException;
+use froq\file\{FileError, FileException};
+use Error;
 
 /**
  * File.

@@ -7,9 +7,6 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\file\FileError;
-use Error;
-
 /**
  * Util.
  *
