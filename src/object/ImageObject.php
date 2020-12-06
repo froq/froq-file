@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
-use froq\file\object\{AbstractObject, ObjectException, FileObject};
+use froq\file\object\{AbstractObject, ObjectException, TempFileObject};
 use froq\file\upload\ImageUploader;
 use froq\file\File;
 
@@ -81,9 +81,10 @@ class ImageObject extends AbstractObject
      */
     public final function resize(int $width, int $height, array $options = null): self
     {
-        $temp = is_resource($this->resourceFile)
-            ? new FileObject($this->resourceFile)
-            : (new FileObject)->setContents($this->getContents());
+        $temp = new TempFileObject();
+        is_resource($this->resourceFile)
+            ? $temp->setResource($this->resourceFile)
+            : $temp->setContents($this->getContents());
 
         $resource = (new ImageUploader(
             ['type' => $this->mime, 'file' => $temp->path(), 'directory' => '/tmp'],
@@ -108,9 +109,10 @@ class ImageObject extends AbstractObject
      */
     public final function crop(int $width, int $height = null, array $options = null): self
     {
-        $temp = is_resource($this->resourceFile)
-            ? new FileObject($this->resourceFile)
-            : (new FileObject)->setContents($this->getContents());
+        $temp = new TempFileObject();
+        is_resource($this->resourceFile)
+            ? $temp->setResource($this->resourceFile)
+            : $temp->setContents($this->getContents());
 
         $resource = (new ImageUploader(
             ['type' => $this->mime, 'file' => $temp->path(), 'directory' => '/tmp'],
