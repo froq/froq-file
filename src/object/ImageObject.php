@@ -64,6 +64,10 @@ final class ImageObject extends AbstractObject implements Stringable
      */
     public function size(): int|null
     {
+        if (is_resource($this->resourceFile)) {
+            return fstat($this->resourceFile)['size'];
+        }
+
         return ($contents = $this->getContents()) ? strlen($contents) : null;
     }
 
@@ -324,7 +328,7 @@ final class ImageObject extends AbstractObject implements Stringable
         $mime || $mime = getimagesizefromstring($string)['mime'] ?? null;
 
         $image = new static($resource, $mime, $options);
-        $image->resourceFile = tmpfile(); // Stored for speed up resize(), crop(), getContents().
+        $image->resourceFile = tmpfile(); // Stored for speed up resize(), crop(), getContents() etc.
         fwrite($image->resourceFile, $string);
 
         return $image;

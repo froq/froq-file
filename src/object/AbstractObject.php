@@ -70,7 +70,7 @@ abstract class AbstractObject
             // When a resource given, eg: fopen('path/to/file.jpg', 'rb').
             if (is_stream($resource)) {
                 $temp = ImageObject::fromString(freadall($resource));
-                [$resource, $mime] = [$temp->getResource(), $temp->getMime()];
+                [$resource, $mime] = [$temp->getResource(), $temp->getMime(), $temp->free()];
             }
 
             if (!is_type_of($resource, 'GDImage')) {
