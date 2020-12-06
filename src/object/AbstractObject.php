@@ -189,10 +189,10 @@ abstract class AbstractObject implements Sizable, Stringable
             return null;
         }
 
-        if ($this instanceof FileObject && is_type_of($copy, 'stream')) {
+        if ($this instanceof FileObject && is_stream($copy)) {
             return fclose($copy);
-        } elseif ($this instanceof ImageObject && is_type_of($copy, 'GDImage')) {
-            $copy = null;
+        } elseif ($this instanceof ImageObject && is_image($copy)) {
+            unset($copy);
             return true;
         }
 
@@ -309,8 +309,7 @@ abstract class AbstractObject implements Sizable, Stringable
         if ($this->freed) {
             throw new ObjectException('No resource to process with, it is freed');
         }
-
-        if (!is_type_of($this->resource, 'stream') && !is_type_of($this->resource, 'GDImage')) {
+        if (!is_stream($this->resource) && !is_image($this->resource)) {
             throw new ObjectException('No resource to process with, it is not valid');
         }
     }
