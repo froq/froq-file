@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
-use froq\file\Util as FileUtil;
 use froq\file\object\{AbstractObject, ObjectException, FileObject};
 use froq\file\upload\ImageUploader;
+use froq\file\Util as FileUtil;
 use froq\common\interfaces\Stringable;
 
 /**
@@ -46,7 +46,7 @@ final class ImageObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Get a copy of image object as a new `ImageObject`.
+     * Get a copy of image object as a new ImageObject.
      *
      * @return froq\file\ImageObject
      */
@@ -65,7 +65,7 @@ final class ImageObject extends AbstractObject implements Stringable
     public function size(): int|null
     {
         if (is_resource($this->resourceFile)) {
-            return fstat($this->resourceFile)['size'];
+            return fsize($this->resourceFile);
         }
 
         return ($contents = $this->getContents()) ? strlen($contents) : null;

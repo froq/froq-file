@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
-use froq\file\Util as FileUtil;
 use froq\file\object\{AbstractObject, ObjectException};
+use froq\file\Util as FileUtil;
 use froq\common\interfaces\Stringable;
 
 /**
@@ -27,22 +27,22 @@ final class FileObject extends AbstractObject implements Stringable
     protected static array $optionsDefault = ['mode' => 'r+b'];
 
     /**
-     * Write some content of file.
+     * Write some contents to file.
      *
-     * @param  string $content
+     * @param  string $contents
      * @return int|null
      */
-    public function write(string $content): int|null
+    public function write(string $contents): int|null
     {
         $this->resourceCheck();
 
-        $ret = fwrite($this->resource, $content);
+        $ret = fwrite($this->resource, $contents);
 
         return ($ret !== false) ? $ret : null;
     }
 
     /**
-     * Read some content of file by length.
+     * Read some contents from file by length.
      *
      * @param  int $length
      * @return string|null
@@ -57,7 +57,7 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Read all content of file.
+     * Read all contents from file.
      *
      * @param  int $from
      * @return string|null
@@ -124,7 +124,7 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Get a copy of file object as a new `FileObject`.
+     * Get a copy of file object as a new FileObject.
      *
      * @return froq\file\object\FileObject
      */
@@ -145,7 +145,7 @@ final class FileObject extends AbstractObject implements Stringable
     {
         $this->resourceCheck();
 
-        return flock($this->resource, $block ? LOCK_EX : LOCK_EX | LOCK_NB);
+        return flock($this->resource, ($block ? LOCK_EX : LOCK_EX | LOCK_NB));
     }
 
     /**
@@ -167,7 +167,9 @@ final class FileObject extends AbstractObject implements Stringable
      */
     public function size(): int|null
     {
-        return $this->stat()['size'];
+        $this->resourceCheck();
+
+        return fsize($this->resource);
     }
 
     /**
@@ -180,7 +182,7 @@ final class FileObject extends AbstractObject implements Stringable
     public function offset(int $where = null, int $whence = null): int|bool|null
     {
         return ($where === null) ? $this->getPosition()
-            : $this->setPosition($where, $whence ?? SEEK_SET);
+            : $this->setPosition($where, ($whence ?? SEEK_SET));
     }
 
     /**
@@ -362,7 +364,7 @@ final class FileObject extends AbstractObject implements Stringable
      */
     public function isEmpty(): bool
     {
-        return ($this->freed || !$this->resource || !fstat($this->resource)['size']);
+        return ($this->freed || !$this->resource || !fsize($this->resource));
     }
 
     /**
