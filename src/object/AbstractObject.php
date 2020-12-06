@@ -9,6 +9,7 @@ namespace froq\file\object;
 
 use froq\file\object\{ObjectException, FileObject, ImageObject};
 use froq\common\traits\{OptionTrait, ApplyTrait};
+use froq\common\interfaces\{Sizable, Stringable};
 
 /**
  * Abstract Object.
@@ -20,7 +21,7 @@ use froq\common\traits\{OptionTrait, ApplyTrait};
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   4.0, 5.0 Moved to object directory.
  */
-abstract class AbstractObject
+abstract class AbstractObject implements Sizable, Stringable
 {
     /**
      * Option & Apply traits.
@@ -34,9 +35,6 @@ abstract class AbstractObject
 
     /** @var resource|null */
     protected $resourceFile;
-
-    /** @var ?string */
-    protected ?string $resourceType;
 
     /** @var ?string */
     protected ?string $mime;
@@ -53,39 +51,48 @@ abstract class AbstractObject
      */
     public function __construct($resource = null, string $mime = null, array $options = null)
     {
-        if ($this instanceof FileObject) {
-            $resource ??= tmpfile(); // Open a temporary file if none given.
+        if ($resource != null) {
+            if ($this instanceof FileObject) {
+                if (!is_type_of($resource, 'stream')) {
+                    throw new ObjectException("Resource type must be stream, '%s' given",
+                        get_type($resource));
+                }
+            } elseif ($this instanceof ImageObject) {
+                if ($mime && !in_array($mime, static::$mimes)) {
+                    throw new ObjectException("Invalid MIME '%s', valids are: %s",
+                        [$mime, join(', ', static::$mimes)]);
+                }
 
-            if (!is_type_of($resource, 'stream')) {
-                throw new ObjectException("Resource type must be stream, '%s' given",
-                    get_type($resource));
+                // When a resource given, eg: fopen('path/to/file.jpg', 'rb').
+                if (is_stream($resource)) {
+                    $temp = ImageObject::fromString(freadall($resource));
+                    [$resource, $mime] = [$temp->getResource(), $temp->getMime(), $temp->free()];
+                }
+
+                if (!is_type_of($resource, 'GDImage')) {
+                    throw new ObjectException("Resource type must be GDImage, '%s' given",
+                        get_type($resource));
+                }
             }
 
-            $this->resourceType = 'file';
-        } elseif ($this instanceof ImageObject) {
-            if ($mime && !in_array($mime, static::$mimes)) {
-                throw new ObjectException("Invalid MIME '%s', valids are: %s",
-                    [$mime, join(', ', static::$mimes)]);
-            }
-
-            // When a resource given, eg: fopen('path/to/file.jpg', 'rb').
-            if (is_stream($resource)) {
-                $temp = ImageObject::fromString(freadall($resource));
-                [$resource, $mime] = [$temp->getResource(), $temp->getMime(), $temp->free()];
-            }
-
-            if (!is_type_of($resource, 'GDImage')) {
-                throw new ObjectException("Resource type must be GDImage, '%s' given",
-                    get_type($resource));
-            }
-
-            $this->resourceType = 'image';
+            $this->setResource($resource);
         }
 
-        $this->resource = $resource;
         $this->mime = $mime;
 
         $this->setOptionsDefault($options, static::$optionsDefault);
+    }
+
+    /**
+     * Set resource.
+     *
+     * @return resource|GDImage|null
+     */
+    public final function setResource($resource): void
+    {
+        $this->free();
+        $this->freed = null;
+        $this->resource = $resource;
     }
 
     /**
@@ -109,13 +116,24 @@ abstract class AbstractObject
     }
 
     /**
-     * Get resource type.
+     * Set mime type.
+     *
+     * @param  string $mime
+     * @return void
+     */
+    public final function setMime(string $mime): void
+    {
+        $this->mime = $mime;
+    }
+
+    /**
+     * Get mime type.
      *
      * @return string|null
      */
-    public final function getResourceType(): string|null
+    public final function getMime(): string|null
     {
-        return $this->resourceType;
+        return $this->mime;
     }
 
     /**
@@ -144,7 +162,7 @@ abstract class AbstractObject
                 $height = imagesy($this->resource)
             );
 
-            if (in_array($this->mime, [ImageObject::MIME_PNG, ImageObject::MIME_GIF, ImageObject::MIME_WEBP])) {
+            if (in_array($this->mime, ['image/png', 'image/gif', 'image/webp'])) {
                 imagealphablending($copy, false);
                 imagesavealpha($copy, true);
                 imageantialias($copy, true);
@@ -182,24 +200,40 @@ abstract class AbstractObject
     }
 
     /**
-     * Set mime type.
+     * Save file/image object contents to an absolute file.
      *
-     * @param  string $mime
-     * @return void
+     * @param  string      $directory
+     * @param  string|null $name
+     * @param  int|null    $mode
+     * @return string
+     * @throws froq\file\ObjectException
      */
-    public final function setMime(string $mime): void
+    public final function save(string $directory, string $name = null, int $mode = null): string
     {
-        $this->mime = $mime;
-    }
+        $directory = trim($directory);
+        if ($directory == '') {
+            throw new ObjectException('Empty directory given');
+        }
 
-    /**
-     * Get mime type.
-     *
-     * @return string|null
-     */
-    public final function getMime(): string|null
-    {
-        return $this->mime;
+        if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
+            throw new ObjectException('Cannot make directory [error: %s, directory: %s]',
+                ['@error', $directory]);
+        } elseif (!is_writable($directory)) {
+            throw new ObjectException('Cannot into write %s directory, it is not writable',
+                $directory);
+        }
+
+        // Make a random UUID name if no name given.
+        $file = chop($directory, '/') .'/'. ($name ?: uuid());
+
+        // Default is 0644.
+        $mode && touch($file) && chmod($file, $mode);
+
+        if (file_write($file, $this->toString()) === null) {
+            throw new ObjectException('Cannot write file [error: %s]', '@error');
+        }
+
+        return $file;
     }
 
     /**
@@ -209,18 +243,17 @@ abstract class AbstractObject
      */
     public final function free(): void
     {
-        if ($this instanceof FileObject && is_resource($this->resource)) {
-            $this->freed = fclose($this->resource);
-        } elseif ($this instanceof ImageObject) {
-            $this->freed = true;
+        if ($this->resource && is_stream($this->$resource)) {
+            fclose($this->resource);
         }
-
-        if (is_resource($this->resourceFile)) {
+        if ($this->resourceFile && is_stream($this->$resourceFile)) {
             fclose($this->resourceFile);
         }
 
+        $this->freed = true;
+
         // Void all.
-        $this->resource = $this->resourceFile = $this->resourceType = null;
+        $this->resource = $this->resourceFile = null;
     }
 
     /**
@@ -230,7 +263,7 @@ abstract class AbstractObject
      */
     public final function isFreed(): bool
     {
-        return ($this->freed === true);
+        return !!$this->freed;
     }
 
     /**
@@ -256,13 +289,13 @@ abstract class AbstractObject
      * @param  array|null  $options
      * @return static
      */
-    public static final function fromTemporaryResource(string $mime = null, array $options = null): static
+    public static final function fromTempResource(string $mime = null, array $options = null): static
     {
         if (static::class != FileObject::class) {
-            throw new ObjectException('Method %s() available for only %s', [__function__, FileObject::class]);
+            throw new ObjectException('Method available for only %s object', FileObject::class);
         }
 
-        return new static(null, $mime, $options);
+        return new static(tmpfile(), $mime, $options);
     }
 
     /**

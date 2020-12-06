@@ -10,7 +10,6 @@ namespace froq\file\object;
 use froq\file\object\{AbstractObject, ObjectException, FileObject};
 use froq\file\upload\ImageUploader;
 use froq\file\Util as FileUtil;
-use froq\common\interfaces\Stringable;
 
 /**
  * Image Object.
@@ -22,7 +21,7 @@ use froq\common\interfaces\Stringable;
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   4.0, 5.0 Moved to object directory.
  */
-final class ImageObject extends AbstractObject implements Stringable
+class ImageObject extends AbstractObject
 {
     /** @const string */
     public const MIME_JPEG = 'image/jpeg', MIME_PNG  = 'image/png',
@@ -40,7 +39,7 @@ final class ImageObject extends AbstractObject implements Stringable
      *
      * @return array
      */
-    public function getMimes(): array
+    public final function getMimes(): array
     {
         return self::$mimes;
     }
@@ -50,7 +49,7 @@ final class ImageObject extends AbstractObject implements Stringable
      *
      * @return froq\file\ImageObject
      */
-    public function copy(): ImageObject
+    public final function copy(): ImageObject
     {
         $this->resourceCheck();
 
@@ -58,25 +57,11 @@ final class ImageObject extends AbstractObject implements Stringable
     }
 
     /**
-     * Get image size.
-     *
-     * @return int|null
-     */
-    public function size(): int|null
-    {
-        if (is_resource($this->resourceFile)) {
-            return fsize($this->resourceFile);
-        }
-
-        return ($contents = $this->getContents()) ? strlen($contents) : null;
-    }
-
-    /**
      * Validate image resource.
      *
      * @return bool
      */
-    public function valid(): bool
+    public final function valid(): bool
     {
         try {
             $this->resourceCheck();
@@ -94,7 +79,7 @@ final class ImageObject extends AbstractObject implements Stringable
      * @param  array|null $options
      * @return self
      */
-    public function resize(int $width, int $height, array $options = null): self
+    public final function resize(int $width, int $height, array $options = null): self
     {
         $temp = is_resource($this->resourceFile)
             ? new FileObject($this->resourceFile)
@@ -121,7 +106,7 @@ final class ImageObject extends AbstractObject implements Stringable
      * @param  array|null $options
      * @return self
      */
-    public function crop(int $width, int $height = null, array $options = null): self
+    public final function crop(int $width, int $height = null, array $options = null): self
     {
         $temp = is_resource($this->resourceFile)
             ? new FileObject($this->resourceFile)
@@ -145,7 +130,7 @@ final class ImageObject extends AbstractObject implements Stringable
      *
      * @return array
      */
-    public function dimensions(): array
+    public final function dimensions(): array
     {
         $this->resourceCheck();
 
@@ -157,7 +142,7 @@ final class ImageObject extends AbstractObject implements Stringable
      *
      * @return array|null
      */
-    public function info(): array|null
+    public final function info(): array|null
     {
         if (($contents = $this->getContents())
             && ($info = getimagesizefromstring($contents))) {
@@ -193,7 +178,7 @@ final class ImageObject extends AbstractObject implements Stringable
      * @param  string $contents
      * @return self
      */
-    public function setContents(string $contents): self
+    public final function setContents(string $contents): self
     {
         $this->resourceCheck();
 
@@ -209,7 +194,7 @@ final class ImageObject extends AbstractObject implements Stringable
      * @return string|null
      * @throws froq\file\object\ObjectException
      */
-    public function getContents(): string|null
+    public final function getContents(): string|null
     {
         if (is_resource($this->resourceFile)) {
             return freadall($this->resourceFile);
@@ -247,7 +232,7 @@ final class ImageObject extends AbstractObject implements Stringable
      *
      * @return bool
      */
-    public function isJpeg(): bool
+    public final function isJpeg(): bool
     {
         return ($this->mime == self::MIME_JPEG);
     }
@@ -257,7 +242,7 @@ final class ImageObject extends AbstractObject implements Stringable
      *
      * @return bool
      */
-    public function isPng(): bool
+    public final function isPng(): bool
     {
         return ($this->mime == self::MIME_PNG);
     }
@@ -267,7 +252,7 @@ final class ImageObject extends AbstractObject implements Stringable
      *
      * @return bool
      */
-    public function isGif(): bool
+    public final function isGif(): bool
     {
         return ($this->mime == self::MIME_GIF);
     }
@@ -277,7 +262,7 @@ final class ImageObject extends AbstractObject implements Stringable
      *
      * @return bool
      */
-    public function isWebp(): bool
+    public final function isWebp(): bool
     {
         return ($this->mime == self::MIME_WEBP);
     }
@@ -287,7 +272,7 @@ final class ImageObject extends AbstractObject implements Stringable
      *
      * @return string
      */
-    public function toBase64(): string
+    public final function toBase64(): string
     {
         return base64_encode($this->getContents());
     }
@@ -297,15 +282,34 @@ final class ImageObject extends AbstractObject implements Stringable
      *
      * @return string
      */
-    public function toBase64Url(): string
+    public final function toBase64Url(): string
     {
         return 'data:' . $this->getMime() . ';base64,' . $this->toBase64();
     }
 
     /**
+     * @inheritDoc froq\common\interfaces\Sizable
+     */
+    public final function size(): int
+    {
+        $ret = is_resource($this->resourceFile) ? fsize($this->resourceFile)
+            : (($contents = $this->getContents()) ? strlen($contents) : null);
+
+        return ($ret !== null) ? $ret : -1;
+    }
+
+    /**
+     * @inheritDoc froq\common\interfaces\Stringable
+     */
+    public final function toString(): string
+    {
+        return (string) $this->getContents();
+    }
+
+    /**
      * @inheritDoc froq\file\object\AbstractObject
      */
-    public static function fromFile(string $file, string $mime = null, array $options = null): static
+    public static final function fromFile(string $file, string $mime = null, array $options = null): static
     {
         if (FileUtil::errorCheck($file, $error)) {
             throw new ObjectException($error->getMessage(), null, $error->getCode());
@@ -317,7 +321,7 @@ final class ImageObject extends AbstractObject implements Stringable
     /**
      * @inheritDoc froq\file\object\AbstractObject
      */
-    public static function fromString(string $string, string $mime = null, array $options = null): static
+    public static final function fromString(string $string, string $mime = null, array $options = null): static
     {
         $resource = imagecreatefromstring($string);
         $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
@@ -325,17 +329,11 @@ final class ImageObject extends AbstractObject implements Stringable
         $mime || $mime = getimagesizefromstring($string)['mime'] ?? null;
 
         $image = new static($resource, $mime, $options);
-        $image->resourceFile = tmpfile(); // Stored for speed up resize(), crop(), getContents() etc.
+
+        // For speeding up resize(), crop(), getContents() etc.
+        $image->resourceFile = tmpfile();
         fwrite($image->resourceFile, $string);
 
         return $image;
-    }
-
-    /**
-     * @inheritDoc froq\common\interfaces\Stringable
-     */
-    public function toString(): string
-    {
-        return $this->getContents();
     }
 }

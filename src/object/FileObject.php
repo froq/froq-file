@@ -9,7 +9,6 @@ namespace froq\file\object;
 
 use froq\file\object\{AbstractObject, ObjectException};
 use froq\file\Util as FileUtil;
-use froq\common\interfaces\Stringable;
 
 /**
  * File Object.
@@ -21,7 +20,7 @@ use froq\common\interfaces\Stringable;
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   4.0, 5.0 Moved to object directory.
  */
-final class FileObject extends AbstractObject implements Stringable
+class FileObject extends AbstractObject
 {
     /** @var array */
     protected static array $optionsDefault = ['mode' => 'r+b'];
@@ -32,7 +31,7 @@ final class FileObject extends AbstractObject implements Stringable
      * @param  string $contents
      * @return int|null
      */
-    public function write(string $contents): int|null
+    public final function write(string $contents): int|null
     {
         $this->resourceCheck();
 
@@ -47,13 +46,13 @@ final class FileObject extends AbstractObject implements Stringable
      * @param  int $length
      * @return string|null
      */
-    public function read(int $length): string|null
+    public final function read(int $length): string|null
     {
         $this->resourceCheck();
 
         $ret = fread($this->resource, $length);
 
-        return ($ret !== false) ? $ret : null;
+        return ($ret !== false && $ret !== '') ? $ret : null;
     }
 
     /**
@@ -62,7 +61,7 @@ final class FileObject extends AbstractObject implements Stringable
      * @param  int $from
      * @return string|null
      */
-    public function readAll(int $from = 0): string|null
+    public final function readAll(int $from = 0): string|null
     {
         $this->resourceCheck();
 
@@ -76,7 +75,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return string|null
      */
-    public function readChar(): string|null
+    public final function readChar(): string|null
     {
         $this->resourceCheck();
 
@@ -90,7 +89,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return string|null
      */
-    public function readLine(int $length = 1024): string|null
+    public final function readLine(int $length = 1024): string|null
     {
         $this->resourceCheck();
 
@@ -104,7 +103,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return bool
      */
-    public function rewind(): bool
+    public final function rewind(): bool
     {
         $this->resourceCheck();
 
@@ -116,7 +115,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return bool
      */
-    public function empty(): bool
+    public final function empty(): bool
     {
         $this->resourceCheck();
 
@@ -128,7 +127,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return froq\file\object\FileObject
      */
-    public function copy(): FileObject
+    public final function copy(): FileObject
     {
         $this->resourceCheck();
 
@@ -141,7 +140,7 @@ final class FileObject extends AbstractObject implements Stringable
      * @param  bool $block
      * @return bool
      */
-    public function lock(bool $block = true): bool
+    public final function lock(bool $block = true): bool
     {
         $this->resourceCheck();
 
@@ -153,23 +152,11 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return bool
      */
-    public function unlock(): bool
+    public final function unlock(): bool
     {
         $this->resourceCheck();
 
         return flock($this->resource, LOCK_UN);
-    }
-
-    /**
-     * Get file size.
-     *
-     * @return int|null
-     */
-    public function size(): int|null
-    {
-        $this->resourceCheck();
-
-        return fsize($this->resource);
     }
 
     /**
@@ -179,7 +166,7 @@ final class FileObject extends AbstractObject implements Stringable
      * @param  int|null $whence
      * @return int|bool|null
      */
-    public function offset(int $where = null, int $whence = null): int|bool|null
+    public final function offset(int $where = null, int $whence = null): int|bool|null
     {
         return ($where === null) ? $this->getPosition()
             : $this->setPosition($where, ($whence ?? SEEK_SET));
@@ -190,7 +177,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return bool
      */
-    public function valid(): bool
+    public final function valid(): bool
     {
         return !$this->isEnded();
     }
@@ -200,7 +187,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return array|null
      */
-    public function stat(): array|null
+    public final function stat(): array|null
     {
         $this->resourceCheck();
 
@@ -212,7 +199,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return array|null
      */
-    public function meta(): array|null
+    public final function meta(): array|null
     {
         $this->resourceCheck();
 
@@ -224,7 +211,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return array|null
      */
-    public function info(): array|null
+    public final function info(): array|null
     {
         $this->resourceCheck();
 
@@ -236,7 +223,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return string|null
      */
-    public function name(): string|null
+    public final function name(): string|null
     {
         return $this->pathInfo('filename');
     }
@@ -246,7 +233,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return string|null
      */
-    public function extension(): string|null
+    public final function extension(): string|null
     {
         return $this->pathInfo('extension');
     }
@@ -256,7 +243,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return string|null
      */
-    public function directory(): string|null
+    public final function directory(): string|null
     {
         return $this->pathInfo('dirname');
     }
@@ -266,7 +253,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return string|null
      */
-    public function path(): string|null
+    public final function path(): string|null
     {
         return $this->meta()['uri'] ?? null;
     }
@@ -277,7 +264,7 @@ final class FileObject extends AbstractObject implements Stringable
      * @param  string|null $component
      * @return string|array|null
      */
-    public function pathInfo(string $component = null): string|array|null
+    public final function pathInfo(string $component = null): string|array|null
     {
         $path = $this->path();
 
@@ -294,7 +281,7 @@ final class FileObject extends AbstractObject implements Stringable
      * @param  string $contents
      * @return self
      */
-    public function setContents(string $contents): self
+    public final function setContents(string $contents): self
     {
         $this->resourceCheck();
 
@@ -308,7 +295,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return string|null
      */
-    public function getContents(): string|null
+    public final function getContents(): string|null
     {
         $this->resourceCheck();
 
@@ -326,7 +313,7 @@ final class FileObject extends AbstractObject implements Stringable
      * @param  int $whence
      * @return bool
      */
-    public function setPosition(int $where, int $whence = SEEK_SET): bool
+    public final function setPosition(int $where, int $whence = SEEK_SET): bool
     {
         $this->resourceCheck();
 
@@ -338,7 +325,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return int|null
      */
-    public function getPosition(): int|null
+    public final function getPosition(): int|null
     {
         $this->resourceCheck();
 
@@ -352,7 +339,7 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return bool
      */
-    public function isEnded(): bool
+    public final function isEnded(): bool
     {
         return ($this->resource && feof($this->resource));
     }
@@ -362,15 +349,35 @@ final class FileObject extends AbstractObject implements Stringable
      *
      * @return bool
      */
-    public function isEmpty(): bool
+    public final function isEmpty(): bool
     {
         return ($this->freed || !$this->resource || !fsize($this->resource));
     }
 
     /**
+     * @inheritDoc froq\common\interfaces\Sizable
+     */
+    public final function size(): int
+    {
+        $this->resourceCheck();
+
+        $ret = fsize($this->resource);
+
+        return ($ret !== null) ? $ret : -1;
+    }
+
+    /**
+     * @inheritDoc froq\common\interfaces\Stringable
+     */
+    public final function toString(): string
+    {
+        return (string) $this->getContents();
+    }
+
+    /**
      * @inheritDoc froq\file\object\AbstractObject
      */
-    public static function fromFile(string $file, string $mime = null, array $options = null): static
+    public static final function fromFile(string $file, string $mime = null, array $options = null): static
     {
         if (FileUtil::errorCheck($file, $error)) {
             throw new ObjectException($error->getMessage(), null, $error->getCode());
@@ -385,7 +392,7 @@ final class FileObject extends AbstractObject implements Stringable
     /**
      * @inheritDoc froq\file\object\AbstractObject
      */
-    public static function fromString(string $string, string $mime = null, array $options = null): static
+    public static final function fromString(string $string, string $mime = null, array $options = null): static
     {
         $resource = fopen('php://temp', ($options['mode'] ?? self::$optionsDefault['mode']));
         $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
@@ -393,13 +400,5 @@ final class FileObject extends AbstractObject implements Stringable
         fwrite($resource, $string);
 
         return new static($resource, $mime, $options);
-    }
-
-    /**
-     * @inheritDoc froq\common\interfaces\Stringable
-     */
-    public function toString(): string
-    {
-        return $this->getContents();
     }
 }
