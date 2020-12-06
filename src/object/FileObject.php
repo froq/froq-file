@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace froq\file\object;
 
 use froq\file\object\{AbstractObject, ObjectException};
-use froq\file\Util as FileUtil;
+use froq\file\File;
 
 /**
  * File Object.
@@ -379,7 +379,7 @@ class FileObject extends AbstractObject
      */
     public static final function fromFile(string $file, string $mime = null, array $options = null): static
     {
-        if (FileUtil::errorCheck($file, $error)) {
+        if (File::errorCheck($file, $error)) {
             throw new ObjectException($error->getMessage(), null, $error->getCode());
         }
 

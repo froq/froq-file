@@ -22,30 +22,6 @@ use Error;
 final class Util
 {
     /**
-     * Check whether given path is a file.
-     *
-     * @param  string $path
-     * @return bool|null
-     */
-    public static function isFile(string $path): bool|null
-    {
-        // Errors happen in strict mode, else warning only.
-        try { return is_file($path); } catch (Error) { return null; }
-    }
-
-    /**
-     * Check whether given path is a directory.
-     *
-     * @param  string $path
-     * @return bool|null
-     */
-    public static function isDirectory(string $path): bool|null
-    {
-        // Errors happen in strict mode, else warning only.
-        try { return is_dir($path); } catch (Error) { return null; }
-    }
-
-    /**
      * Format bytes human readable text.
      *
      * @param  int $bytes
@@ -80,61 +56,5 @@ final class Util
         }
 
         return (int) $bytes;
-    }
-
-    /**
-     * Check error possibility.
-     *
-     * @param  string                    $file
-     * @param  froq\file\FileError|null &$error
-     * @return bool
-     */
-    public static function errorCheck(string $file, FileError &$error = null): bool
-    {
-        // Sadly is_file(), is_readable(), stat() even SplFileInfo is not giving a proper error when
-        // a 'permission' / 'not exists' / 'null byte (\0)' error occurs, or path is a directory. :/
-        // Also seems not documented on php.net but when $filename contains null byte (\0) then a
-        // TypeError will be thrown with message such: TypeError: fopen() expects parameter 1 to be
-        // a valid path, string given in..
-        $fp = null;
-        try {
-            $fp = fopen($file, 'r');
-        } catch (Error $e) {
-            $error = $e->getMessage();
-        }
-
-        if ($fp) {
-            fclose($fp);
-
-            if (is_dir($file)) {
-                $error = new FileError(
-                    "Given path '%s' is a directory",
-                    get_real_path($file), FileError::DIRECTORY_GIVEN
-                );
-            } // else ok.
-        } else {
-            $error = $error ?? error_message() ?? 'Unknown error';
-
-            if (stripos($error, 'valid path')) {
-                $error = new FileError(
-                    "No valid path '%s' given",
-                    strtr($file, ["\0" => "\\0"]), FileError::INVALID_PATH
-                );
-            } elseif (stripos($error, 'no such file')) {
-                $error = new FileError(
-                    "No file exists such '%s'",
-                    get_real_path($file), FileError::NO_FILE
-                );
-            } elseif (stripos($error, 'permission denied')) {
-                $error = new FileError(
-                    "No permission for accessing to '%s' file",
-                    get_real_path($file), FileError::NO_PERMISSION
-                );
-            } else {
-                $error = new FileError($error);
-            }
-        }
-
-        return ($error != null);
     }
 }

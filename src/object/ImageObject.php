@@ -9,7 +9,7 @@ namespace froq\file\object;
 
 use froq\file\object\{AbstractObject, ObjectException, FileObject};
 use froq\file\upload\ImageUploader;
-use froq\file\Util as FileUtil;
+use froq\file\File;
 
 /**
  * Image Object.
@@ -311,7 +311,7 @@ class ImageObject extends AbstractObject
      */
     public static final function fromFile(string $file, string $mime = null, array $options = null): static
     {
-        if (FileUtil::errorCheck($file, $error)) {
+        if (File::errorCheck($file, $error)) {
             throw new ObjectException($error->getMessage(), null, $error->getCode());
         }
 

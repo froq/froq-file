@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace froq\file\mime;
 
 use froq\file\mime\{MimeException, MimeTypes};
-use froq\file\Util as FileUtil;
+use froq\file\File;
 use Error;
 
 /**
@@ -32,7 +32,7 @@ final class Mime
      */
     public static function getType(string $file, bool $errorCheck = true): string|null
     {
-        if ($errorCheck && FileUtil::errorCheck($file, $error)) {
+        if ($errorCheck && File::errorCheck($file, $error)) {
             throw new MimeException($error->getMessage(), null, $error->getCode());
         }
 

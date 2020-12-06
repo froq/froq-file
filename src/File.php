@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace froq\file;
 
 use froq\file\mime\{Mime, MimeException};
-use froq\file\{FileException, Util as FileUtil};
+use froq\file\FileException;
 
 /**
  * File.
@@ -46,6 +46,32 @@ final class File
     }
 
     /**
+     * Check whether given path is a file.
+     *
+     * @param  string $path
+     * @return bool|null
+     */
+    public static function isFile(string $path): bool|null
+    {
+        // Errors happen in strict mode, else warning only.
+        try { return is_file($path); }
+            catch (Error) { return null; }
+    }
+
+    /**
+     * Check whether given path is a directory.
+     *
+     * @param  string $path
+     * @return bool|null
+     */
+    public static function isDirectory(string $path): bool|null
+    {
+        // Errors happen in strict mode, else warning only.
+        try { return is_dir($path); }
+            catch (Error) { return null; }
+    }
+
+    /**
      * Check whether a file is existing.
      *
      * @param  string $file
@@ -53,7 +79,7 @@ final class File
      */
     public static function isExists(string $file): bool
     {
-        return FileUtil::isFile($file);
+        return self::isFile($file);
     }
 
     /**
@@ -64,7 +90,7 @@ final class File
      */
     public static function isReadable(string $file): bool
     {
-        return FileUtil::isFile($file) && is_readable($file);
+        return self::isFile($file) && is_readable($file);
     }
 
     /**
@@ -75,7 +101,7 @@ final class File
      */
     public static function isWritable(string $file): bool
     {
-        return FileUtil::isFile($file) && is_writable($file);
+        return self::isFile($file) && is_writable($file);
     }
 
     /**
@@ -196,5 +222,61 @@ final class File
         $ret .= (($perms & 0x0001) ? (($perms & 0x0200) ? 't' : 'x' ) : (($perms & 0x0200) ? 'T' : '-'));
 
         return $ret;
+    }
+
+    /**
+     * Check error state.
+     *
+     * @param  string                    $file
+     * @param  froq\file\FileError|null &$error
+     * @return bool
+     */
+    public static function errorCheck(string $file, FileError &$error = null): bool
+    {
+        // Sadly is_file(), is_readable(), stat() even SplFileInfo is not giving a proper error when
+        // a 'permission' / 'not exists' / 'null byte (\0)' error occurs, or path is a directory. :/
+        // Also seems not documented on php.net but when $filename contains null byte (\0) then a
+        // TypeError will be thrown with message such: TypeError: fopen() expects parameter 1 to be
+        // a valid path, string given in..
+        $fp = null;
+        try {
+            $fp = fopen($file, 'r');
+        } catch (Error $e) {
+            $error = $e->getMessage();
+        }
+
+        if ($fp) {
+            fclose($fp);
+
+            if (is_dir($file)) {
+                $error = new FileError(
+                    "Given path '%s' is a directory",
+                    get_real_path($file), FileError::DIRECTORY_GIVEN
+                );
+            } // else ok.
+        } else {
+            $error = $error ?? error_message() ?? 'Unknown error';
+
+            if (stripos($error, 'valid path')) {
+                $error = new FileError(
+                    "No valid path '%s' given",
+                    strtr($file, ["\0" => "\\0"]), FileError::INVALID_PATH
+                );
+            } elseif (stripos($error, 'no such file')) {
+                $error = new FileError(
+                    "No file exists such '%s'",
+                    get_real_path($file), FileError::NO_FILE
+                );
+            } elseif (stripos($error, 'permission denied')) {
+                $error = new FileError(
+                    "No permission for accessing to '%s' file",
+                    get_real_path($file), FileError::NO_PERMISSION
+                );
+            } else {
+                $error = new FileError($error);
+            }
+        }
+
+        return ($error != null);
     }
 }
