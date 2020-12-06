@@ -96,7 +96,7 @@ final class Util
         // Also seems not documented on php.net but when $filename contains null byte (\0) then a
         // TypeError will be thrown with message such: TypeError: fopen() expects parameter 1 to be
         // a valid path, string given in..
-        $fp = false;
+        $fp = null;
         try {
             $fp = fopen($file, 'r');
         } catch (Error $e) {
@@ -107,20 +107,29 @@ final class Util
             fclose($fp);
 
             if (is_dir($file)) {
-                $error = new FileError("Given path '%s' is a directory",
-                    get_real_path($file), FileError::DIRECTORY_GIVEN);
+                $error = new FileError(
+                    "Given path '%s' is a directory",
+                    get_real_path($file), FileError::DIRECTORY_GIVEN
+                );
             } // else ok.
         } else {
             $error = $error ?? error_message() ?? 'Unknown error';
+
             if (stripos($error, 'valid path')) {
-                $error = new FileError("No valid path '%s' given",
-                    strtr($file, ["\0" => "\\0"]), FileError::NO_VALID_PATH);
+                $error = new FileError(
+                    "No valid path '%s' given",
+                    strtr($file, ["\0" => "\\0"]), FileError::INVALID_PATH
+                );
             } elseif (stripos($error, 'no such file')) {
-                $error = new FileError("No file exists such '%s'",
-                    get_real_path($file), FileError::NO_SUCH_FILE);
+                $error = new FileError(
+                    "No file exists such '%s'",
+                    get_real_path($file), FileError::NO_FILE
+                );
             } elseif (stripos($error, 'permission denied')) {
-                $error = new FileError("No permission for accessing to '%s' file",
-                    get_real_path($file), FileError::NO_PERMISSION);
+                $error = new FileError(
+                    "No permission for accessing to '%s' file",
+                    get_real_path($file), FileError::NO_PERMISSION
+                );
             } else {
                 $error = new FileError($error);
             }

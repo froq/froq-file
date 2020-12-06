@@ -24,7 +24,7 @@ class FileError extends Error
      * @const int
      */
     public const DIRECTORY_GIVEN = 1,
-                 NO_VALID_PATH   = 2,
-                 NO_SUCH_FILE    = 3,
+                 INVALID_PATH    = 2,
+                 NO_FILE         = 3,
                  NO_PERMISSION   = 4;
 }
