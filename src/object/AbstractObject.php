@@ -54,17 +54,18 @@ abstract class AbstractObject
     public function __construct($resource = null, string $mime = null, array $options = null)
     {
         if ($this instanceof FileObject) {
-            // Open a temporary file when none given.
-            $resource ??= tmpfile();
+            $resource ??= tmpfile(); // Open a temporary file if none given.
 
             if (!is_type_of($resource, 'stream')) {
-                throw new ObjectException("Resource type must be stream, '%s' given", get_type($resource));
+                throw new ObjectException("Resource type must be stream, '%s' given",
+                    get_type($resource));
             }
 
             $this->resourceType = 'file';
         } elseif ($this instanceof ImageObject) {
             if ($mime && !in_array($mime, static::$mimes)) {
-                throw new ObjectException("Invalid MIME '%s', valids are: %s", [$mime, join(', ', static::$mimes)]);
+                throw new ObjectException("Invalid MIME '%s', valids are: %s",
+                    [$mime, join(', ', static::$mimes)]);
             }
 
             // When a resource given, eg: fopen('path/to/file.jpg', 'rb').
@@ -74,7 +75,8 @@ abstract class AbstractObject
             }
 
             if (!is_type_of($resource, 'GDImage')) {
-                throw new ObjectException("Resource type must be GDImage, '%s' given", get_type($resource));
+                throw new ObjectException("Resource type must be GDImage, '%s' given",
+                    get_type($resource));
             }
 
             $this->resourceType = 'image';
@@ -250,7 +252,6 @@ abstract class AbstractObject
     /**
      * Create a file object from temporary resource.
      *
-     * @param  resource    $resource
      * @param  string|null $mime
      * @param  array|null  $options
      * @return static
@@ -261,7 +262,7 @@ abstract class AbstractObject
             throw new ObjectException('Method %s() available for only %s', [__function__, FileObject::class]);
         }
 
-        return new static(tmpfile(), $mime, $options);
+        return new static(null, $mime, $options);
     }
 
     /**
@@ -276,10 +277,7 @@ abstract class AbstractObject
             throw new ObjectException('No resource to process with, it is freed');
         }
 
-        if (empty($this->resource) || (
-               !is_type_of($this->resource, 'stream')
-            && !is_type_of($this->resource, 'GDImage')
-        )) {
+        if (!is_type_of($this->resource, 'stream') && !is_type_of($this->resource, 'GDImage')) {
             throw new ObjectException('No resource to process with, it is not valid');
         }
     }

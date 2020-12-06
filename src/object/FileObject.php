@@ -57,6 +57,21 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
+     * Read all content of file.
+     *
+     * @param  int $from
+     * @return string|null
+     */
+    public function readAll(int $from = 0): string|null
+    {
+        $this->resourceCheck();
+
+        $ret = freadall($this->resource, $from);
+
+        return ($ret !== null) ? $ret : null;
+    }
+
+    /**
      * Read a character from file.
      *
      * @return string|null
@@ -87,29 +102,25 @@ final class FileObject extends AbstractObject implements Stringable
     /**
      * Rewind file.
      *
-     * @return self
+     * @return bool
      */
-    public function rewind(): self
+    public function rewind(): bool
     {
         $this->resourceCheck();
 
-        rewind($this->resource);
-
-        return $this;
+        return frewind($this->resource);
     }
 
     /**
      * Empty file.
      *
-     * @return self
+     * @return bool
      */
-    public function empty(): self
+    public function empty(): bool
     {
         $this->resourceCheck();
 
-        rewind($this->resource) && ftruncate($this->resource, 0);
-
-        return $this;
+        return freset($this->resource, '');
     }
 
     /**
@@ -156,7 +167,7 @@ final class FileObject extends AbstractObject implements Stringable
      */
     public function size(): int|null
     {
-        return $this->getStat()['size'] ?? null;
+        return $this->stat()['size'];
     }
 
     /**
@@ -183,6 +194,130 @@ final class FileObject extends AbstractObject implements Stringable
     }
 
     /**
+     * Get file stat.
+     *
+     * @return array|null
+     */
+    public function stat(): array|null
+    {
+        $this->resourceCheck();
+
+        return fstat($this->resource) ?: null;
+    }
+
+    /**
+     * Get file meta data.
+     *
+     * @return array|null
+     */
+    public function meta(): array|null
+    {
+        $this->resourceCheck();
+
+        return fmeta($this->resource) ?: null;
+    }
+
+    /**
+     * Get file info.
+     *
+     * @return array|null
+     */
+    public function info(): array|null
+    {
+        $this->resourceCheck();
+
+        return finfo($this->resource) ?: null;
+    }
+
+    /**
+     * Get file name.
+     *
+     * @return string|null
+     */
+    public function name(): string|null
+    {
+        return $this->pathInfo('filename');
+    }
+
+    /**
+     * Get file extension.
+     *
+     * @return string|null
+     */
+    public function extension(): string|null
+    {
+        return $this->pathInfo('extension');
+    }
+
+    /**
+     * Get file directory.
+     *
+     * @return string|null
+     */
+    public function directory(): string|null
+    {
+        return $this->pathInfo('dirname');
+    }
+
+    /**
+     * Get file path.
+     *
+     * @return string|null
+     */
+    public function path(): string|null
+    {
+        return $this->meta()['uri'] ?? null;
+    }
+
+    /**
+     * Get file path info.
+     *
+     * @param  string|null $component
+     * @return string|array|null
+     */
+    public function pathInfo(string $component = null): string|array|null
+    {
+        $path = $this->path();
+
+        if ($path && !strpfx($path, 'php://temp')) {
+            return get_path_info($path, $component);
+        }
+
+        return null;
+    }
+
+    /**
+     * Set file contents.
+     *
+     * @param  string $contents
+     * @return self
+     */
+    public function setContents(string $contents): self
+    {
+        $this->resourceCheck();
+
+        freset($this->resource, $contents);
+
+        return $this;
+    }
+
+    /**
+     * Get file contents.
+     *
+     * @return string|null
+     */
+    public function getContents(): string|null
+    {
+        $this->resourceCheck();
+
+        $pos = ftell($this->resource);
+        $ret = freadall($this->resource);
+        fseek($this->resource, $pos);
+
+        return ($ret !== null) ? $ret : null;
+    }
+
+    /**
      * Set file pointer position.
      *
      * @param  int $where
@@ -205,137 +340,7 @@ final class FileObject extends AbstractObject implements Stringable
     {
         $this->resourceCheck();
 
-        return is_int($ret = ftell($this->resource)) ? $ret : null;
-    }
-
-    /**
-     * Get file stat.
-     *
-     * @return array|null
-     */
-    public function getStat(): array|null
-    {
-        $this->resourceCheck();
-
-        return fstat($this->resource) ?: null;
-    }
-
-    /**
-     * Get file metadata.
-     *
-     * @return array|null
-     */
-    public function getMetadata(): array|null
-    {
-        $this->resourceCheck();
-
-        return fmeta($this->resource) ?: null;
-    }
-
-    /**
-     * Get file info.
-     *
-     * @return array|null
-     */
-    public function getInfo(): array|null
-    {
-        $this->resourceCheck();
-
-        $stat = fstat($this->resource) ?: null;
-        $meta = fmeta($this->resource) ?: null;
-
-        return ($stat && $meta) ? $stat + ['meta' => $meta] : null;
-    }
-
-    /**
-     * Get file name.
-     *
-     * @return string|null
-     */
-    public function getName(): string|null
-    {
-        return $this->getPathInfo('dirname');
-    }
-
-    /**
-     * Get file extension.
-     *
-     * @return string|null
-     */
-    public function getExtension(): string|null
-    {
-        return $this->getPathInfo('extension');
-    }
-
-    /**
-     * Get file directory.
-     *
-     * @return string|null
-     */
-    public function getDirectory(): string|null
-    {
-        return $this->getPathInfo('dirname');
-    }
-
-    /**
-     * Get file path.
-     *
-     * @return string|null
-     */
-    public function getPath(): string|null
-    {
-        return $this->getMetadata()['uri'] ?? null;
-    }
-
-    /**
-     * Get file path info.
-     *
-     * @param  string|null $component
-     * @return string|array|null
-     */
-    public function getPathInfo(string $component = null): string|array|null
-    {
-        $path = $this->getPath();
-
-        if ($path && !strpfx($path, 'php://temp')) {
-            return get_path_info($path, $component);
-        }
-
-        return null;
-    }
-
-    /**
-     * Set file contents.
-     *
-     * @param  string $contents
-     * @return self
-     */
-    public function setContents(string $contents): self
-    {
-        $this->resourceCheck();
-
-        // Without this, stats won't be resetted.
-        rewind($this->resource);
-
-        ftruncate($this->resource, 0);
-        fwrite($this->resource, $contents);
-        fseek($this->resource, 0);
-
-        return $this;
-    }
-
-    /**
-     * Get file contents.
-     *
-     * @return string|null
-     */
-    public function getContents(): string|null
-    {
-        $this->resourceCheck();
-
-        $pos = ftell($this->resource);
-        $ret = freadall($this->resource);
-        fseek($this->resource, $pos);
+        $ret = ftell($this->resource);
 
         return ($ret !== false) ? $ret : null;
     }
@@ -369,9 +374,7 @@ final class FileObject extends AbstractObject implements Stringable
             throw new ObjectException($error->getMessage(), null, $error->getCode());
         }
 
-        $mode = $options['mode'] ?? self::$optionsDefault['mode'];
-        $resource = fopen($file, $mode);
-
+        $resource = fopen($file, ($options['mode'] ?? self::$optionsDefault['mode']));
         $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
 
         return new static($resource, $mime ?? mime_content_type($file), $options);
@@ -382,12 +385,10 @@ final class FileObject extends AbstractObject implements Stringable
      */
     public static function fromString(string $string, string $mime = null, array $options = null): static
     {
-        $mode = $options['mode'] ?? self::$optionsDefault['mode'];
-        $resource = fopen('php://temp', $mode);
-
+        $resource = fopen('php://temp', ($options['mode'] ?? self::$optionsDefault['mode']));
         $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
 
-        fwrite($resource, $string) && fseek($resource, 0);
+        fwrite($resource, $string);
 
         return new static($resource, $mime, $options);
     }

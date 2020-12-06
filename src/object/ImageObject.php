@@ -101,7 +101,7 @@ final class ImageObject extends AbstractObject implements Stringable
             : (new FileObject)->setContents($this->getContents());
 
         $resource = (new ImageUploader(
-            ['type' => $this->mime, 'file' => $temp->getPath(), 'directory' => '/tmp'],
+            ['type' => $this->mime, 'file' => $temp->path(), 'directory' => '/tmp'],
             ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
              'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
         ))->resize($width, $height, $options)->getDestinationImage();
@@ -128,7 +128,7 @@ final class ImageObject extends AbstractObject implements Stringable
             : (new FileObject)->setContents($this->getContents());
 
         $resource = (new ImageUploader(
-            ['type' => $this->mime, 'file' => $temp->getPath(), 'directory' => '/tmp'],
+            ['type' => $this->mime, 'file' => $temp->path(), 'directory' => '/tmp'],
             ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
              'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
         ))->crop($width, $height, $options)->getDestinationImage();
@@ -145,7 +145,7 @@ final class ImageObject extends AbstractObject implements Stringable
      *
      * @return array
      */
-    public function getDimensions(): array
+    public function dimensions(): array
     {
         $this->resourceCheck();
 
@@ -157,7 +157,7 @@ final class ImageObject extends AbstractObject implements Stringable
      *
      * @return array|null
      */
-    public function getInfo(): array|null
+    public function info(): array|null
     {
         if (($contents = $this->getContents())
             && ($info = getimagesizefromstring($contents))) {
@@ -170,18 +170,15 @@ final class ImageObject extends AbstractObject implements Stringable
 
             // For only JPEG (and also PNG? https://stackoverflow.com/q/9542359/362780).
             if ($info['type'] == 2 && function_exists('exif_read_data')) {
-                $fp = fopen('php://temp/maxmemory:'. $info['size'], 'w+b');
-                fwrite($fp, $contents);
-                $info['exif'] = exif_read_data($fp);
+                $fp = tmpfile();
+                fwrite($fp, $contents) && $info['exif'] = exif_read_data($fp);
                 fclose($fp);
 
                 // I don't understand why all keys ain't uniform.
-                if ($info['exif']) {
-                    $info['exif'] = array_map(
-                        fn($v) => is_array($v) ? array_change_key_case($v) : $v,
-                        array_change_key_case($info['exif'])
-                    );
-                }
+                $info['exif'] && $info['exif'] = array_map(
+                    fn($v) => is_array($v) ? array_change_key_case($v) : $v,
+                    array_change_key_case($info['exif'])
+                );
             }
 
             return $info;
