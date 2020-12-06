@@ -243,10 +243,10 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function free(): void
     {
-        if ($this->resource && is_stream($this->$resource)) {
+        if ($this->resource && is_stream($this->resource)) {
             fclose($this->resource);
         }
-        if ($this->resourceFile && is_stream($this->$resourceFile)) {
+        if ($this->resourceFile && is_stream($this->resourceFile)) {
             fclose($this->resourceFile);
         }
 
