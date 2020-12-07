@@ -30,7 +30,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     use OptionTrait, ApplyTrait;
 
-    /** @var resource|GDImage|null */
+    /** @var resource|GdImage|null */
     protected $resource;
 
     /** @var resource|null */
@@ -45,7 +45,7 @@ abstract class AbstractObject implements Sizable, Stringable
     /**
      * Constructor.
      *
-     * @param  resource|GDImage|null $resource
+     * @param  resource|GdImage|null $resource
      * @param  string|null           $mime
      * @throws froq\file\ObjectException
      */
@@ -69,8 +69,8 @@ abstract class AbstractObject implements Sizable, Stringable
                     [$resource, $mime] = [$temp->getResource(), $temp->getMime(), $temp->free()];
                 }
 
-                if (!is_type_of($resource, 'GDImage')) {
-                    throw new ObjectException("Resource type must be GDImage, '%s' given",
+                if (!is_type_of($resource, 'GdImage')) {
+                    throw new ObjectException("Resource type must be GdImage, '%s' given",
                         get_type($resource));
                 }
             }
@@ -86,7 +86,7 @@ abstract class AbstractObject implements Sizable, Stringable
     /**
      * Set resource.
      *
-     * @return resource|GDImage|null
+     * @return resource|GdImage|null
      */
     public final function setResource($resource): void
     {
@@ -98,7 +98,7 @@ abstract class AbstractObject implements Sizable, Stringable
     /**
      * Get resource.
      *
-     * @return resource|GDImage|null
+     * @return resource|GdImage|null
      */
     public final function getResource()
     {
@@ -139,7 +139,7 @@ abstract class AbstractObject implements Sizable, Stringable
     /**
      * Create a resource copy.
      *
-     * @return resource|GDImage|null
+     * @return resource|GdImage|null
      */
     public final function &createResourceCopy()
     {
@@ -180,7 +180,7 @@ abstract class AbstractObject implements Sizable, Stringable
     /**
      * Remove a resource copy.
      *
-     * @param  resource|GDImage &$copy
+     * @param  resource|GdImage &$copy
      * @return bool|null
      */
     public final function removeResourceCopy(&$copy): bool|null
@@ -196,7 +196,7 @@ abstract class AbstractObject implements Sizable, Stringable
             return true;
         }
 
-        throw new ObjectException('Invalid resource copy, valids are: stream, GDImage');
+        throw new ObjectException('Invalid resource copy, valids are: stream, GdImage');
     }
 
     /**

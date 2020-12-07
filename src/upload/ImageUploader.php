@@ -9,7 +9,7 @@ namespace froq\file\upload;
 
 use froq\file\upload\{AbstractUploader, UploadException};
 use froq\common\interfaces\Stringable;
-use GDImage;
+use GdImage;
 
 /**
  * Image Uploader.
@@ -29,11 +29,11 @@ final class ImageUploader extends AbstractUploader implements Stringable
     /** @const array */
     public const SUPPORTED_TYPES = [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP];
 
-    /** @var ?GDImage */
-    private ?GDImage $sourceImage;
+    /** @var ?GdImage */
+    private ?GdImage $sourceImage;
 
-    /** @var ?GDImage */
-    private ?GDImage $destinationImage;
+    /** @var ?GdImage */
+    private ?GdImage $destinationImage;
 
     /** @var array */
     private array $info;
@@ -331,9 +331,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
     /**
      * Get source image.
      *
-     * @return GDImage|null
+     * @return GdImage|null
      */
-    public function getSourceImage(): GDImage|null
+    public function getSourceImage(): GdImage|null
     {
         return $this->sourceImage ?? null;
     }
@@ -341,9 +341,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
     /**
      * Get destination image.
      *
-     * @return GDImage|null
+     * @return GdImage|null
      */
-    public function getDestinationImage(): GDImage|null
+    public function getDestinationImage(): GdImage|null
     {
         return $this->destinationImage ?? null;
     }
@@ -426,10 +426,10 @@ final class ImageUploader extends AbstractUploader implements Stringable
     /**
      * Create source image.
      *
-     * @return GDImage
+     * @return GdImage
      * @throws froq\file\upload\UploadException
      */
-    private function createSourceImage(): GDImage
+    private function createSourceImage(): GdImage
     {
         if ($this->resized) {
             // Use resized image as source.
@@ -453,10 +453,10 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * Create destination image.
      *
      * @param  array<int> $dimensions
-     * @return GDImage
+     * @return GdImage
      * @throws froq\file\upload\UploadException
      */
-    private function createDestinationImage(array $dimensions): GDImage
+    private function createDestinationImage(array $dimensions): GdImage
     {
         $image = imagecreatetruecolor(...$dimensions);
 
