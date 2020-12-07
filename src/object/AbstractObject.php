@@ -139,7 +139,7 @@ abstract class AbstractObject implements Sizable, Stringable
     /**
      * Create a resource copy.
      *
-     * @return resource|GdImage|null
+     * @return &resource|&GdImage|null
      */
     public final function &createResourceCopy()
     {
