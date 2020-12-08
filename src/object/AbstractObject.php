@@ -80,7 +80,7 @@ abstract class AbstractObject implements Sizable, Stringable
 
         $this->mime = $mime;
 
-        $this->setOptionsDefault($options, static::$optionsDefault);
+        $this->setOptions($options, static::$optionsDefault);
     }
 
     /**
