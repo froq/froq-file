@@ -71,7 +71,7 @@ abstract class AbstractSource
     {
         try {
             $this->clear();
-        } catch (Throwable $e) {}
+        } catch (Throwable) {}
     }
 
     /**
