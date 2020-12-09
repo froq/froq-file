@@ -37,7 +37,7 @@ class UploadError extends FileError
 
     /**
      * Messages.
-     * @var array
+     * @const array
      */
     public const MESSAGES = [
         1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',

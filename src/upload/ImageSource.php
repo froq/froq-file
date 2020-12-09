@@ -7,21 +7,21 @@ declare(strict_types=1);
 
 namespace froq\file\upload;
 
-use froq\file\upload\{AbstractUploader, UploadException};
+use froq\file\upload\{AbstractSource, UploadException};
 use froq\common\interfaces\Stringable;
 use GdImage;
 
 /**
- * Image Uploader.
+ * Image Source.
  *
- * Represents an updloader entity which aims to upload images in OOP style.
+ * Represents an uploaded image entity which aims to work images in OOP style.
  *
  * @package froq\file\upload
- * @object  froq\file\upload\ImageUploader
+ * @object  froq\file\upload\ImageSource
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   3.0, 5.0 Moved to upload directory.
+ * @since   3.0, 5.0 Moved to upload directory, derived from ImageUploader.
  */
-final class ImageUploader extends AbstractUploader implements Stringable
+class ImageSource extends AbstractSource implements Stringable
 {
     /** @const int */
     public const QUALITY = -1;
@@ -42,14 +42,14 @@ final class ImageUploader extends AbstractUploader implements Stringable
     private array $newDimensions;
 
     /** @var bool */
-    private bool $resized = false;
+    protected bool $resized = false;
 
     /**
      * Apply resample process.
      *
      * @return self
      */
-    public function resample(): self
+    public final function resample(): self
     {
         return $this->resize(-1, -1, ['proportion' => false]);
     }
@@ -63,7 +63,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @return self
      * @throws froq\file\upload\UploadException
      */
-    public function resize(int $width, int $height, array $options = null): self
+    public final function resize(int $width, int $height, array $options = null): self
     {
         // Fill/ensure info.
         $this->fillInfo();
@@ -131,7 +131,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @return self
      * @throws froq\file\upload\UploadException
      */
-    public function crop(int $width, int $height = null, array $options = null): self
+    public final function crop(int $width, int $height = null, array $options = null): self
     {
         // Fill/ensure info.
         $this->fillInfo();
@@ -182,9 +182,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
     }
 
     /**
-     * @inheritDoc froq\file\upload\AbstractUploader
+     * @inheritDoc froq\file\upload\AbstractSource
      */
-    public function save(): string
+    public final function save(): string
     {
         $destination = $this->getDestination();
 
@@ -197,9 +197,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
     }
 
     /**
-     * @inheritDoc froq\file\upload\AbstractUploader
+     * @inheritDoc froq\file\upload\AbstractSource
      */
-    public function saveAs(string $name, string $appendix = null, bool $appendNewDimensions = false): string
+    public final function saveAs(string $name, string $appendix = null, bool $appendNewDimensions = false): string
     {
         if ($appendNewDimensions) {
             $newDimensions = $this->getNewDimensions();
@@ -219,9 +219,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
     }
 
     /**
-     * @inheritDoc froq\file\upload\AbstractUploader
+     * @inheritDoc froq\file\upload\AbstractSource
      */
-    public function move(): string
+    public final function move(): string
     {
         $source = $this->getSource();
         $destination = $this->getDestination();
@@ -237,9 +237,9 @@ final class ImageUploader extends AbstractUploader implements Stringable
     }
 
     /**
-     * @inheritDoc froq\file\upload\AbstractUploader
+     * @inheritDoc froq\file\upload\AbstractSource
      */
-    public function moveAs(string $name, string $appendix = null): string
+    public final function moveAs(string $name, string $appendix = null): string
     {
         $source = $this->getSource();
         $destination = $this->getDestination($name, $appendix);
@@ -255,22 +255,16 @@ final class ImageUploader extends AbstractUploader implements Stringable
     }
 
     /**
-     * @inheritDoc froq\file\upload\AbstractUploader
+     * @inheritDoc froq\file\upload\AbstractSource
      */
-    public function clear(bool $force = false): void
+    public final function clear(bool $force = false): void
     {
-        if ($force) {
+        if ($force || $this->options['clearSource']) {
             unlink($this->getSource());
+        }
 
+        if ($this->options['clear']) {
             $this->sourceImage = $this->destinationImage = null;
-        } else {
-            if ($this->options['clearSource']) {
-                unlink($this->getSource());
-            }
-
-            if ($this->options['clear']) {
-                $this->sourceImage = $this->destinationImage = null;
-            }
         }
     }
 
@@ -279,7 +273,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      *
      * @return void
      */
-    public function display(): void
+    public final function display(): void
     {
         $this->output();
     }
@@ -290,7 +284,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @return array
      * @throws froq\file\upload\UploadException
      */
-    public function getInfo(): array
+    public final function getInfo(): array
     {
         if (empty($this->info)) {
             throw new UploadException('No info filled yet, try after calling fillInfo()');
@@ -306,7 +300,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @throws froq\file\upload\UploadException
      * @internal
      */
-    public function fillInfo(): void
+    public final function fillInfo(): void
     {
         if ($this->resized) { // Use resized image as source.
             $info = getimagesizefromstring($this->toString());
@@ -333,7 +327,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      *
      * @return GdImage|null
      */
-    public function getSourceImage(): GdImage|null
+    public final function getSourceImage(): GdImage|null
     {
         return $this->sourceImage ?? null;
     }
@@ -343,7 +337,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      *
      * @return GdImage|null
      */
-    public function getDestinationImage(): GdImage|null
+    public final function getDestinationImage(): GdImage|null
     {
         return $this->destinationImage ?? null;
     }
@@ -353,7 +347,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      *
      * @return int
      */
-    public function getType(): int
+    public final function getType(): int
     {
         return $this->getInfo()['type'];
     }
@@ -363,7 +357,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      *
      * @return string
      */
-    public function getMime(): string
+    public final function getMime(): string
     {
         return image_type_to_mime_type($this->getType());
     }
@@ -373,7 +367,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      *
      * @return array
      */
-    public function getDimensions(): array
+    public final function getDimensions(): array
     {
         $info = $this->getInfo();
 
@@ -385,7 +379,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      *
      * @return array|null
      */
-    public function getNewDimensions(): array|null
+    public final function getNewDimensions(): array|null
     {
         return $this->newDimensions ?? null;
     }
@@ -396,7 +390,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @return string
      * @since  4.0
      */
-    public function toBase64(): string
+    public final function toBase64(): string
     {
         return base64_encode($this->toString());
     }
@@ -407,7 +401,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @return string
      * @since  4.0
      */
-    public function toBase64Url(): string
+    public final function toBase64Url(): string
     {
         return 'data:' . $this->getMime() . ';base64,' . $this->toBase64();
     }
@@ -416,7 +410,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @inheritDoc froq\common\interfaces\Stringable
      * @since 4.0 Replaced with getOutputBuffer().
      */
-    public function toString(): string
+    public final function toString(): string
     {
         ob_start();
         $this->output();
@@ -429,7 +423,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @return GdImage
      * @throws froq\file\upload\UploadException
      */
-    private function createSourceImage(): GdImage
+    protected final function createSourceImage(): GdImage
     {
         if ($this->resized) {
             // Use resized image as source.
@@ -456,7 +450,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @return GdImage
      * @throws froq\file\upload\UploadException
      */
-    private function createDestinationImage(array $dimensions): GdImage
+    protected final function createDestinationImage(array $dimensions): GdImage
     {
         $image = imagecreatetruecolor(...$dimensions);
 
@@ -469,7 +463,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @return bool
      * @throws froq\file\upload\UploadException
      */
-    private function output(): bool
+    protected final function output(): bool
     {
         $image = $this->getDestinationImage();
         $image || throw new UploadException('No destination image created yet, call one of these methods first: '
@@ -492,7 +486,7 @@ final class ImageUploader extends AbstractUploader implements Stringable
      * @return bool
      * @throws froq\file\upload\UploadException
      */
-    private function outputTo(string $to): bool
+    protected final function outputTo(string $to): bool
     {
         $to = trim($to);
         $to || throw new UploadException('Empty destination file path given');

@@ -9,19 +9,29 @@ namespace froq\file\upload;
 
 use froq\file\upload\{UploadError, UploadException, Util as FileUtil};
 use froq\file\mime\{Mime, MimeException};
+use froq\common\traits\{OptionTrait, ApplyTrait};
+use Throwable;
 
 /**
- * Abstract Uploader.
+ * Abstract Source.
  *
- * Represents an abstract updloader entity which aims to upload files/images in OOP style.
+ * Represents an abstract uploaded source entity which aims to work files/images in OOP style.
  *
  * @package froq\file\upload
- * @object  froq\file\upload\AbstractUploader
+ * @object  froq\file\upload\AbstractSource
  * @author  Kerem Güneş <k-gun@mail.com>
- * @since   4.0, 5.0 Moved to upload directory.
+ * @since   4.0, 5.0 Moved to upload directory, derived from AbstractUploader.
  */
-abstract class AbstractUploader
+abstract class AbstractSource
 {
+    /**
+     * Option & Apply traits.
+     * @see froq\common\traits\OptionTrait
+     * @see froq\common\traits\ApplyTrait
+     * @since 5.0
+     */
+    use OptionTrait, ApplyTrait;
+
     /** @var string */
     protected string $source;
 
@@ -29,7 +39,7 @@ abstract class AbstractUploader
     protected array $sourceInfo;
 
     /** @var array */
-    protected array $options = [
+    protected static array $optionsDefault = [
         'hash'                 => null, // Available commands: 'rand', 'file' or 'name' (default=none).
         'hashLength'           => null, // 8, 16, 32 or 40 (default=32).
         'maxFileSize'          => null, // In binary mode: for 2 megabytes 2048, 2048k or 2m.
@@ -47,12 +57,111 @@ abstract class AbstractUploader
     /**
      * Constructor.
      *
-     * @param  array      $file
-     * @param  array|null $options
+     * @param array|null $options
+     */
+    public function __construct(array $options = null)
+    {
+        $this->setOptions($options, self::$optionsDefault);
+    }
+
+    /**
+     * Destructor.
+     */
+    public function __destruct()
+    {
+        try {
+            $this->clear();
+        } catch (Throwable $e) {}
+    }
+
+    /**
+     * Get source file.
+     *
+     * @return string
      * @throws froq\file\upload\UploadException
      */
-    public function __construct(array $file, array $options = null)
+    public final function getSource(): string
     {
+        if (isset($this->source)) {
+            return $this->source;
+        }
+
+        throw new UploadException('No source ready yet, call prepare() first');
+    }
+
+    /**
+     * Get source info.
+     *
+     * @return array
+     * @throws froq\file\upload\UploadException
+     */
+    public final function getSourceInfo(): array
+    {
+        if (isset($this->sourceInfo)) {
+            return $this->sourceInfo;
+        }
+
+        throw new UploadException('No source info ready yet, call prepare() first');
+    }
+
+    /**
+     * Get destination file with/without given name & name appendix.
+     *
+     * @param  string|null $name
+     * @param  string|null $appendix
+     * @return string
+     * @throws froq\file\upload\UploadException
+     */
+    public final function getDestination(string $name = null, string $appendix = null): string
+    {
+        $sourceInfo = $this->getSourceInfo();
+
+        // Check name & extension when given with saveAs() or moveAs().
+        if ($name !== null) {
+            if (strsrc($name, '.')) {
+                $extension = file_extension($name);
+                if ($extension !== null) {
+                    if ($this->options['allowedExtensions'] !== '*' &&
+                        !in_array($extension, explode(',', $this->options['allowedExtensions']))) {
+                        throw new UploadException(
+                            "Extension '%s' not allowed via options, allowed extensions: '%s'",
+                            [$extension, $this->options['allowedExtensions']],
+                            UploadError::OPTION_NOT_ALLOWED_EXTENSION
+                        );
+                    }
+
+                    // Drop extension duplication.
+                    $name = file_name($name);
+                }
+            }
+
+            $name = $this->prepareName($name, $appendix);
+        }
+
+        $destination = $this->options['directory'] .'/'. $name;
+        $extension ??= $sourceInfo['extension'];
+        if ($extension !== null) {
+            $destination = $destination .'.'. $extension;
+        }
+
+        return $destination;
+    }
+
+    /**
+     * Prepare a file for move/save etc.
+     *
+     * @param  array      $file
+     * @param  array|null $options
+     * @return self
+     * @throws froq\file\upload\UploadException
+     */
+    public function prepare(array $file, array $options = null): self
+    {
+        // Add deferred options.
+        if ($options != null) {
+            $this->options = array_merge($this->options, $options);
+        }
+
         [$name, $size, $error] = array_select($file, ['name', 'size', 'error']);
 
         $error && throw new UploadException(
@@ -67,7 +176,7 @@ abstract class AbstractUploader
             null, UploadError::NO_VALID_FILE
         );
 
-        $directory = trim($file['directory'] ?? $options['directory'] ?? '');
+        $directory = trim($file['directory'] ?? $this->options['directory'] ?? '');
         $directory || throw new UploadException(
             "Directory must not be empty",
             null, UploadError::DIRECTORY_EMPTY
@@ -78,8 +187,7 @@ abstract class AbstractUploader
             $source, UploadError::NO_VALID_SOURCE
         );
 
-        $options = array_merge($this->options, $options ?? []);
-        extract($options, EXTR_PREFIX_ALL, 'option');
+        extract($this->options, EXTR_PREFIX_ALL, 'option');
 
         // Type & extension security.
         if (empty($option_allowedTypes) || empty($option_allowedExtensions)) {
@@ -97,7 +205,7 @@ abstract class AbstractUploader
             $maxFileSize = FileUtil::convertBytes((string) $option_maxFileSize);
             if ($maxFileSize && $size > $maxFileSize) {
                 throw new UploadException(
-                    "File size exceeded, 'maxFileSize' option is '%s' (%s bytes)",
+                    "File size exceeded, 'maxFileSize' option is %s (%s bytes)",
                     [$option_maxFileSize, $maxFileSize], UploadError::OPTION_SIZE_EXCEEDED
                 );
             }
@@ -109,7 +217,7 @@ abstract class AbstractUploader
             throw new UploadException($e);
         }
 
-        $extension = Mime::getExtensionByType($type);
+        $extension = file_extension($source) ?: Mime::getExtensionByType($type);
         if (!$extension && $option_allowEmptyExtensions === false) {
             throw new UploadException(
                 "Empty extensions not allowed via options",
@@ -120,7 +228,7 @@ abstract class AbstractUploader
         if ($option_allowedTypes !== '*' &&
             !in_array($type, explode(',', $option_allowedTypes))) {
             throw new UploadException(
-                "Type '%s' not allowed via options, allowed types: '%s'",
+                "Type '%s' not allowed via options, allowed types: %s",
                 [$type, $option_allowedTypes], UploadError::OPTION_NOT_ALLOWED_TYPE
             );
         }
@@ -128,7 +236,7 @@ abstract class AbstractUploader
         if ($extension && $option_allowedExtensions !== '*' &&
             !in_array($extension, explode(',', $option_allowedExtensions))) {
             throw new UploadException(
-                "Extension '%s' not allowed via options, allowed extensions: '%s'",
+                "Extension '%s' not allowed via options, allowed extensions: %s",
                 [$extension, $option_allowedExtensions], UploadError::OPTION_NOT_ALLOWED_EXTENSION
             );
         }
@@ -144,91 +252,24 @@ abstract class AbstractUploader
         $name = $name ? $this->prepareName($name) : uuid();
 
         $this->source = $source;
-        $this->sourceInfo = ['type' => $type, 'name' => $name, 'size' => $size, 'extension' => $extension];
-        $this->options = ['directory' => $directory] + $options;
+        $this->sourceInfo = ['type' => $type, 'size' => $size,
+            'name' => $name, 'extension' => $extension];
+
+        // Reset options.
+        $this->options = ['directory' => $directory] + $this->options;
+
+        return $this;
     }
 
     /**
-     * Destructor.
-     */
-    public function __destruct()
-    {
-        $this->clear();
-    }
-
-    /**
-     * Get source file.
-     *
-     * @return string
-     */
-    public final function getSource(): string
-    {
-        return $this->source;
-    }
-
-    /**
-     * Get source info.
-     *
-     * @return array
-     */
-    public final function getSourceInfo(): array
-    {
-        return $this->sourceInfo;
-    }
-
-    /**
-     * Get options.
-     *
-     * @return array
-     */
-    public final function getOptions(): array
-    {
-        return $this->options;
-    }
-
-    /**
-     * Get destination file with/without given name & name appendix.
-     *
-     * @param  string|null $name
-     * @param  string|null $appendix
-     * @return string
-     * @throws froq\file\upload\UploadException
-     */
-    protected final function getDestination(string $name = null, string $appendix = null): string
-    {
-        $extension = $this->sourceInfo['extension'];
-
-        // Check name & extension when given with saveAs() or moveAs().
-        if ($name !== null) {
-            if (strsrc($name, '.')) {
-                $extension = file_extension($name);
-                if ($extension && $this->options['allowedExtensions'] !== '*' &&
-                    !in_array($extension, explode(',', $this->options['allowedExtensions']))) {
-                    throw new UploadException("Extension '%s' not allowed via options, allowed extensions: '%s'",
-                        [$extension, $this->options['allowedExtensions']], UploadError::OPTION_NOT_ALLOWED_EXTENSION);
-                }
-            }
-
-            $name = $this->prepareName($name, $appendix);
-        }
-
-        $destination = $this->options['directory'] .'/'. ($name ?? $this->sourceInfo['name']);
-        if ($extension !== null) {
-            $destination = $destination .'.'. $extension;
-        }
-
-        return $destination;
-    }
-
-    /**
-     * Prepare file name wiht/without name appendix.
+     * Prepare a file name with/without name appendix.
      *
      * @param  string      $name
      * @param  string|null $appendix
      * @return string
      * @throws froq\file\upload\UploadException
      */
-    protected final function prepareName(string $name, string $appendix = null): string
+    public final function prepareName(string $name, string $appendix = null): string
     {
         $name = trim($name);
         $name || throw new UploadException('Empty name given');

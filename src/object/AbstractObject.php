@@ -54,12 +54,12 @@ abstract class AbstractObject implements Sizable, Stringable
         if ($resource != null) {
             if ($this instanceof FileObject) {
                 if (!is_type_of($resource, 'stream')) {
-                    throw new ObjectException("Resource type must be stream, '%s' given",
+                    throw new ObjectException('Resource type must be stream, %s given',
                         get_type($resource));
                 }
             } elseif ($this instanceof ImageObject) {
                 if ($mime && !in_array($mime, static::$mimes)) {
-                    throw new ObjectException("Invalid MIME '%s', valids are: %s",
+                    throw new ObjectException('Invalid MIME \'%s\', valids are: %s',
                         [$mime, join(', ', static::$mimes)]);
                 }
 
@@ -70,7 +70,7 @@ abstract class AbstractObject implements Sizable, Stringable
                 }
 
                 if (!is_type_of($resource, 'GdImage')) {
-                    throw new ObjectException("Resource type must be GdImage, '%s' given",
+                    throw new ObjectException('Resource type must be stream|GdImage, %s given',
                         get_type($resource));
                 }
             }

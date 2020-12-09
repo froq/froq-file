@@ -18,7 +18,7 @@ use Error;
  * @object  froq\file\File
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   3.0, 4.0 Made static, added getType(),getExtension(),read(),write(),mode(), moved all other stuff
- *          into AbstractUploader.
+ *          into AbstractSource.
  * @static
  */
 final class File

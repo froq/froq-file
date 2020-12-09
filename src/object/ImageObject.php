@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace froq\file\object;
 
 use froq\file\object\{AbstractObject, ObjectException, TempFileObject};
-use froq\file\upload\ImageUploader;
+use froq\file\upload\ImageSource;
 use froq\file\File;
 
 /**
@@ -86,15 +86,15 @@ class ImageObject extends AbstractObject
             ? $temp->setResource($this->resourceFile)
             : $temp->setContents($this->getContents());
 
-        $resource = (new ImageUploader(
+        $image = (new ImageSource)->prepare(
             ['type' => $this->mime, 'file' => $temp->path(), 'directory' => '/tmp'],
             ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
              'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
-        ))->resize($width, $height, $options)->getDestinationImage();
+        )->resize($width, $height, $options)->getDestinationImage();
 
         $temp->free();
 
-        $this->resource = $resource;
+        $this->resource = $image;
 
         return $this;
     }
@@ -114,15 +114,15 @@ class ImageObject extends AbstractObject
             ? $temp->setResource($this->resourceFile)
             : $temp->setContents($this->getContents());
 
-        $resource = (new ImageUploader(
+        $image = (new ImageSource)->prepare(
             ['type' => $this->mime, 'file' => $temp->path(), 'directory' => '/tmp'],
             ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
              'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
-        ))->crop($width, $height, $options)->getDestinationImage();
+        )->crop($width, $height, $options)->getDestinationImage();
 
         $temp->free();
 
-        $this->resource = $resource;
+        $this->resource = $image;
 
         return $this;
     }
