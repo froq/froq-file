@@ -65,7 +65,7 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        $ret = freadall($this->resource, $from);
+        $ret = freads($this->resource, $from);
 
         return ($ret !== null) ? $ret : null;
     }
@@ -278,14 +278,15 @@ class FileObject extends AbstractObject
     /**
      * Set file contents.
      *
-     * @param  string $contents
+     * @param  string    $contents
+     * @param  int|null &$ret
      * @return self
      */
-    public final function setContents(string $contents): self
+    public final function setContents(string $contents, int &$ret = null): self
     {
         $this->resourceCheck();
 
-        freset($this->resource, $contents);
+        $ret = fwrites($this->resource, $contents);
 
         return $this;
     }
@@ -299,9 +300,7 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        $pos = ftell($this->resource);
-        $ret = freadall($this->resource);
-        fseek($this->resource, $pos);
+        $ret = freads($this->resource);
 
         return ($ret !== null) ? $ret : null;
     }

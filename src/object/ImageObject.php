@@ -199,7 +199,7 @@ class ImageObject extends AbstractObject
     public final function getContents(): string|null
     {
         if (is_resource($this->resourceFile)) {
-            return freadall($this->resourceFile);
+            return freads($this->resourceFile);
         }
 
         $this->resourceCheck();
