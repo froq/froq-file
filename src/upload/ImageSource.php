@@ -51,7 +51,7 @@ class ImageSource extends AbstractSource implements Stringable
      */
     public final function resample(): self
     {
-        return $this->resize(-1, -1, ['adjust' => false, 'proportion' => false]);
+        return $this->resize(0, 0, ['adjust' => false, 'proportion' => false]);
     }
 
     /**
@@ -65,10 +65,14 @@ class ImageSource extends AbstractSource implements Stringable
      */
     public final function resize(int $width, int $height, array $options = null): self
     {
+        if ($width < 0 || $height < 0) {
+            throw new UploadException('Both with and height must be greater than -1');
+        } elseif ($width == 0 && $height == 0) {
+            throw new UploadException('Either with or height must be greater than 0');
+        }
+
         // Fill/ensure info.
         $this->fillInfo();
-
-        $this->sourceImage = $this->createSourceImage();
 
         [$origWidth, $origHeight] = $info = $this->getInfo();
         @ ['adjust' => $adjust, 'proportion' => $proportion] = $options; // @defaults=true
@@ -82,8 +86,8 @@ class ImageSource extends AbstractSource implements Stringable
         $newWidth = $newHeight = 0;
         if ($proportion !== false) {
             $factor    = (
-                $width == -1 ? $height / $origHeight : (
-                    $height == -1 ? $width / $origWidth : (
+                $width == 0 ? $height / $origHeight : (
+                    $height == 0 ? $width / $origWidth : (
                         min($width / $origWidth, $height / $origHeight)
                     )
                 )
@@ -91,10 +95,11 @@ class ImageSource extends AbstractSource implements Stringable
             $newWidth  = (int) ($origWidth * $factor);
             $newHeight = (int) ($origHeight * $factor);
         } else {
-            $newWidth  = (int) ($width > -1 ? $width : $origWidth);
-            $newHeight = (int) ($height > -1 ? $height : $origHeight);
+            $newWidth  = (int) ($width > 0 ? $width : $origWidth);
+            $newHeight = (int) ($height > 0 ? $height : $origHeight);
         }
 
+        $this->sourceImage = $this->createSourceImage();
         $this->destinationImage = $this->createDestinationImage([$newWidth, $newHeight]);
 
         // Handle PNGs/GIFs.
@@ -133,13 +138,17 @@ class ImageSource extends AbstractSource implements Stringable
      */
     public final function crop(int $width, int $height = null, array $options = null): self
     {
+        if ($width < 0 || $height < 0) {
+            throw new UploadException('Both with and height must be greater than -1');
+        } elseif ($width == 0 && $height == 0) {
+            throw new UploadException('Either with or height must be greater than 0');
+        }
+
         // Fill/ensure info.
         $this->fillInfo();
 
-        $this->sourceImage = $this->createSourceImage();
-
-        // Square crops.
-        $height ??= $width;
+        // Squares.
+        $height = $height ?: $width;
 
         [$origWidth, $origHeight] = $info = $this->getInfo();
         @ ['x' => $x, 'y' => $y, 'proportion' => $proportion] = $options; // @defaults=null
@@ -158,6 +167,7 @@ class ImageSource extends AbstractSource implements Stringable
         $x ??= (int) (($origWidth - $cropWidth) / $divisionBy);
         $y ??= (int) (($origHeight - $cropHeight) / $divisionBy);
 
+        $this->sourceImage = $this->createSourceImage();
         $this->destinationImage = $this->createDestinationImage([$width, $height]);
 
         // Handle PNGs/GIFs.
