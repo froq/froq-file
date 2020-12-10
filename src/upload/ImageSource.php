@@ -227,7 +227,7 @@ class ImageSource extends AbstractSource implements Stringable
     public final function clear(bool $force = false): void
     {
         if ($force || $this->options['clearSource']) {
-            unlink($this->getSource());
+            @ unlink($this->getSource());
         }
 
         if ($this->options['clear']) {
