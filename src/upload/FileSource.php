@@ -24,69 +24,35 @@ class FileSource extends AbstractSource
     /**
      * @inheritDoc froq\file\upload\AbstractSource
      */
-    public final function save(): string
-    {
-        $source = $this->getSource();
-        $destination = $this->getDestination();
-
-        $this->overwriteCheck($destination);
-
-        copy($source, $destination)
-            || throw new UploadException('Failed saving file [error: %s]', '@error');
-
-        return $destination;
-    }
-
-    /**
-     * @inheritDoc froq\file\upload\AbstractSource
-     */
-    public final function saveAs(string $name, string $appendix = null): string
+    public final function save(string $name = null, string $appendix = null): string
     {
         $source = $this->getSource();
         $destination = $this->getDestination($name, $appendix);
 
         $this->overwriteCheck($destination);
 
-        copy($source, $destination)
-            || throw new UploadException('Failed saving file [error: %s]', '@error');
+        if (copy($source, $destination)) {
+            return $destination;
+        }
 
-        return $destination;
+        throw new UploadException('Failed saving file [error: %s]', '@error');
     }
 
     /**
      * @inheritDoc froq\file\upload\AbstractSource
      */
-    public final function move(): string
-    {
-        $source = $this->getSource();
-        $destination = $this->getDestination();
-
-        $this->overwriteCheck($destination);
-
-        copy($source, $destination)
-            || throw new UploadException('Failed moving file [error: %s]', '@error');
-
-        unlink($source); // Remove source instantly.
-
-        return $destination;
-    }
-
-    /**
-     * @inheritDoc froq\file\upload\AbstractSource
-     */
-    public final function moveAs(string $name, string $appendix = null): string
+    public final function move(string $name = null, string $appendix = null): string
     {
         $source = $this->getSource();
         $destination = $this->getDestination($name, $appendix);
 
         $this->overwriteCheck($destination);
 
-        copy($source, $destination)
-            || throw new UploadException('Failed moving file [error: %s]', '@error');
+        if (rename($source, $destination)) {
+            return $destination;
+        }
 
-        unlink($source); // Remove source instantly.
-
-        return $destination;
+        throw new UploadException('Failed moving file [error: %s]', '@error');
     }
 
     /**

@@ -184,22 +184,7 @@ class ImageSource extends AbstractSource implements Stringable
     /**
      * @inheritDoc froq\file\upload\AbstractSource
      */
-    public final function save(): string
-    {
-        $destination = $this->getDestination();
-
-        $this->overwriteCheck($destination);
-
-        $this->outputTo($destination)
-            || throw new UploadException('Failed saving image [error: %s]', '@error');
-
-        return $destination;
-    }
-
-    /**
-     * @inheritDoc froq\file\upload\AbstractSource
-     */
-    public final function saveAs(string $name, string $appendix = null, bool $appendNewDimensions = false): string
+    public final function save(string $name = null, string $appendix = null, bool $appendNewDimensions = false): string
     {
         if ($appendNewDimensions) {
             $newDimensions = $this->getNewDimensions();
@@ -212,46 +197,28 @@ class ImageSource extends AbstractSource implements Stringable
 
         $this->overwriteCheck($destination);
 
-        $this->outputTo($destination)
-            || throw new UploadException('Failed saving image [error: %s]', '@error');
+        if ($this->outputTo($destination)) {
+            return $destination;
+        }
 
-        return $destination;
+        throw new UploadException('Failed saving image [error: %s]', '@error');
     }
 
     /**
      * @inheritDoc froq\file\upload\AbstractSource
      */
-    public final function move(): string
-    {
-        $source = $this->getSource();
-        $destination = $this->getDestination();
-
-        $this->overwriteCheck($destination);
-
-        copy($source, $destination)
-            || throw new UploadException('Failed moving image [error: %s]', '@error');
-
-        unlink($source); // Remove source instantly.
-
-        return $destination;
-    }
-
-    /**
-     * @inheritDoc froq\file\upload\AbstractSource
-     */
-    public final function moveAs(string $name, string $appendix = null): string
+    public final function move(string $name = null, string $appendix = null): string
     {
         $source = $this->getSource();
         $destination = $this->getDestination($name, $appendix);
 
         $this->overwriteCheck($destination);
 
-        copy($source, $destination)
-            || throw new UploadException('Failed moving image [error: %s]', '@error');
+        if (rename($source, $destination)) {
+            return $destination;
+        }
 
-        unlink($source); // Remove source instantly.
-
-        return $destination;
+        throw new UploadException('Failed moving image [error: %s]', '@error');
     }
 
     /**
@@ -309,7 +276,7 @@ class ImageSource extends AbstractSource implements Stringable
         }
 
         if (empty($info)) {
-            throw new UploadException('Failed to get source info [error: %s]', '@error');
+            throw new UploadException('Failed getting source info [error: %s]', '@error');
         }
 
         if (!in_array($info[2], self::SUPPORTED_TYPES)) {
@@ -440,7 +407,8 @@ class ImageSource extends AbstractSource implements Stringable
             };
         }
 
-        return $image ? $image : throw new UploadException('Failed creating source image [error: %s]', '@error');
+        return $image ? $image : throw new UploadException('Failed creating source image [error: %s]',
+            '@error');
     }
 
     /**
@@ -454,7 +422,8 @@ class ImageSource extends AbstractSource implements Stringable
     {
         $image = imagecreatetruecolor(...$dimensions);
 
-        return $image ? $image : throw new UploadException('Failed creating destination image [error: %s]', '@error');
+        return $image ? $image : throw new UploadException('Failed creating destination image [error: %s]',
+            '@error');
     }
 
     /**
@@ -466,8 +435,8 @@ class ImageSource extends AbstractSource implements Stringable
     protected final function output(): bool
     {
         $image = $this->getDestinationImage();
-        $image || throw new UploadException('No destination image created yet, call one of these methods first: '
-            . 'resample(), resize(), crop() or cropBy()');
+        $image || throw new UploadException('No destination image created yet, call one of these '
+            . ' methods first: resample(), resize(), crop() or cropBy()');
 
         $ok = match ($this->getType()) {
             IMAGETYPE_JPEG => imagejpeg($image, null, $this->options['jpegQuality']),
@@ -492,8 +461,8 @@ class ImageSource extends AbstractSource implements Stringable
         $to || throw new UploadException('Empty destination file path given');
 
         $image = $this->getDestinationImage();
-        $image || throw new UploadException('No destination image created yet, call one of these methods first: '
-            . 'resample(), resize(), crop() or cropBy()');
+        $image || throw new UploadException('No destination image created yet, call one of these '
+            . 'methods first: resample(), resize(), crop() or cropBy()');
 
         $ok = match ($this->getType()) {
             IMAGETYPE_JPEG => imagejpeg($image, $to, $this->options['jpegQuality']),
