@@ -12,7 +12,7 @@ use froq\file\upload\{AbstractSource, UploadException};
 /**
  * File Source
  *
- * Represents an uploaded file source entity which aims to with files in OOP style.
+ * Represents an uploaded file entity which aims to with files in OOP style with a few safety options.
  *
  * @package froq\file\upload
  * @object  froq\file\upload\FileSource

@@ -14,7 +14,7 @@ use GdImage;
 /**
  * Image Source.
  *
- * Represents an uploaded image entity which aims to work images in OOP style.
+ * Represents an uploaded image entity which aims to work images in OOP stylewith a few safety options.
  *
  * @package froq\file\upload
  * @object  froq\file\upload\ImageSource

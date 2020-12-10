@@ -59,7 +59,7 @@ abstract class AbstractObject implements Sizable, Stringable
                 }
             } elseif ($this instanceof ImageObject) {
                 if ($mime && !in_array($mime, static::$mimes)) {
-                    throw new ObjectException('Invalid MIME \'%s\', valids are: %s',
+                    throw new ObjectException('Invalid MIME `%s`, valids are: %s',
                         [$mime, join(', ', static::$mimes)]);
                 }
 
@@ -278,6 +278,15 @@ abstract class AbstractObject implements Sizable, Stringable
     public static final function fromResource($resource, string $mime = null, array $options = null): static
     {
         $resource || throw new ObjectException('Empty resource given');
+
+        if (is_type_of($resource, 'gd')) {
+            $mime = mime_content_type($resource);
+            prd($mime,1);
+            // ob_start();
+            // imagejpeg($resource);
+            // $this->resourceFile = tmp();
+            // fwrites($this->resourceFile, ob_get_clean());
+        }
 
         return new static($resource, $mime, $options);
     }

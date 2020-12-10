@@ -15,7 +15,8 @@ use Throwable;
 /**
  * Abstract Source.
  *
- * Represents an abstract uploaded source entity which aims to work files/images in OOP style.
+ * Represents an abstract uploaded source entity which aims to work files/images in OOP style with a few
+ * safety options.
  *
  * @package froq\file\upload
  * @object  froq\file\upload\AbstractSource
@@ -154,7 +155,7 @@ abstract class AbstractSource
      * @return self
      * @throws froq\file\upload\UploadException
      */
-    public function prepare(array $file, array $options = null): self
+    public final function prepare(array $file, array $options = null): self
     {
         // Add deferred options.
         if ($options != null) {
