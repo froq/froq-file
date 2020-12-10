@@ -184,7 +184,7 @@ class ImageObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        $this->resource = null; // Void old.
+        $this->resource = null; // Void.
         $this->resource = imagecreatefromstring($contents);
 
         return $this;
@@ -208,7 +208,7 @@ class ImageObject extends AbstractObject
             throw new ObjectException('No MIME given yet, try after calling setMime()');
         }
         if (!in_array($this->mime, self::$mimes)) {
-            throw new ObjectException("Invalid MIME '%s', valids are: %s", [$this->mime, join(', ', self::$mimes)]);
+            throw new ObjectException('Invalid MIME `%s`, valids are: %s', [$this->mime, join(', ', self::$mimes)]);
         }
 
         ob_start();
@@ -317,7 +317,9 @@ class ImageObject extends AbstractObject
             throw new ObjectException($error->getMessage(), null, $error->getCode());
         }
 
-        return self::fromString(file_get_contents($file), $mime ?? mime_content_type($file), $options);
+        $mime ??= mime_content_type($file);
+
+        return static::fromString(file_get_contents($file), $mime, $options);
     }
 
     /**
@@ -328,14 +330,14 @@ class ImageObject extends AbstractObject
         $resource = imagecreatefromstring($string);
         $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
 
-        $mime || $mime = getimagesizefromstring($string)['mime'] ?? null;
+        $mime ??= getimagesizefromstring($string)['mime'] ?? null;
 
-        $image = new static($resource, $mime, $options);
+        $that = new static($resource, $mime, $options);
 
         // For speeding up resize(), crop(), getContents() etc.
-        $image->resourceFile = tmpfile();
-        fwrite($image->resourceFile, $string);
+        $that->resourceFile = tmpfile();
+        fwrite($that->resourceFile, $string);
 
-        return $image;
+        return $that;
     }
 }

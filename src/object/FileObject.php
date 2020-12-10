@@ -385,7 +385,9 @@ class FileObject extends AbstractObject
         $resource = fopen($file, ($options['mode'] ?? self::$optionsDefault['mode']));
         $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
 
-        return new static($resource, $mime ?? mime_content_type($file), $options);
+        $mime ??= mime_content_type($file);
+
+        return new static($resource, $mime, $options);
     }
 
     /**
@@ -397,6 +399,8 @@ class FileObject extends AbstractObject
         $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
 
         fwrite($resource, $string);
+
+        $mime ??= mime_content_type($resource);
 
         return new static($resource, $mime, $options);
     }
