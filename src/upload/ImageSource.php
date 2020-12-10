@@ -51,7 +51,7 @@ class ImageSource extends AbstractSource implements Stringable
      */
     public final function resample(): self
     {
-        return $this->resize(-1, -1, ['proportion' => false]);
+        return $this->resize(-1, -1, ['adjust' => false, 'proportion' => false]);
     }
 
     /**
@@ -436,7 +436,7 @@ class ImageSource extends AbstractSource implements Stringable
     {
         $image = $this->getDestinationImage();
         $image || throw new UploadException('No destination image created yet, call one of these '
-            . ' methods first: resample(), resize(), crop() or cropBy()');
+            . ' methods first: resample(), resize() or crop()');
 
         $ok = match ($this->getType()) {
             IMAGETYPE_JPEG => imagejpeg($image, null, $this->options['jpegQuality']),
@@ -462,7 +462,7 @@ class ImageSource extends AbstractSource implements Stringable
 
         $image = $this->getDestinationImage();
         $image || throw new UploadException('No destination image created yet, call one of these '
-            . 'methods first: resample(), resize(), crop() or cropBy()');
+            . 'methods first: resample(), resize() or crop()');
 
         $ok = match ($this->getType()) {
             IMAGETYPE_JPEG => imagejpeg($image, $to, $this->options['jpegQuality']),

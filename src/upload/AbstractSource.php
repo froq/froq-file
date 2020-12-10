@@ -169,15 +169,15 @@ abstract class AbstractSource
         );
 
         // Check for only these keys.
-        $source = trim($file['file'] ?? $file['tmp_name'] ?? '');
+        $source = trim((string) ($file['file'] ?? $file['tmp_name'] ?? ''));
         $source || throw new UploadException(
-            'No valid source given, `file` or `tmp_name` can not be empty',
+            'No source given, `file` or `tmp_name` option must not be empty',
             null, UploadError::NO_VALID_FILE
         );
 
-        $directory = trim($file['directory'] ?? $this->options['directory'] ?? '');
+        $directory = trim((string) ($file['directory'] ?? $this->options['directory'] ?? ''));
         $directory || throw new UploadException(
-            'Directory must not be empty',
+            'No directory given, `directory` option must not be empty',
             null, UploadError::DIRECTORY_EMPTY
         );
 
