@@ -120,7 +120,7 @@ final class File
         } elseif (is_stream($file)) {
             $ret = stream_get_contents($file, -1, 0);
         } else {
-            throw new FileException('Invalid file type %s, valids are: string, stream', $type);
+            throw new FileException('Invalid file type `%s`, valids are: string, stream', $type);
         }
 
         if ($ret === false) {
@@ -147,7 +147,7 @@ final class File
         } elseif (is_stream($file)) {
             $ret = stream_set_contents($file, $contents);
         } else {
-            throw new FileException('Invalid file type %s, valids are: string, stream', $type);
+            throw new FileException('Invalid file type `%s`, valids are: string, stream', $type);
         }
 
         if ($ret === false) {
@@ -172,14 +172,14 @@ final class File
             if ($mode > -1) { // Set mode.
                 $ret = chmod($file, $mode);
                 if ($ret === false) {
-                    throw new FileException("Cannot set file mode [error: %s, file: %s]",
+                    throw new FileException('Cannot set file mode [error: %s, file: %s]',
                         ['@error', $file]);
                 }
                 $ret = $mode;
             } else { // Get mode.
                 $ret = fileperms($file);
                 if ($ret === false) {
-                    throw new FileException("Cannot get file stat for '%s'", $file);
+                    throw new FileException('Cannot get file stat for `%s`', $file);
                 }
             }
 
@@ -192,7 +192,7 @@ final class File
         // Get full permissions.
         $perms = fileperms($file);
         if ($perms === false) {
-            throw new FileException("Cannot get file stat for '%s'", $file);
+            throw new FileException('Cannot get file stat for `%s`', $file);
         }
 
         // Source http://php.net/fileperms.
@@ -251,27 +251,27 @@ final class File
 
             if (is_dir($file)) {
                 $error = new FileError(
-                    "Given path '%s' is a directory",
-                    get_real_path($file), FileError::DIRECTORY_GIVEN
+                    'Given path `%s` is a directory',
+                    $file, FileError::DIRECTORY_GIVEN
                 );
             } // else ok.
         } else {
             $error = $error ?? error_message() ?? 'Unknown error';
 
-            if (stripos($error, 'valid path')) {
+            if (stripos($error, 'no such file')) {
                 $error = new FileError(
-                    "No valid path '%s' given",
-                    strtr($file, ["\0" => "\\0"]), FileError::INVALID_PATH
-                );
-            } elseif (stripos($error, 'no such file')) {
-                $error = new FileError(
-                    "No file exists such '%s'",
-                    get_real_path($file), FileError::NO_FILE
+                    'No file exists such `%s`',
+                    $file, FileError::NO_FILE
                 );
             } elseif (stripos($error, 'permission denied')) {
                 $error = new FileError(
-                    "No permission for accessing to '%s' file",
-                    get_real_path($file), FileError::NO_PERMISSION
+                    'No permission for accessing `%s`',
+                    $file, FileError::NO_PERMISSION
+                );
+            } elseif (stripos($error, 'valid path') || stripos($error, 'null bytes')) {
+                $error = new FileError(
+                    'No valid path `%s`',
+                    strtr($file, ["\0" => "\\0"]), FileError::INVALID_PATH
                 );
             } else {
                 $error = new FileError($error);
