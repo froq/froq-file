@@ -19,7 +19,7 @@ namespace froq\file;
 final class Util
 {
     /**
-     * Format bytes human readable text.
+     * Format bytes as human readable text.
      *
      * @param  int $bytes
      * @return string

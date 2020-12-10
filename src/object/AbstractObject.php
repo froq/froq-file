@@ -279,15 +279,6 @@ abstract class AbstractObject implements Sizable, Stringable
     {
         $resource || throw new ObjectException('Empty resource given');
 
-        if (is_type_of($resource, 'gd')) {
-            $mime = mime_content_type($resource);
-            prd($mime,1);
-            // ob_start();
-            // imagejpeg($resource);
-            // $this->resourceFile = tmp();
-            // fwrites($this->resourceFile, ob_get_clean());
-        }
-
         return new static($resource, $mime, $options);
     }
 
