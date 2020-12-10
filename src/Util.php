@@ -24,7 +24,7 @@ final class Util
      * @param  int $bytes
      * @return string
      */
-    public static function formatBytes(int $bytes): string
+    public static function formatBytes(int $bytes, int $precision = 2): string
     {
         static $base = 1024, $units = ['B', 'KB', 'MB', 'GB'];
 
@@ -33,7 +33,7 @@ final class Util
             $i++; $bytes /= $base;
         }
 
-        return round($bytes, 2) . $units[$i];
+        return sprintf('%.*F', $precision, $bytes) . $units[$i];
     }
 
 
@@ -49,7 +49,9 @@ final class Util
 
         // Eg: 6.4M or 6.4MB => 6.4MB, 64M or 64MB => 64MB.
         if (sscanf($bytes, '%f%c', $byte, $unit) == 2) {
-            return (int) ($byte * pow($base, array_search(strtoupper($unit), $units)));
+            $exp = array_search(strtoupper($unit), $units);
+
+            return (int) ($byte * pow($base, $exp));
         }
 
         return (int) $bytes;
