@@ -7,8 +7,9 @@ declare(strict_types=1);
 
 namespace froq\file\upload;
 
-use froq\file\upload\{UploadError, UploadException, Util as FileUtil};
+use froq\file\upload\{UploadError, UploadException};
 use froq\file\mime\{Mime, MimeException};
+use froq\file\{File, Util as FileUtil};
 use froq\common\traits\{OptionTrait, ApplyTrait};
 use Throwable;
 
@@ -182,10 +183,16 @@ abstract class AbstractSource
             null, UploadError::DIRECTORY_EMPTY
         );
 
-        is_file($source) || throw new UploadException(
-            'No source file exists such `%s`',
-            $source, UploadError::NO_VALID_SOURCE
-        );
+        // Validate file existence and give a proper error.
+        if (!realpath($source)) {
+            if (File::errorCheck($source, $error)) {
+                throw new UploadException($error);
+            }
+            throw new UploadException(
+                'No source file exists such `%s`',
+                $source, UploadError::NO_VALID_SOURCE
+            );
+        }
 
         extract($this->options, EXTR_PREFIX_ALL, 'option');
 
