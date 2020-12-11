@@ -40,6 +40,9 @@ abstract class AbstractSource
     /** @var array */
     protected array $sourceInfo;
 
+    /** @var string */
+    protected string $target;
+
     /** @var array */
     protected static array $optionsDefault = [
         'hash'                 => null, // Available commands: 'rand', 'file' or 'name' (default=none).
@@ -105,45 +108,19 @@ abstract class AbstractSource
     }
 
     /**
-     * Get destination file with/without given name & name appendix.
+     * Get target file.
      *
-     * @param  string|null $name
-     * @param  string|null $appendix
      * @return string
      * @throws froq\file\upload\UploadException
+     * @since  5.0
      */
-    public final function getDestination(string $name = null, string $appendix = null): string
+    public final function getTarget(): string
     {
-        $sourceInfo = $this->getSourceInfo();
-
-        // Check name & extension when given with save() or move().
-        if ($name !== null) {
-            if (strsrc($name, '.')) {
-                $extension = file_extension($name);
-                if ($extension !== null) {
-                    if ($this->options['allowedExtensions'] !== '*' &&
-                        !in_array($extension, explode(',', $this->options['allowedExtensions']))) {
-                        throw new UploadException(
-                            'Extension `%s` not allowed via options, allowed extensions: %s',
-                            [$extension, $this->options['allowedExtensions']], UploadError::OPTION_NOT_ALLOWED_EXTENSION
-                        );
-                    }
-
-                    // Drop extension duplication.
-                    $name = substr($name, 0, -(strlen($extension) - 1));
-                }
-            }
-
-            $name = $this->prepareName($name, $appendix);
+        if (isset($this->target)) {
+            return $this->target;
         }
 
-        $destination = $this->options['directory'] .'/'. ($name ?: $sourceInfo['name']);
-        $extension ??= $sourceInfo['extension'];
-        if ($extension !== null) {
-            $destination = $destination .'.'. $extension;
-        }
-
-        return $destination;
+        throw new UploadException('No target ready yet, call save() or move() first');
     }
 
     /**
@@ -257,12 +234,11 @@ abstract class AbstractSource
             );
         }
 
-        // Set destination name as random UUID default, if no name given.
+        // Set target name as random UUID default, if no name given.
         $name = $this->prepareName((string) $name) ?: uuid();
 
         $this->source = $source;
-        $this->sourceInfo = ['type' => $type, 'size' => $size,
-            'name' => $name, 'extension' => $extension];
+        $this->sourceInfo = ['type' => $type, 'size' => $size, 'name' => $name, 'extension' => $extension];
 
         // Reset options.
         $this->options = ['directory' => $directory] + $this->options;
@@ -323,17 +299,62 @@ abstract class AbstractSource
     }
 
     /**
+     * Prepare target file path with/without given name & name appendix.
+     *
+     * @param  string|null $name
+     * @param  string|null $appendix
+     * @return string
+     * @throws froq\file\upload\UploadException
+     */
+    public final function prepareTarget(string $name = null, string $appendix = null): string
+    {
+        $sourceInfo = $this->getSourceInfo();
+
+        // Check name & extension when given with save() or move().
+        if ($name !== null) {
+            if (strsrc($name, '.')) {
+                $extension = file_extension($name);
+                if ($extension !== null) {
+                    if ($this->options['allowedExtensions'] !== '*' &&
+                        !in_array($extension, explode(',', $this->options['allowedExtensions']))) {
+                        throw new UploadException(
+                            'Extension `%s` not allowed via options, allowed extensions: %s',
+                            [$extension, $this->options['allowedExtensions']], UploadError::OPTION_NOT_ALLOWED_EXTENSION
+                        );
+                    }
+
+                    // Drop extension duplication.
+                    $name = substr($name, 0, -(strlen($extension) - 1));
+                }
+            }
+
+            $name = $this->prepareName($name, $appendix);
+        }
+
+        $target = $this->options['directory'] .'/'. ($name ?: $sourceInfo['name']);
+        $extension ??= $sourceInfo['extension'];
+        if ($extension !== null) {
+            $target = $target .'.'. $extension;
+        }
+
+        // Store.
+        $this->target = $target;
+
+        return $target;
+    }
+
+    /**
      * Check overwrite avaibility.
      *
-     * @param  string $destination
+     * @param  string $target
      * @return void
      * @throws froq\file\upload\UploadException
      * @since  5.0
      */
-    protected final function overwriteCheck(string $destination): void
+    protected final function overwriteCheck(string $target): void
     {
-        if (!$this->options['overwrite'] && file_exists($destination)) {
-            throw new UploadException('Cannot overwrite existing file `%s`', $destination,
+        if (!$this->options['overwrite'] && file_exists($target)) {
+            throw new UploadException('Cannot overwrite existing file `%s`', $target,
                 UploadError::OPTION_NOT_ALLOWED_OVERWRITE);
         }
     }

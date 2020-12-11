@@ -90,7 +90,7 @@ class ImageObject extends AbstractObject
             ['type' => $this->mime, 'file' => $temp->path(), 'directory' => '/tmp'],
             ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
              'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
-        )->resize($width, $height, $options)->getDestinationImage();
+        )->resize($width, $height, $options)->getTargetImage();
 
         $temp->free();
 
@@ -118,7 +118,7 @@ class ImageObject extends AbstractObject
             ['type' => $this->mime, 'file' => $temp->path(), 'directory' => '/tmp'],
             ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
              'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
-        )->crop($width, $height, $options)->getDestinationImage();
+        )->crop($width, $height, $options)->getTargetImage();
 
         $temp->free();
 

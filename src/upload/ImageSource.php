@@ -30,16 +30,16 @@ class ImageSource extends AbstractSource implements Stringable
     public const SUPPORTED_TYPES = [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP];
 
     /** @var GdImage|Imagick|null */
-    private GdImage|Imagick|null $sourceImage;
+    protected GdImage|Imagick|null $sourceImage;
 
     /** @var GdImage|Imagick|null */
-    private GdImage|Imagick|null $destinationImage;
+    protected GdImage|Imagick|null $targetImage;
 
     /** @var array */
-    private array $info;
+    protected array $info;
 
     /** @var array */
-    private array $newDimensions;
+    protected array $newDimensions;
 
     /** @var array */
     protected static array $optionsDefault = [
@@ -132,7 +132,7 @@ class ImageSource extends AbstractSource implements Stringable
         // if ($newHeight < $newWidth) $newHeight += 1;
 
         $this->sourceImage = $this->createSourceImage();
-        $this->destinationImage = $this->createDestinationImage([$newWidth, $newHeight],
+        $this->targetImage = $this->createTargetImage([$newWidth, $newHeight],
             $this->useImagick ? $this->sourceImage : null
         );
 
@@ -140,7 +140,7 @@ class ImageSource extends AbstractSource implements Stringable
             $size = filesize($this->getSource());
 
             try {
-                $imagick = $this->destinationImage;
+                $imagick = $this->targetImage;
                 ($size >= 1_000_000 || $size <= 750_000) // Choose faster method (1mb|750kb).
                     ? $imagick->thumbnailImage($newWidth, $newHeight)
                     : $imagick->resizeImage($newWidth, $newHeight, Imagick::FILTER_BOX, 1.0);
@@ -151,18 +151,18 @@ class ImageSource extends AbstractSource implements Stringable
 
             // Handle transparency.
             if (in_array($type, [IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP], true)) {
-                imagealphablending($this->destinationImage, false);
-                imagesavealpha($this->destinationImage, true);
-                imageantialias($this->destinationImage, true);
-                imagefill($this->destinationImage, 0, 0, imagecolorallocatealpha(
-                    $this->destinationImage, 255, 255, 255, 127 // Transparent.
+                imagealphablending($this->targetImage, false);
+                imagesavealpha($this->targetImage, true);
+                imageantialias($this->targetImage, true);
+                imagefill($this->targetImage, 0, 0, imagecolorallocatealpha(
+                    $this->targetImage, 255, 255, 255, 127 // Transparent.
                 ));
             }
 
             imagecopyresampled(
-                $this->destinationImage, $this->sourceImage,
+                $this->targetImage, $this->sourceImage,
                 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight
-            ) || throw new UploadException('Failed resampling destination image [error: %s]', '@error');
+            ) || throw new UploadException('Failed resampling target image [error: %s]', '@error');
 
         }
 
@@ -235,13 +235,13 @@ class ImageSource extends AbstractSource implements Stringable
         $y = (int) (($options['y'] ?? null) ?? ($origHeight - $cropHeight) / $div);
 
         $this->sourceImage = $this->createSourceImage();
-        $this->destinationImage = $this->createDestinationImage([$width, $height],
+        $this->targetImage = $this->createTargetImage([$width, $height],
             $this->useImagick ? $this->sourceImage : null
         );
 
         if ($this->useImagick) {
             try {
-                $imagick = $this->destinationImage;
+                $imagick = $this->targetImage;
                 $imagick->cropImage($width, $height, $x, $y);
                 $imagick->setImagePage(0, 0, 0, 0);
             } catch (ImagickException $e) {
@@ -250,18 +250,18 @@ class ImageSource extends AbstractSource implements Stringable
         } else {
             // Handle transparency.
             if (in_array($type, [IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP], true)) {
-                imagealphablending($this->destinationImage, false);
-                imagesavealpha($this->destinationImage, true);
-                imageantialias($this->destinationImage, true);
-                imagefill($this->destinationImage, 0, 0, imagecolorallocatealpha(
-                    $this->destinationImage, 255, 255, 255, 127 // Transparent.
+                imagealphablending($this->targetImage, false);
+                imagesavealpha($this->targetImage, true);
+                imageantialias($this->targetImage, true);
+                imagefill($this->targetImage, 0, 0, imagecolorallocatealpha(
+                    $this->targetImage, 255, 255, 255, 127 // Transparent.
                 ));
             }
 
             imagecopyresampled(
-                $this->destinationImage, $this->sourceImage,
+                $this->targetImage, $this->sourceImage,
                 0, 0, $x, $y, $width, $height, $width, $height
-            ) || throw new UploadException('Failed resampling destination image [error: %s]', '@error');
+            ) || throw new UploadException('Failed cropping target image [error: %s]', '@error');
         }
 
         // Store new dimensions.
@@ -334,17 +334,17 @@ class ImageSource extends AbstractSource implements Stringable
 
         if ($this->useImagick) {
             $this->sourceImage = $this->createSourceImage();
-            $this->destinationImage = $this->createDestinationImage([], $this->sourceImage);
+            $this->targetImage = $this->createTargetImage([], $this->sourceImage);
 
-            $this->destinationImage->rotateImage($background ?? '', $degree);
+            $this->targetImage->rotateImage($background ?? '', $degree);
         } else {
             $this->resample();
 
             // Fix GD "counter clockwise" stuff.
             $degree = -$degree;
 
-            $this->destinationImage = imagerotate($this->destinationImage, $degree, $background ?? 0) ?: null;
-            $this->destinationImage || throw new UploadException('Failed rotating destination image [error: %s]', '@error');
+            $this->targetImage = imagerotate($this->targetImage, $degree, $background ?? 0) ?: null;
+            $this->targetImage || throw new UploadException('Failed rotating target image [error: %s]', '@error');
         }
 
         // Tick for using resized image.
@@ -365,12 +365,12 @@ class ImageSource extends AbstractSource implements Stringable
                 : vsprintf('%dx%d-%s', array_merge($newDimensions, [$appendix]));
         }
 
-        $destination = $this->getDestination($name, $appendix);
+        $target = $this->prepareTarget($name, $appendix);
 
-        $this->overwriteCheck($destination);
+        $this->overwriteCheck($target);
 
-        if ($this->outputTo($destination)) {
-            return $destination;
+        if ($this->outputTo($target)) {
+            return $target;
         }
 
         throw new UploadException('Failed saving image [error: %s]', '@error');
@@ -382,12 +382,12 @@ class ImageSource extends AbstractSource implements Stringable
     public final function move(string $name = null, string $appendix = null): string
     {
         $source = $this->getSource();
-        $destination = $this->getDestination($name, $appendix);
+        $target = $this->prepareTarget($name, $appendix);
 
-        $this->overwriteCheck($destination);
+        $this->overwriteCheck($target);
 
-        if (rename($source, $destination)) {
-            return $destination;
+        if (rename($source, $target)) {
+            return $target;
         }
 
         throw new UploadException('Failed moving image [error: %s]', '@error');
@@ -405,10 +405,10 @@ class ImageSource extends AbstractSource implements Stringable
         if ($this->options['clear']) {
             if ($this->useImagick) {
                 $this->sourceImage && $this->sourceImage->clear();
-                $this->destinationImage && $this->destinationImage->clear();
+                $this->targetImage && $this->targetImage->clear();
             }
 
-            $this->sourceImage = $this->destinationImage = null;
+            $this->sourceImage = $this->targetImage = null;
         }
     }
 
@@ -479,13 +479,13 @@ class ImageSource extends AbstractSource implements Stringable
     }
 
     /**
-     * Get destination image.
+     * Get target image.
      *
      * @return GdImage|Imagick|null
      */
-    public final function getDestinationImage(): GdImage|Imagick|null
+    public final function getTargetImage(): GdImage|Imagick|null
     {
-        return $this->destinationImage ?? null;
+        return $this->targetImage ?? null;
     }
 
     /**
@@ -583,7 +583,7 @@ class ImageSource extends AbstractSource implements Stringable
             $image = imagecreatefromstring($this->toString());
 
             // Clear old stuff.
-            $this->sourceImage = $this->destinationImage = null;
+            $this->sourceImage = $this->targetImage = null;
         } else {
             $image = match ($this->getType()) {
                 IMAGETYPE_JPEG => imagecreatefromjpeg($this->getSource()),
@@ -597,31 +597,31 @@ class ImageSource extends AbstractSource implements Stringable
     }
 
     /**
-     * Create destination image.
+     * Create target image.
      *
      * @param  array        $dimensions
      * @param  Imagick|null $sourceImage
      * @return GdImage|Imagick
      * @throws froq\file\upload\UploadException
      */
-    protected final function createDestinationImage(array $dimensions, Imagick $sourceImage = null): GdImage|Imagick
+    protected final function createTargetImage(array $dimensions, Imagick $sourceImage = null): GdImage|Imagick
     {
         if ($this->useImagick) {
-            if (isset($this->destinationImage)) {
-                return $this->destinationImage;
+            if (isset($this->targetImage)) {
+                return $this->targetImage;
             } elseif (isset($this->sourceImage)) {
                 return $this->sourceImage->getImage();
             } elseif ($sourceImage != null) {
                 return $sourceImage->getImage();
             }
 
-            throw new UploadException('Cannot create destination image, no source image exists');
+            throw new UploadException('Cannot create target image, no source image exists');
         }
 
         // Discard source image.
         $image = imagecreatetruecolor(...$dimensions);
 
-        return $image ?: throw new UploadException('Failed creating destination image [error: %s]', '@error');
+        return $image ?: throw new UploadException('Failed creating target image [error: %s]', '@error');
     }
 
     /**
@@ -632,9 +632,9 @@ class ImageSource extends AbstractSource implements Stringable
      */
     protected final function output(): bool
     {
-        $image = $this->getDestinationImage();
-        $image || throw new UploadException('No destination image created yet, call one of these '
-            . ' methods first: resample(), resize(), resizeThumbnail(), crop(), cropThumbnail() or rotate()');
+        $image = $this->getTargetImage();
+        $image || throw new UploadException('No target image created yet, call one of these methods first: '
+            . 'resample(), resize(), resizeThumbnail(), crop(), cropThumbnail() or rotate()');
 
         $type = $this->getType();
 
@@ -680,11 +680,11 @@ class ImageSource extends AbstractSource implements Stringable
     protected final function outputTo(string $to): bool
     {
         $to = trim($to);
-        $to || throw new UploadException('Empty destination file path given');
+        $to || throw new UploadException('Empty target file path given');
 
-        $image = $this->getDestinationImage();
-        $image || throw new UploadException('No destination image created yet, call one of these '
-            . 'methods first: resample(), resize(), resizeThumbnail(), crop(), cropThumbnail() or rotate()');
+        $image = $this->getTargetImage();
+        $image || throw new UploadException('No target image created yet, call one of these methods first: '
+            . 'resample(), resize(), resizeThumbnail(), crop(), cropThumbnail() or rotate()');
 
         $type = $this->getType();
 

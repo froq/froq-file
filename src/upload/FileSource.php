@@ -27,12 +27,12 @@ class FileSource extends AbstractSource
     public final function save(string $name = null, string $appendix = null): string
     {
         $source = $this->getSource();
-        $destination = $this->getDestination($name, $appendix);
+        $target = $this->prepareTarget($name, $appendix);
 
-        $this->overwriteCheck($destination);
+        $this->overwriteCheck($target);
 
-        if (copy($source, $destination)) {
-            return $destination;
+        if (copy($source, $target)) {
+            return $target;
         }
 
         throw new UploadException('Failed saving file [error: %s]', '@error');
@@ -44,12 +44,12 @@ class FileSource extends AbstractSource
     public final function move(string $name = null, string $appendix = null): string
     {
         $source = $this->getSource();
-        $destination = $this->getDestination($name, $appendix);
+        $target = $this->prepareTarget($name, $appendix);
 
-        $this->overwriteCheck($destination);
+        $this->overwriteCheck($target);
 
-        if (rename($source, $destination)) {
-            return $destination;
+        if (rename($source, $target)) {
+            return $target;
         }
 
         throw new UploadException('Failed moving file [error: %s]', '@error');
