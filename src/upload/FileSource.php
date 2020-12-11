@@ -61,7 +61,7 @@ class FileSource extends AbstractSource
     public final function clear(bool $force = false): void
     {
         if ($force || $this->options['clearSource']) {
-            @ unlink($this->getSource());
+            is_file($source = $this->getSource()) && unlink($source);
         }
     }
 }

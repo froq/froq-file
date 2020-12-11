@@ -51,8 +51,6 @@ abstract class AbstractSource
         'clear'                => true, // Useful to use resource files after upload etc.
         'clearSource'          => true, // Useful to display crop files after crop etc.
         'overwrite'            => false, // To prevent existing file overwrite.
-        'jpegQuality'          => -1,
-        'webpQuality'          => -1,
         'directory'            => null, // Will be set in constructor via $file or $options argument.
     ];
 
@@ -161,6 +159,10 @@ abstract class AbstractSource
         // Add deferred options.
         if ($options != null) {
             $this->options = array_merge($this->options, $options);
+
+            if ($this instanceof ImageSource && $this->options['useImagick']) {
+                $this->useImagick = true;
+            }
         }
 
         [$name, $size, $error] = array_select($file, ['name', 'size', 'error']);
