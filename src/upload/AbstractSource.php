@@ -10,6 +10,7 @@ namespace froq\file\upload;
 use froq\file\upload\{UploadError, UploadException};
 use froq\file\mime\{Mime, MimeException};
 use froq\file\{File, Util as FileUtil};
+use froq\common\interfaces\Stringable;
 use froq\common\traits\{OptionTrait, ApplyTrait};
 use Throwable;
 
@@ -24,7 +25,7 @@ use Throwable;
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   4.0, 5.0 Moved to upload directory, derived from AbstractUploader.
  */
-abstract class AbstractSource
+abstract class AbstractSource implements Stringable
 {
     /**
      * Option & Apply traits.

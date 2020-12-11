@@ -64,4 +64,12 @@ class FileSource extends AbstractSource
             is_file($source = $this->getSource()) && unlink($source);
         }
     }
+
+    /**
+     * @inheritDoc froq\common\interfaces\Stringable
+     */
+    public final function toString(): string
+    {
+        return file_get_contents($this->getSource());
+    }
 }

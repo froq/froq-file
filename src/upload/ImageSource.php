@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace froq\file\upload;
 
 use froq\file\upload\{AbstractSource, UploadException};
-use froq\common\interfaces\Stringable;
 use GdImage, Imagick, ImagickException;
 
 /**
@@ -21,7 +20,7 @@ use GdImage, Imagick, ImagickException;
  * @author  Kerem Güneş <k-gun@mail.com>
  * @since   3.0, 5.0 Moved to upload directory, derived from ImageUploader.
  */
-class ImageSource extends AbstractSource implements Stringable
+class ImageSource extends AbstractSource
 {
     /** @const int */
     public const QUALITY = -1;
@@ -413,6 +412,14 @@ class ImageSource extends AbstractSource implements Stringable
     }
 
     /**
+     * @inheritDoc froq\common\interfaces\Stringable
+     */
+    public final function toString(): string
+    {
+        return $this->output();
+    }
+
+    /**
      * Display processed image as binary string.
      *
      * @return void
@@ -553,17 +560,6 @@ class ImageSource extends AbstractSource implements Stringable
     }
 
     /**
-     * @inheritDoc froq\common\interfaces\Stringable
-     * @since 4.0 Replaced with getOutputBuffer().
-     */
-    public final function toString(): string
-    {
-        ob_start();
-        $this->output();
-        return ob_get_clean();
-    }
-
-    /**
      * Create source image.
      *
      * @return GdImage|Imagick
@@ -627,10 +623,10 @@ class ImageSource extends AbstractSource implements Stringable
     /**
      * Output processed image as binary string.
      *
-     * @return bool
+     * @return string
      * @throws froq\file\upload\UploadException
      */
-    protected final function output(): bool
+    protected final function output(): string
     {
         $image = $this->getTargetImage();
         $image || throw new UploadException('No target image created yet, call one of these methods first: '
@@ -655,29 +651,35 @@ class ImageSource extends AbstractSource implements Stringable
                 }
             }
 
-            echo $image->getImageBlob();
-
-            return true;
+            try {
+                return $image->getImageBlob();
+            } catch (ImagickException $e) {
+                throw new UploadException($e);
+            }
         }
 
-        $ok = match ($type) {
+        ob_start();
+
+        if (match ($type) {
             IMAGETYPE_JPEG => imagejpeg($image, null, $this->options['jpegQuality']),
             IMAGETYPE_PNG  => imagepng($image),
             IMAGETYPE_GIF  => imagegif($image),
             IMAGETYPE_WEBP => imagewebp($image, null, $this->options['webpQuality']),
-        };
+        }) {
+            return ob_get_clean();
+        }
 
-        return $ok ?: throw new UploadException('Failed processing image [error: %s]', '@error');
+        throw new UploadException('Failed processing image [error: %s]', '@error');
     }
 
     /**
      * Output processed image as an absolute file.
      *
      * @param  string $to
-     * @return bool
+     * @return string
      * @throws froq\file\upload\UploadException
      */
-    protected final function outputTo(string $to): bool
+    protected final function outputTo(string $to): string
     {
         $to = trim($to);
         $to || throw new UploadException('Empty target file path given');
@@ -705,16 +707,23 @@ class ImageSource extends AbstractSource implements Stringable
                 }
             }
 
-            return $image->writeImage($to);
+            try {
+                $image->writeImage($to);
+                return $to;
+            } catch (ImagickException $e) {
+                throw new UploadException($e);
+            }
         }
 
-        $ok = match ($type) {
+        if (match ($type) {
             IMAGETYPE_JPEG => imagejpeg($image, $to, $this->options['jpegQuality']),
             IMAGETYPE_PNG  => imagepng($image),
             IMAGETYPE_GIF  => imagegif($image),
             IMAGETYPE_WEBP => imagewebp($image, $to, $this->options['webpQuality']),
-        };
+        }) {
+            return $to;
+        }
 
-        return $ok ?: throw new UploadException('Failed processing image [error: %s]', '@error');
+        throw new UploadException('Failed processing image [error: %s]', '@error');
     }
 }
