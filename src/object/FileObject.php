@@ -107,7 +107,7 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        return frewind($this->resource);
+        return rewind($this->resource);
     }
 
     /**
