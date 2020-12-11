@@ -143,14 +143,14 @@ final class File
     public static function write($file, string $contents, int $flags = 0): bool
     {
         if (is_string($file)) {
-            $ret = file_set_contents($file, $contents, $flags) !== null;
+            $ret = file_set_contents($file, $contents, $flags);
         } elseif (is_stream($file)) {
             $ret = stream_set_contents($file, $contents);
         } else {
             throw new FileException('Invalid file type `%s`, valids are: string, stream', $type);
         }
 
-        if ($ret === false) {
+        if ($ret === null) {
             throw new FileException('Cannot write file [error: %s, file: %s]', ['@error', $file]);
         }
 
