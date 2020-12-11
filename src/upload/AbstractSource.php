@@ -125,6 +125,16 @@ abstract class AbstractSource implements Stringable
     }
 
     /**
+     * Get mime type.
+     *
+     * @return string
+     */
+    public final function getMime(): string
+    {
+        return $this->getSourceInfo()['type'];
+    }
+
+    /**
      * Prepare a file for move/save etc.
      *
      * @param  array      $file

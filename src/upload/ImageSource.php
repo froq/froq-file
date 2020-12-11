@@ -506,16 +506,6 @@ class ImageSource extends AbstractSource
     }
 
     /**
-     * Get mime.
-     *
-     * @return string
-     */
-    public final function getMime(): string
-    {
-        return image_type_to_mime_type($this->getType());
-    }
-
-    /**
      * Get dimensions.
      *
      * @return array
