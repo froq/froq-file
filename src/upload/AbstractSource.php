@@ -130,7 +130,7 @@ abstract class AbstractSource
                     }
 
                     // Drop extension duplication.
-                    $name = file_name($name);
+                    $name = substr($name, 0, -(strlen($extension) - 1));
                 }
             }
 
