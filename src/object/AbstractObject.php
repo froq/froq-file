@@ -30,10 +30,10 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     use OptionTrait, ApplyTrait;
 
-    /** @var resource|GdImage|null */
+    /** @var ?resource|?GdImage */
     protected $resource;
 
-    /** @var resource|null */
+    /** @var ?string */
     protected $resourceFile;
 
     /** @var ?string */
@@ -74,25 +74,20 @@ abstract class AbstractObject implements Sizable, Stringable
                         get_type($resource));
                 }
             }
-
-            $this->setResource($resource);
         }
 
+        $this->resource = $resource;
         $this->mime = $mime;
 
         $this->setOptions($options, static::$optionsDefault);
     }
 
     /**
-     * Set resource.
-     *
-     * @return resource|GdImage|null
+     * Destructor.
      */
-    public final function setResource($resource): void
+    public function __destruct()
     {
         $this->free();
-        $this->freed = null;
-        $this->resource = $resource;
     }
 
     /**
@@ -108,7 +103,7 @@ abstract class AbstractObject implements Sizable, Stringable
     /**
      * Get resource file.
      *
-     * @return resource|null
+     * @return string|null
      */
     public final function getResourceFile()
     {
@@ -185,7 +180,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function removeResourceCopy(&$copy): bool|null
     {
-        if (empty($copy)) {
+        if ($copy == null) {
             return null;
         }
 
@@ -197,6 +192,48 @@ abstract class AbstractObject implements Sizable, Stringable
         }
 
         throw new ObjectException('Invalid resource copy, valids are: stream, GdImage');
+    }
+
+    /**
+     * Open a file as resource.
+     *
+     * @param  string      $file
+     * @param  string|null $mime
+     * @param  array|null  $options
+     * @return self
+     * @since  5.0
+     */
+    public final function open(string $file, string $mime = null, array $options = null): self
+    {
+        if ($this instanceof TempFileObject) {
+            throw new ObjectException('Method open() not available for %s', TempFileObject::class);
+        }
+
+        $this->free();
+        $this->freed = null;
+
+        $that = static::fromFile($file, $mime, $options);
+
+        $this->resource = $that->resource;
+        $this->resourceFile = $that->resourceFile;
+        $this->mime = $that->mime;
+
+        $that->free();
+
+        return $this;
+    }
+
+    /**
+     * Clean up resource & resource file.
+     *
+     * @return bool
+     * @since  5.0
+     */
+    public final function close(): bool
+    {
+        $this->free();
+
+        return $this->isFreed();
     }
 
     /**
@@ -229,7 +266,7 @@ abstract class AbstractObject implements Sizable, Stringable
         // Default is 0644.
         $mode && touch($file) && chmod($file, $mode);
 
-        if (file_write($file, $this->toString()) === null) {
+        if (file_put_contents($file, $this->toString()) === false) {
             throw new ObjectException('Cannot write file [error: %s]', '@error');
         }
 
@@ -243,17 +280,17 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function free(): void
     {
-        if ($this->resource && is_stream($this->resource)) {
+        if (isset($this->resource) && is_stream($this->resource)) {
             fclose($this->resource);
         }
-        if ($this->resourceFile && is_stream($this->resourceFile)) {
-            fclose($this->resourceFile);
+        if (isset($this->resourceFile) && is_tmpnam($this->resourceFile)) {
+            unlink($this->resourceFile);
         }
 
-        $this->freed = true;
-
-        // Void all.
+        // Void.
         $this->resource = $this->resourceFile = null;
+
+        $this->freed = true;
     }
 
     /**
@@ -263,7 +300,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function isFreed(): bool
     {
-        return !!$this->freed;
+        return ($this->freed === true);
     }
 
     /**
@@ -292,11 +329,25 @@ abstract class AbstractObject implements Sizable, Stringable
     public static final function fromTempResource(string $mime = null, array $options = null): static
     {
         if (static::class != FileObject::class) {
-            throw new ObjectException('Method fromTempResource() available for only %s object',
-                FileObject::class);
+            throw new ObjectException('Method fromTempResource() available for only %s', FileObject::class);
         }
 
-        return new static(tmpfile(), $mime, $options);
+        return self::fromResource(tmpfile(), $mime, $options);
+    }
+
+    /**
+     * Create a file object from a temporary file.
+     *
+     * @param  string|null $file
+     * @param  string|null $mime
+     * @param  array|null  $options
+     * @return static
+     */
+    public static final function fromTempFile(string $file = null, string $mime = null, array $options = null): static
+    {
+        $resource = $file ? fopen($file, 'r+b') : fopen(tmpnam(), 'w+b');
+
+        return self::fromResource($resource, $mime, $options);
     }
 
     /**
@@ -310,8 +361,9 @@ abstract class AbstractObject implements Sizable, Stringable
         if ($this->freed) {
             throw new ObjectException('No resource to process with, it is freed');
         }
-        if (!is_stream($this->resource) && !is_image($this->resource)) {
-            throw new ObjectException('No resource to process with, it is not valid');
+        if (empty($this->resource) || (!is_stream($this->resource) && !is_image($this->resource))) {
+            throw new ObjectException('No resource to process with, it is not valid [resource: %s]',
+                get_type($this->resource));
         }
     }
 
