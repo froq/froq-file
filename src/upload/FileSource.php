@@ -31,11 +31,11 @@ class FileSource extends AbstractSource
 
         $this->overwriteCheck($target);
 
-        if (copy($source, $target)) {
-            return $target;
+        if (!copy($source, $target)) {
+           throw new UploadException('Failed saving file [error: %s]', '@error');
         }
 
-        throw new UploadException('Failed saving file [error: %s]', '@error');
+        return $target;
     }
 
     /**
@@ -48,11 +48,11 @@ class FileSource extends AbstractSource
 
         $this->overwriteCheck($target);
 
-        if (rename($source, $target)) {
-            return $target;
+        if (!rename($source, $target)) {
+            throw new UploadException('Failed moving file [error: %s]', '@error');
         }
 
-        throw new UploadException('Failed moving file [error: %s]', '@error');
+        return $target;
     }
 
     /**

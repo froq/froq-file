@@ -368,11 +368,11 @@ class ImageSource extends AbstractSource
 
         $this->overwriteCheck($target);
 
-        if ($this->outputTo($target)) {
-            return $target;
+        if (!$this->outputTo($target)) {
+            throw new UploadException('Failed saving image [error: %s]', '@error');
         }
 
-        throw new UploadException('Failed saving image [error: %s]', '@error');
+        return $target;
     }
 
     /**
@@ -385,11 +385,11 @@ class ImageSource extends AbstractSource
 
         $this->overwriteCheck($target);
 
-        if (rename($source, $target)) {
-            return $target;
+        if (!rename($source, $target)) {
+            throw new UploadException('Failed moving image [error: %s]', '@error');
         }
 
-        throw new UploadException('Failed moving image [error: %s]', '@error');
+        return $target;
     }
 
     /**
