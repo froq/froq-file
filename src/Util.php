@@ -33,7 +33,7 @@ final class Util
             $i++; $bytes /= $base;
         }
 
-        return sprintf('%.*F', $precision, $bytes) . $units[$i];
+        return round($bytes, $precision) . $units[$i];
     }
 
 
