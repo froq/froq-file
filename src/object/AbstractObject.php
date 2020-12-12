@@ -47,9 +47,12 @@ abstract class AbstractObject implements Sizable, Stringable
      *
      * @param  resource|GdImage|null $resource
      * @param  string|null           $mime
+     * @param  array|null            $options
+     * @param  string|null           $resourceFile @internal
      * @throws froq\file\ObjectException
      */
-    public function __construct($resource = null, string $mime = null, array $options = null)
+    public function __construct($resource = null, string $mime = null, array $options = null,
+        string $resourceFile = null)
     {
         if ($resource != null) {
             if ($this instanceof FileObject) {
@@ -77,6 +80,7 @@ abstract class AbstractObject implements Sizable, Stringable
         }
 
         $this->resource = $resource;
+        $this->resourceFile = $resourceFile;
         $this->mime = $mime;
 
         $this->setOptions($options, static::$optionsDefault);
@@ -309,14 +313,16 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  resource    $resource
      * @param  string|null $mime
      * @param  array|null  $options
+     * @param  string|null $resourceFile @internal
      * @return static
      * @throws froq\file\object\ObjectException
      */
-    public static final function fromResource($resource, string $mime = null, array $options = null): static
+    public static final function fromResource($resource, string $mime = null, array $options = null,
+        string $resourceFile = null): static
     {
         $resource || throw new ObjectException('Empty resource given');
 
-        return new static($resource, $mime, $options);
+        return new static($resource, $mime, $options, $resourceFile);
     }
 
     /**
@@ -332,7 +338,10 @@ abstract class AbstractObject implements Sizable, Stringable
             throw new ObjectException('Method fromTempResource() available for only %s', FileObject::class);
         }
 
-        return self::fromResource(tmpfile(), $mime, $options);
+        $resource = tmpfile();
+        $resourceFile = fmeta($resource)['uri'];
+
+        return self::fromResource($resource, $mime, $options, $resourceFile);
     }
 
     /**
@@ -347,7 +356,7 @@ abstract class AbstractObject implements Sizable, Stringable
     {
         $resource = $file ? fopen($file, 'r+b') : fopen(tmpnam(), 'w+b');
 
-        return self::fromResource($resource, $mime, $options);
+        return self::fromResource($resource, $mime, $options, $file);
     }
 
     /**
