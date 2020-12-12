@@ -398,9 +398,10 @@ class ImageSource extends AbstractSource
     public final function clear(bool $force = false): void
     {
         if ($force || $this->options['clearSource']) {
-            is_file($source = $this->getSource()) && unlink($source);
+            @ unlink($this->getSource());
         }
 
+        // Free sources.
         if ($this->options['clear']) {
             if ($this->useImagick) {
                 $this->sourceImage && $this->sourceImage->clear();

@@ -46,15 +46,15 @@ abstract class AbstractSource implements Stringable
 
     /** @var array */
     protected static array $optionsDefault = [
-        'hash'                 => null,  // Available commands: 'rand', 'file' or 'name' (default=none).
-        'hashLength'           => null,  // 8, 16, 32 or 40 (default=32).
-        'maxFileSize'          => null,  // In binary mode: for 2 megabytes 2048, 2048k or 2m.
-        'allowedTypes'         => '*',   // "*" means all allowed or 'image/jpeg,image/png' etc.
-        'allowedExtensions'    => '*',   // "*" means all allowed or 'jpg,jpeg' etc.
-        'clear'                => true,  // Useful to use resource files after upload etc.
-        'clearSource'          => false, // Useful to display crop files after crop etc.
-        'overwrite'            => false, // To prevent existing file overwrite.
-        'directory'            => null,  // Will be set in constructor via $file or $options argument.
+        'hash'              => null,  // Available commands: 'rand', 'file' or 'name' (default=none).
+        'hashLength'        => null,  // 8, 16, 32 or 40 (default=32).
+        'maxFileSize'       => null,  // In binary mode: for 2 megabytes 2048, 2048k or 2m.
+        'allowedTypes'      => '*',   // "*" means all allowed or 'image/jpeg,image/png' etc.
+        'allowedExtensions' => '*',   // "*" means all allowed or 'jpg,jpeg' etc.
+        'clear'             => true,  // To free resources after saving/moving file etc.
+        'clearSource'       => false, // To delete sources after saving/moving files etc.
+        'overwrite'         => false, // To prevent existing file overwrite.
+        'directory'         => null,  // Will be set via $file or $options input.
     ];
 
     /**
@@ -190,7 +190,7 @@ abstract class AbstractSource implements Stringable
         [$size, $name] = array_select($file, ['size', 'name']);
 
         $size ??= filesize($source);
-        $type = Mime::getType($source);
+        $type ??= Mime::getType($source);
         $extension = Mime::getExtension($source);
 
         if (!$this->isAllowedType($type)) {
