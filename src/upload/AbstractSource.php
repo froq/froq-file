@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace froq\file\upload;
 
-use froq\file\upload\{UploadError, UploadException};
+use froq\file\upload\{UploadError, UploadException, ImageSource};
 use froq\file\mime\{Mime, MimeException};
 use froq\file\{File, Util as FileUtil};
 use froq\common\interfaces\Stringable;
@@ -46,16 +46,15 @@ abstract class AbstractSource implements Stringable
 
     /** @var array */
     protected static array $optionsDefault = [
-        'hash'                 => null, // Available commands: 'rand', 'file' or 'name' (default=none).
-        'hashLength'           => null, // 8, 16, 32 or 40 (default=32).
-        'maxFileSize'          => null, // In binary mode: for 2 megabytes 2048, 2048k or 2m.
-        'allowedTypes'         => null, // * means all allowed or 'image/jpeg,image/png' etc.
-        'allowedExtensions'    => null, // * means all allowed or 'jpg,jpeg' etc.
-        'allowEmptyExtensions' => null,
-        'clear'                => true, // Useful to use resource files after upload etc.
-        'clearSource'          => true, // Useful to display crop files after crop etc.
+        'hash'                 => null,  // Available commands: 'rand', 'file' or 'name' (default=none).
+        'hashLength'           => null,  // 8, 16, 32 or 40 (default=32).
+        'maxFileSize'          => null,  // In binary mode: for 2 megabytes 2048, 2048k or 2m.
+        'allowedTypes'         => '*',   // "*" means all allowed or 'image/jpeg,image/png' etc.
+        'allowedExtensions'    => '*',   // "*" means all allowed or 'jpg,jpeg' etc.
+        'clear'                => true,  // Useful to use resource files after upload etc.
+        'clearSource'          => false, // Useful to display crop files after crop etc.
         'overwrite'            => false, // To prevent existing file overwrite.
-        'directory'            => null, // Will be set in constructor via $file or $options argument.
+        'directory'            => null,  // Will be set in constructor via $file or $options argument.
     ];
 
     /**
@@ -153,23 +152,26 @@ abstract class AbstractSource implements Stringable
             }
         }
 
-        [$name, $size, $error] = array_select($file, ['name', 'size', 'error']);
+        [$error, $source, $directory] = [
+            $file['error'] ?? null,
+            $file['file'] ?? $file['tmp_name'] ?? null,
+            $file['directory'] ?? $this->options['directory'] ?? null
+        ];
 
         $error && throw new UploadException(
             UploadError::MESSAGES[$error] ?? 'Unknown error',
             null, UploadError::INTERNAL
         );
 
-        // Check for only these keys.
-        $source = trim((string) ($file['file'] ?? $file['tmp_name'] ?? ''));
+        $source = trim((string) $source);
         $source || throw new UploadException(
-            'No source given, `file` or `tmp_name` option must not be empty',
+            'No source given, `file` or `tmp_name` field must not be empty',
             null, UploadError::NO_VALID_FILE
         );
 
-        $directory = trim((string) ($file['directory'] ?? $this->options['directory'] ?? ''));
+        $directory = trim((string) $directory);
         $directory || throw new UploadException(
-            'No directory given, `directory` option must not be empty',
+            'No directory given, `directory` field or option must not be empty',
             null, UploadError::DIRECTORY_EMPTY
         );
 
@@ -178,64 +180,44 @@ abstract class AbstractSource implements Stringable
             if (File::errorCheck($source, $error)) {
                 throw new UploadException($error);
             }
+
             throw new UploadException(
                 'No source file exists such `%s`',
                 $source, UploadError::NO_VALID_SOURCE
             );
         }
 
-        extract($this->options, EXTR_PREFIX_ALL, 'option');
-
-        // Type & extension security.
-        if (empty($option_allowedTypes) || empty($option_allowedExtensions)) {
-            throw new UploadException(
-                'Option `allowedTypes` and `allowedExtensions` must not be empty for '.
-                'security reasons, please provide both types and extensions you allow (ie: for '.
-                'types `image/jpeg,image/png` and for extensions `jpg,jpeg`, or `*` to allow all)',
-                null, UploadError::OPTION_EMPTY
-            );
-        }
+        [$size, $name] = array_select($file, ['size', 'name']);
 
         $size ??= filesize($source);
+        $type = Mime::getType($source);
+        $extension = Mime::getExtension($source);
 
-        if ($option_maxFileSize > 0) {
-            $maxFileSize = FileUtil::convertBytes((string) $option_maxFileSize);
-            if ($maxFileSize && $size > $maxFileSize) {
-                throw new UploadException(
-                    'File size exceeded, `maxFileSize` option is %s (%s bytes)',
-                    [$option_maxFileSize, $maxFileSize], UploadError::OPTION_SIZE_EXCEEDED
-                );
-            }
-        }
-
-        try {
-            $type = Mime::getType($source);
-        } catch (MimeException $e) {
-            throw new UploadException($e);
-        }
-
-        $extension = file_extension($source) ?: Mime::getExtensionByType($type);
-        if (!$extension && $option_allowEmptyExtensions === false) {
-            throw new UploadException(
-                'Empty extensions not allowed via options',
-                null, UploadError::OPTION_EMPTY_EXTENSION
-            );
-        }
-
-        if ($option_allowedTypes !== '*' &&
-            !in_array($type, explode(',', $option_allowedTypes))) {
+        if (!$this->isAllowedType($type)) {
             throw new UploadException(
                 'Type `%s` not allowed via options, allowed types: %s',
-                [$type, $option_allowedTypes], UploadError::OPTION_NOT_ALLOWED_TYPE
+                [$type, $this->options['allowedTypes']],
+                UploadError::OPTION_NOT_ALLOWED_TYPE
             );
         }
 
-        if ($extension && $option_allowedExtensions !== '*' &&
-            !in_array($extension, explode(',', $option_allowedExtensions))) {
+        if ($extension && !$this->isAllowedExtension($extension)) {
             throw new UploadException(
                 'Extension `%s` not allowed via options, allowed extensions: %s',
-                [$extension, $option_allowedExtensions], UploadError::OPTION_NOT_ALLOWED_EXTENSION
+                [$extension, $this->options['allowedExtensions']],
+                UploadError::OPTION_NOT_ALLOWED_EXTENSION
             );
+        }
+
+        if ($this->options['maxFileSize']) {
+            $maxFileSize = FileUtil::convertBytes((string) $this->options['maxFileSize']);
+            if ($maxFileSize != -1 && $size > $maxFileSize) {
+                throw new UploadException(
+                    'File size exceeded, `maxFileSize` option: %s (%s bytes)',
+                    [$this->options['maxFileSize'], $maxFileSize],
+                    UploadError::OPTION_SIZE_EXCEEDED
+                );
+            }
         }
 
         if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
@@ -245,11 +227,14 @@ abstract class AbstractSource implements Stringable
             );
         }
 
-        // Set target name as random UUID default, if no name given.
+        // Set target name as random UUID default when no name given.
         $name = $this->prepareName((string) $name) ?: uuid();
 
         $this->source = $source;
-        $this->sourceInfo = ['type' => $type, 'size' => $size, 'name' => $name, 'extension' => $extension];
+        $this->sourceInfo = [
+            'type' => $type, 'size' => $size,
+            'name' => $name, 'extension' => $extension
+        ];
 
         // Reset options.
         $this->options = ['directory' => $directory] + $this->options;
@@ -285,15 +270,18 @@ abstract class AbstractSource implements Stringable
                    $hashLengthDefault = 32;
 
             $hashAlgo = $hashAlgos[$this->options['hashLength'] ?? $hashLengthDefault] ?? null;
-            $hashAlgo || throw new UploadException('Invalid `hashLength` option `%s`, valids are: 8, 16, 32, 40',
-                $this->options['hashLength']);
+            $hashAlgo || throw new UploadException(
+                'Invalid `hashLength` option `%s`, valids are: 8, 16, 32, 40',
+                $this->options['hashLength']
+            );
 
             $name = match ($hash) {
                 'rand'  => hash($hashAlgo, uuid()),
                 'file'  => hash_file($hashAlgo, $this->source),
                 'name'  => hash($hashAlgo, $name),
-                default => throw new UploadException('Invalid `hash` option `%s`, valids are: rand, file, name',
-                    $hash),
+                default => throw new UploadException(
+                    'Invalid `hash` option `%s`, valids are: rand, file, name', $hash
+                ),
             };
 
             $name || throw new UploadException('Cannot hash file name [error: %s]', '@error');
@@ -326,16 +314,16 @@ abstract class AbstractSource implements Stringable
             if (strsrc($name, '.')) {
                 $extension = file_extension($name);
                 if ($extension !== null) {
-                    if ($this->options['allowedExtensions'] !== '*' &&
-                        !in_array($extension, explode(',', $this->options['allowedExtensions']))) {
+                    if (!$this->isAllowedExtension($extension)) {
                         throw new UploadException(
                             'Extension `%s` not allowed via options, allowed extensions: %s',
-                            [$extension, $this->options['allowedExtensions']], UploadError::OPTION_NOT_ALLOWED_EXTENSION
+                            [$extension, $this->options['allowedExtensions']],
+                            UploadError::OPTION_NOT_ALLOWED_EXTENSION
                         );
                     }
 
                     // Drop extension duplication.
-                    $name = substr($name, 0, -(strlen($extension) - 1));
+                    $name = substr($name, 0, -(strlen($extension) + 1));
                 }
             }
 
@@ -355,6 +343,32 @@ abstract class AbstractSource implements Stringable
     }
 
     /**
+     * Check whether a type allowed.
+     *
+     * @param  string $type
+     * @return bool
+     * @since  5.0
+     */
+    public final function isAllowedType(string $type): bool
+    {
+        return ($this->options['allowedTypes'] === '*')
+            || in_array($type, split(',', $this->options['allowedTypes']));
+    }
+
+    /**
+     * Check whether an extension allowed.
+     *
+     * @param  string $extension
+     * @return bool
+     * @since  5.0
+     */
+    public final function isAllowedExtension(string $extension): bool
+    {
+        return ($this->options['allowedExtensions'] === '*')
+            || in_array($extension, split(',', $this->options['allowedExtensions']));
+    }
+
+    /**
      * Check overwrite avaibility.
      *
      * @param  string $target
@@ -365,8 +379,10 @@ abstract class AbstractSource implements Stringable
     protected final function overwriteCheck(string $target): void
     {
         if (!$this->options['overwrite'] && file_exists($target)) {
-            throw new UploadException('Cannot overwrite existing file `%s`', $target,
-                UploadError::OPTION_NOT_ALLOWED_OVERWRITE);
+            throw new UploadException(
+                'Cannot overwrite existing file `%s`', $target,
+                UploadError::OPTION_NOT_ALLOWED_OVERWRITE
+            );
         }
     }
 
