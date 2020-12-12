@@ -10,7 +10,6 @@ namespace froq\file\object;
 use froq\file\object\{AbstractObject, ObjectException, FileObject};
 use froq\file\upload\ImageSource;
 use froq\file\File;
-use Imagick;
 
 /**
  * Image Object.
@@ -91,16 +90,12 @@ class ImageObject extends AbstractObject
             ['clear' => false, 'clearSource' => false, 'useImagick' => true,
              'jpegQuality' => $options['jpegQuality'] ?? $this->options['jpegQuality'],
              'webpQuality' => $options['webpQuality'] ?? $this->options['webpQuality']]
-        )->resize($width, $height, $options)->getTargetImage();
+        )->resize($width, $height, $options);
 
         unset($temp);
 
-        // When Imagick available.
-        if ($image instanceof Imagick) {
-            $image = imagecreatefromstring($image->getImageBlob());
-        }
-
-        $this->resource = $image;
+        $this->resource = imagecreatefromstring($image->toString());
+        $this->resourceFile = $image->save(); // As temp file.
 
         return $this;
     }
@@ -124,16 +119,12 @@ class ImageObject extends AbstractObject
             ['clear' => false, 'clearSource' => false, 'useImagick' => true,
              'jpegQuality' => $options['jpegQuality'] ?? $this->options['jpegQuality'],
              'webpQuality' => $options['webpQuality'] ?? $this->options['webpQuality']]
-        )->crop($width, $height, $options)->getTargetImage();
+        )->crop($width, $height, $options);
 
         unset($temp);
 
-        // When Imagick available.
-        if ($image instanceof Imagick) {
-            $image = imagecreatefromstring($image->getImageBlob());
-        }
-
-        $this->resource = $image;
+        $this->resource = imagecreatefromstring($image->toString());
+        $this->resourceFile = $image->save(); // As temp file.
 
         return $this;
     }
@@ -355,6 +346,8 @@ class ImageObject extends AbstractObject
 
         // To speed up resize(), crop(), getContents() etc.
         $that->resourceFile = file_create_temp('froq/img');
+        $that->resourceFile || throw new ObjectException('Cannot create resource file [error: %s]', '@error');
+
         file_set_contents($that->resourceFile, $string);
 
         return $that;
