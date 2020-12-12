@@ -7,9 +7,10 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
-use froq\file\object\{AbstractObject, ObjectException, TempFileObject};
+use froq\file\object\{AbstractObject, ObjectException, FileObject};
 use froq\file\upload\ImageSource;
 use froq\file\File;
+use Imagick;
 
 /**
  * Image Object.
@@ -81,18 +82,23 @@ class ImageObject extends AbstractObject
      */
     public final function resize(int $width, int $height, array $options = null): self
     {
-        $temp = new TempFileObject();
-        is_resource($this->resourceFile)
-            ? $temp->setResource($this->resourceFile)
-            : $temp->setContents($this->getContents());
+        $temp = ($resourceFile = $this->getResourceFile())
+            ? FileObject::fromTempFile($resourceFile)
+            : FileObject::fromTempResource()->setContents($this->getContents());
 
         $image = (new ImageSource)->prepare(
             ['type' => $this->mime, 'file' => $temp->path(), 'directory' => tmp()],
-            ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
-             'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
+            ['clear' => false, 'clearSource' => false, 'useImagick' => true,
+             'jpegQuality' => $options['jpegQuality'] ?? $this->options['jpegQuality'],
+             'webpQuality' => $options['webpQuality'] ?? $this->options['webpQuality']]
         )->resize($width, $height, $options)->getTargetImage();
 
-        $temp->free();
+        unset($temp);
+
+        // When Imagick available.
+        if ($image instanceof Imagick) {
+            $image = imagecreatefromstring($image->getImageBlob());
+        }
 
         $this->resource = $image;
 
@@ -109,18 +115,23 @@ class ImageObject extends AbstractObject
      */
     public final function crop(int $width, int $height = null, array $options = null): self
     {
-        $temp = new TempFileObject();
-        is_resource($this->resourceFile)
-            ? $temp->setResource($this->resourceFile)
-            : $temp->setContents($this->getContents());
+        $temp = ($resourceFile = $this->getResourceFile())
+            ? FileObject::fromTempFile($resourceFile)
+            : FileObject::fromTempResource()->setContents($this->getContents());
 
         $image = (new ImageSource)->prepare(
             ['type' => $this->mime, 'file' => $temp->path(), 'directory' => tmp()],
-            ['allowedTypes' => '*', 'allowedExtensions' => '*', 'clear' => false, 'clearSource' => false,
-             'jpegQuality' => $this->options['jpegQuality'], 'webpQuality' => $this->options['webpQuality']]
+            ['clear' => false, 'clearSource' => false, 'useImagick' => true,
+             'jpegQuality' => $options['jpegQuality'] ?? $this->options['jpegQuality'],
+             'webpQuality' => $options['webpQuality'] ?? $this->options['webpQuality']]
         )->crop($width, $height, $options)->getTargetImage();
 
-        $temp->free();
+        unset($temp);
+
+        // When Imagick available.
+        if ($image instanceof Imagick) {
+            $image = imagecreatefromstring($image->getImageBlob());
+        }
 
         $this->resource = $image;
 
@@ -198,8 +209,8 @@ class ImageObject extends AbstractObject
      */
     public final function getContents(): string|null
     {
-        if (is_resource($this->resourceFile)) {
-            return freads($this->resourceFile);
+        if ($resourceFile = $this->getResourceFile()) {
+            return file_get_contents($resourceFile);
         }
 
         $this->resourceCheck();
@@ -294,10 +305,10 @@ class ImageObject extends AbstractObject
      */
     public final function size(): int
     {
-        $ret = is_resource($this->resourceFile) ? fsize($this->resourceFile)
-            : (($contents = $this->getContents()) ? strlen($contents) : null);
+        $ret = ($resourceFile = $this->getResourceFile()) ? filesize($resourceFile)
+            : (($contents = $this->getContents()) ? strlen($contents) : false);
 
-        return ($ret !== null) ? $ret : -1;
+        return ($ret !== false) ? $ret : -1;
     }
 
     /**
@@ -317,9 +328,17 @@ class ImageObject extends AbstractObject
             throw new ObjectException($error->getMessage(), null, $error->getCode());
         }
 
+        $resource = imagecreatefromstring(file_get_contents($file));
+        $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
+
         $mime ??= mime_content_type($file);
 
-        return static::fromString(file_get_contents($file), $mime, $options);
+        $that = new static($resource, $mime, $options);
+
+        // To speed up resize(), crop(), getContents() etc.
+        $that->resourceFile = $file;
+
+        return $that;
     }
 
     /**
@@ -330,13 +349,13 @@ class ImageObject extends AbstractObject
         $resource = imagecreatefromstring($string);
         $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
 
-        $mime ??= getimagesizefromstring($string)['mime'] ?? null;
+        $mime ??= getimagesizefromstring($string)['mime'];
 
         $that = new static($resource, $mime, $options);
 
-        // For speeding up resize(), crop(), getContents() etc.
-        $that->resourceFile = tmpfile();
-        fwrite($that->resourceFile, $string);
+        // To speed up resize(), crop(), getContents() etc.
+        $that->resourceFile = file_create_temp('froq/img');
+        file_set_contents($that->resourceFile, $string);
 
         return $that;
     }
