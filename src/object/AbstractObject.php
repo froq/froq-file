@@ -53,7 +53,7 @@ abstract class AbstractObject implements Sizable, Stringable
     {
         if ($resource != null) {
             if ($this instanceof FileObject) {
-                if (!is_type_of($resource, 'stream')) {
+                if (!is_stream($resource)) {
                     throw new ObjectException('Resource type must be stream, %s given',
                         get_type($resource));
                 }
@@ -69,7 +69,7 @@ abstract class AbstractObject implements Sizable, Stringable
                     [$resource, $mime] = [$temp->getResource(), $temp->getMime(), $temp->free()];
                 }
 
-                if (!is_type_of($resource, 'GdImage')) {
+                if (!is_image($resource)) {
                     throw new ObjectException('Resource type must be stream|GdImage, %s given',
                         get_type($resource));
                 }
@@ -292,7 +292,8 @@ abstract class AbstractObject implements Sizable, Stringable
     public static final function fromTempResource(string $mime = null, array $options = null): static
     {
         if (static::class != FileObject::class) {
-            throw new ObjectException('Method available for only %s object', FileObject::class);
+            throw new ObjectException('Method fromTempResource() available for only %s object',
+                FileObject::class);
         }
 
         return new static(tmpfile(), $mime, $options);
