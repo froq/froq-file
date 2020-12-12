@@ -99,6 +99,31 @@ class FileObject extends AbstractObject
     }
 
     /**
+     * Read a file until finding given search or EOF.
+     *
+     * @param  string $search
+     * @return string|null
+     */
+    public final function readUntil(string $search): string|null
+    {
+        $this->resourceCheck();
+
+        $hit = null;
+        $ret = null;
+
+        do {
+            $read = fread($this->resource, 1024);
+            if ($read !== false && ($pos = strpos($read, $search)) !== false) {
+                $read = substr($read, 0, $pos);
+                $hit = true;
+            }
+            $ret .= $read;
+        } while (!$hit && !feof($this->resource));
+
+        return $ret;
+    }
+
+    /**
      * Rewind file.
      *
      * @return bool
