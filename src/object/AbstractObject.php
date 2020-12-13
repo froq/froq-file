@@ -68,7 +68,7 @@ abstract class AbstractObject implements Sizable, Stringable
 
                 // When a resource given, eg: fopen('path/to/file.jpg', 'rb').
                 if (is_stream($resource)) {
-                    $temp = ImageObject::fromString(freads($resource));
+                    $temp = ImageObject::fromString(freadall($resource));
                     [$resource, $mime] = [$temp->getResource(), $temp->getMime(), $temp->free()];
                 }
 

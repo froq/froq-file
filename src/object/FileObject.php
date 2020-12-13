@@ -65,7 +65,7 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        $ret = freads($this->resource, $from);
+        $ret = freadall($this->resource, $from);
 
         return ($ret !== null) ? $ret : null;
     }
@@ -240,7 +240,9 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        return finfo($this->resource) ?: null;
+        [$stat, $meta] = [fstat($fp), fmeta($fp)];
+
+        return ($stat && $meta) ? $stat + ['meta' => $meta] : null;
     }
 
     /**
@@ -311,7 +313,7 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        $ret = fwrites($this->resource, $contents);
+        $ret = freset($this->resource, $contents);
 
         return $this;
     }
@@ -325,7 +327,7 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        $ret = freads($this->resource);
+        $ret = freadall($this->resource);
 
         return ($ret !== null) ? $ret : null;
     }
