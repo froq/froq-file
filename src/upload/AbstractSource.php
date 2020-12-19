@@ -189,8 +189,8 @@ abstract class AbstractSource implements Stringable
 
         [$size, $name] = array_select($file, ['size', 'name']);
 
-        $size ??= filesize($source);
-        $type ??= Mime::getType($source);
+        $size    ??= filesize($source);
+        $type    ??= Mime::getType($source);
         $extension = Mime::getExtension($source);
 
         if (!$this->isAllowedType($type)) {
@@ -230,14 +230,12 @@ abstract class AbstractSource implements Stringable
         // Set target name as random UUID default when no name given.
         $name = $this->prepareName((string) $name) ?: uuid();
 
-        $this->source = $source;
+        $this->source     = $source;
         $this->sourceInfo = [
             'type' => $type, 'size' => $size,
             'name' => $name, 'extension' => $extension
         ];
-
-        // Reset options.
-        $this->options = ['directory' => $directory] + $this->options;
+        $this->options    = ['directory' => $directory] + $this->options; // Reset.
 
         return $this;
     }
@@ -253,7 +251,7 @@ abstract class AbstractSource implements Stringable
     public final function prepareName(string $name, string $appendix = null): string|null
     {
         $name = trim($name);
-        if ($name === '') {
+        if ($name == '') {
             return null;
         }
 
@@ -331,8 +329,9 @@ abstract class AbstractSource implements Stringable
         }
 
         $target = $this->options['directory'] .'/'. ($name ?: $sourceInfo['name']);
-        $extension ??= $sourceInfo['extension'];
-        if ($extension !== null) {
+
+        // Add extension.
+        if (($extension ??= $sourceInfo['extension']) !== null) {
             $target = $target .'.'. $extension;
         }
 
