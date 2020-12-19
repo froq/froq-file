@@ -365,11 +365,11 @@ class ImageSource extends AbstractSource
 
         $this->overwriteCheck($target);
 
-        if (!$this->outputTo($target)) {
-            throw new UploadException('Failed saving image [error: %s]', '@error');
+        if ($this->outputTo($target)) {
+            return $target;
         }
 
-        return $target;
+        throw new UploadException('Failed saving image [error: %s]', '@error');
     }
 
     /**
@@ -382,11 +382,11 @@ class ImageSource extends AbstractSource
 
         $this->overwriteCheck($target);
 
-        if (!rename($source, $target)) {
-            throw new UploadException('Failed moving image [error: %s]', '@error');
+        if (rename($source, $target)) {
+            return $target;
         }
 
-        return $target;
+        throw new UploadException('Failed moving image [error: %s]', '@error');
     }
 
     /**
@@ -395,7 +395,7 @@ class ImageSource extends AbstractSource
     public final function clear(bool $force = false): void
     {
         if ($force || $this->options['clearSource']) {
-            @ unlink($this->getSource());
+            is_file($file = $this->getSource()) && unlink($file);
         }
 
         // Free sources.
