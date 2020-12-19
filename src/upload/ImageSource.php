@@ -356,10 +356,9 @@ class ImageSource extends AbstractSource
     public final function save(string $name = null, string $appendix = null, bool $appendNewDimensions = false): string
     {
         if ($appendNewDimensions) {
-            $newDimensions = $this->getNewDimensions();
             $appendix = ($appendix == null)
-                ? vsprintf('%dx%d', $newDimensions)
-                : vsprintf('%dx%d-%s', array_merge($newDimensions, [$appendix]));
+                ? vsprintf('%dx%d', $this->getNewDimensions())
+                : vsprintf('%dx%d-%s', array_merge($this->getNewDimensions(), [$appendix]));
         }
 
         $target = $this->prepareTarget($name, $appendix);
