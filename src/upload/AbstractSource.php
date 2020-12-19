@@ -11,7 +11,7 @@ use froq\file\upload\{UploadError, UploadException, ImageSource};
 use froq\file\mime\{Mime, MimeException};
 use froq\file\{File, Util as FileUtil};
 use froq\common\interfaces\Stringable;
-use froq\common\traits\{OptionTrait, ApplyTrait};
+use froq\common\trait\{ApplyTrait, OptionTrait};
 use Throwable;
 
 /**
@@ -28,12 +28,12 @@ use Throwable;
 abstract class AbstractSource implements Stringable
 {
     /**
-     * Option & Apply traits.
-     * @see froq\common\traits\OptionTrait
-     * @see froq\common\traits\ApplyTrait
+     * Apply & Option traits.
+     * @see froq\common\trait\ApplyTrait
+     * @see froq\common\trait\OptionTrait
      * @since 5.0
      */
-    use OptionTrait, ApplyTrait;
+    use ApplyTrait, OptionTrait;
 
     /** @var string */
     protected string $source;
