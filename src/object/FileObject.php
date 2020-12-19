@@ -381,7 +381,7 @@ class FileObject extends AbstractObject
     }
 
     /**
-     * @inheritDoc froq\common\interfaces\Sizable
+     * @inheritDoc froq\common\interface\Sizable
      */
     public final function size(): int
     {
@@ -393,7 +393,7 @@ class FileObject extends AbstractObject
     }
 
     /**
-     * @inheritDoc froq\common\interfaces\Stringable
+     * @inheritDoc froq\common\interface\Stringable
      */
     public final function toString(): string
     {

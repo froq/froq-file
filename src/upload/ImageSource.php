@@ -411,7 +411,7 @@ class ImageSource extends AbstractSource
     }
 
     /**
-     * @inheritDoc froq\common\interfaces\Stringable
+     * @inheritDoc froq\common\interface\Stringable
      */
     public final function toString(): string
     {

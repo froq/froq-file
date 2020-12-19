@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace froq\file\object;
 
 use froq\file\object\{ObjectException, FileObject, ImageObject};
+use froq\common\interface\{Sizable, Stringable};
 use froq\common\trait\{OptionTrait, ApplyTrait};
-use froq\common\interfaces\{Sizable, Stringable};
 
 /**
  * Abstract Object.

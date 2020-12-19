@@ -10,7 +10,7 @@ namespace froq\file\upload;
 use froq\file\upload\{UploadError, UploadException, ImageSource};
 use froq\file\mime\{Mime, MimeException};
 use froq\file\{File, Util as FileUtil};
-use froq\common\interfaces\Stringable;
+use froq\common\interface\Stringable;
 use froq\common\trait\{ApplyTrait, OptionTrait};
 use Throwable;
 
