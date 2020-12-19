@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace froq\file;
 
+use froq\common\object\StaticClass;
+
 /**
  * Util.
  *
@@ -16,7 +18,7 @@ namespace froq\file;
  * @since   4.0
  * @static
  */
-final class Util
+final class Util extends StaticClass
 {
     /**
      * Format bytes as human readable text.
