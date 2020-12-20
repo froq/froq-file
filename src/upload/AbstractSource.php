@@ -309,7 +309,7 @@ abstract class AbstractSource implements Stringable
 
         // Check name & extension when given with save() or move().
         if ($name !== null) {
-            if (strsrc($name, '.')) {
+            if (str_contains($name, '.')) {
                 $extension = file_extension($name);
                 if ($extension !== null) {
                     if (!$this->isAllowedExtension($extension)) {
