@@ -295,7 +295,7 @@ class FileObject extends AbstractObject
     {
         $path = $this->path();
 
-        if ($path && !strpfx($path, 'php://temp')) {
+        if ($path && !str_starts_with($path, 'php://temp')) {
             return get_path_info($path, $component);
         }
 
