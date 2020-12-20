@@ -256,7 +256,7 @@ final class File
                 );
             } // else ok.
         } else {
-            $error = $error ?? error_message() ?? 'Unknown error';
+            $error ??= error_message() ?? 'Unknown error';
 
             if (stripos($error, 'no such file')) {
                 $error = new FileError(
