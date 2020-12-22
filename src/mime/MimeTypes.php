@@ -18,10 +18,7 @@ namespace froq\file\mime;
  */
 final class MimeTypes
 {
-    /**
-     * All.
-     * @var array
-     */
+    /** @var array */
     private static array $all;
 
     /**

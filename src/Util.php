@@ -21,7 +21,7 @@ use froq\common\object\StaticClass;
 final class Util extends StaticClass
 {
     /**
-     * Format bytes as human readable text.
+     * Format bytes to human readable text.
      *
      * @param  int $bytes
      * @return string

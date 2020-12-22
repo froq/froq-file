@@ -24,7 +24,6 @@ use froq\common\trait\{OptionTrait, ApplyTrait};
 abstract class AbstractObject implements Sizable, Stringable
 {
     /**
-     * Apply & Option traits.
      * @see froq\common\trait\ApplyTrait
      * @see froq\common\trait\OptionTrait
      */

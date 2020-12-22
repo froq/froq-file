@@ -28,7 +28,6 @@ use Throwable;
 abstract class AbstractSource implements Stringable
 {
     /**
-     * Apply & Option traits.
      * @see froq\common\trait\ApplyTrait
      * @see froq\common\trait\OptionTrait
      * @since 5.0

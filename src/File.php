@@ -14,6 +14,9 @@ use Error;
 /**
  * File.
  *
+ * Represents a static class entity which is able to get files' types/extensions, check types, modes, access perms
+ * or to read/write processes.
+ *
  * @package froq\file
  * @object  froq\file\File
  * @author  Kerem Güneş <k-gun@mail.com>

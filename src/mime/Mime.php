@@ -14,6 +14,8 @@ use Error;
 /**
  * Mime.
  *
+ * Represents a static class entity which is able to get files' mime types and extensions.
+ *
  * @package froq\file\mime
  * @object  froq\file\mime\Mime
  * @author  Kerem Güneş <k-gun@mail.com>
