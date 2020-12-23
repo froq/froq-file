@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) 2015 · Kerem Güneş
- * Apache License 2.0 <https://opensource.org/licenses/apache-2.0>
+ * Apache License 2.0 · http://github.com/froq/froq-encrypting
  */
 declare(strict_types=1);
 
@@ -10,8 +10,8 @@ namespace froq\file\upload;
 use froq\file\upload\{UploadError, UploadException, ImageSource};
 use froq\file\mime\{Mime, MimeException};
 use froq\file\{File, Util as FileUtil};
-use froq\common\interface\Stringable;
 use froq\common\trait\{ApplyTrait, OptionTrait};
+use froq\common\interface\Stringable;
 use Throwable;
 
 /**
@@ -22,7 +22,7 @@ use Throwable;
  *
  * @package froq\file\upload
  * @object  froq\file\upload\AbstractSource
- * @author  Kerem Güneş <k-gun@mail.com>
+ * @author  Kerem Güneş
  * @since   4.0, 5.0 Moved to upload directory, derived from AbstractUploader.
  */
 abstract class AbstractSource implements Stringable

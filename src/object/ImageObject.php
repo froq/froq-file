@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) 2015 · Kerem Güneş
- * Apache License 2.0 <https://opensource.org/licenses/apache-2.0>
+ * Apache License 2.0 · http://github.com/froq/froq-encrypting
  */
 declare(strict_types=1);
 
@@ -18,7 +18,7 @@ use froq\file\File;
  *
  * @package froq\file\object
  * @object  froq\file\object\ImageObject
- * @author  Kerem Güneş <k-gun@mail.com>
+ * @author  Kerem Güneş
  * @since   4.0, 5.0 Moved to object directory.
  */
 class ImageObject extends AbstractObject
