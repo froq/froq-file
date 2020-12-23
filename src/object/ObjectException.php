@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) 2015 · Kerem Güneş
- * Apache License 2.0 · http://github.com/froq/froq-encrypting
+ * Apache License 2.0 · http://github.com/froq/froq-file
  */
 declare(strict_types=1);
 
