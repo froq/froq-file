@@ -531,7 +531,7 @@ class ImageSource extends AbstractSource
      * @return bool
      * @since  5.0
      */
-    public final function isResized(): bool
+    public final function resized(): bool
     {
         return $this->resized;
     }
