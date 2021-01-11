@@ -63,7 +63,7 @@ class ImageSource extends AbstractSource
     {
         $this->setOptions($options, self::$optionsDefault);
 
-        $this->useImagick = $this->options['useImagick'];
+        $this->useImagick = (bool) $this->options['useImagick'];
 
         parent::__construct($this->options);
     }
