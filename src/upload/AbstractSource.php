@@ -227,7 +227,7 @@ abstract class AbstractSource implements Stringable
         }
 
         // Set target name as random UUID default when no name given.
-        $name = $this->prepareName((string) $name) ?: uuid();
+        $name = $this->prepareName((string) $name) ?: uuid(timed: true);
 
         $this->source     = $source;
         $this->sourceInfo = [
@@ -273,7 +273,7 @@ abstract class AbstractSource implements Stringable
             );
 
             $name = match ($hash) {
-                'rand'  => hash($hashAlgo, uuid()),
+                'rand'  => hash($hashAlgo, uuid(timed: true)),
                 'file'  => hash_file($hashAlgo, $this->source),
                 'name'  => hash($hashAlgo, $name),
                 default => throw new UploadException(
