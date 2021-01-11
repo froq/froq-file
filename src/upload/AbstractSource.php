@@ -146,7 +146,7 @@ abstract class AbstractSource implements Stringable
         if ($options != null) {
             $this->options = array_merge($this->options, $options);
 
-            if ($this instanceof ImageSource && $this->options['useImagick']) {
+            if ($this->options['useImagick'] && $this instanceof ImageSource) {
                 $this->useImagick = true;
             }
         }
