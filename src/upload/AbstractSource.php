@@ -349,8 +349,13 @@ abstract class AbstractSource implements Stringable
      */
     public final function isAllowedType(string $type): bool
     {
-        return ($this->options['allowedTypes'] === '*')
-            || in_array($type, split(',', (string) $this->options['allowedTypes']));
+        $types = (string) $this->options['allowedTypes'];
+
+        return (
+                $types === '*'
+            || ($types[0] == '~' && preg_match($types, $type))
+            || in_array($type, preg_split('~\s*,\s*~', $types, flags: 1))
+        );
     }
 
     /**
@@ -362,8 +367,13 @@ abstract class AbstractSource implements Stringable
      */
     public final function isAllowedExtension(string $extension): bool
     {
-        return ($this->options['allowedExtensions'] === '*')
-            || in_array($extension, split(',', (string) $this->options['allowedExtensions']));
+        $extensions = (string) $this->options['allowedExtensions'];
+
+        return (
+                $extensions === '*'
+            || ($extensions[0] == '~' && preg_match($extensions, $extension))
+            || in_array($extension, preg_split('~\s*,\s*~', $extensions, flags: 1))
+        );
     }
 
     /**
