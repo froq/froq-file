@@ -350,7 +350,7 @@ abstract class AbstractSource implements Stringable
     public final function isAllowedType(string $type): bool
     {
         return ($this->options['allowedTypes'] === '*')
-            || in_array($type, split(',', $this->options['allowedTypes']));
+            || in_array($type, split(',', (string) $this->options['allowedTypes']));
     }
 
     /**
@@ -363,7 +363,7 @@ abstract class AbstractSource implements Stringable
     public final function isAllowedExtension(string $extension): bool
     {
         return ($this->options['allowedExtensions'] === '*')
-            || in_array($extension, split(',', $this->options['allowedExtensions']));
+            || in_array($extension, split(',', (string) $this->options['allowedExtensions']));
     }
 
     /**
