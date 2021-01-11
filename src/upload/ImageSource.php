@@ -98,7 +98,7 @@ class ImageSource extends AbstractSource
         $this->fillInfo();
 
         // @defaults=false,true
-        $adjust = $options['adjust'] ?? false;
+        $adjust     = $options['adjust']     ?? false;
         $proportion = $options['proportion'] ?? true;
 
         [$origWidth, $origHeight, $type] = $this->getInfo();

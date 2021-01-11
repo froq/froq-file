@@ -82,8 +82,8 @@ class ImageObject extends AbstractObject
     public final function resize(int $width, int $height, array $options = null): self
     {
         $temp = ($resourceFile = $this->getResourceFile())
-            ? FileObject::fromTempFile($resourceFile)
-            : FileObject::fromTempResource()->setContents($this->getContents());
+              ? FileObject::fromTempFile($resourceFile)
+              : FileObject::fromTempResource()->setContents($this->getContents());
 
         $image = (new ImageSource)->prepare(
             ['type' => $this->mime, 'file' => $temp->path(), 'directory' => tmp()],
@@ -94,7 +94,7 @@ class ImageObject extends AbstractObject
 
         unset($temp);
 
-        $this->resource = imagecreatefromstring($image->toString());
+        $this->resource     = imagecreatefromstring($image->toString());
         $this->resourceFile = $image->save(); // As temp file.
 
         return $this;
@@ -111,8 +111,8 @@ class ImageObject extends AbstractObject
     public final function crop(int $width, int $height = null, array $options = null): self
     {
         $temp = ($resourceFile = $this->getResourceFile())
-            ? FileObject::fromTempFile($resourceFile)
-            : FileObject::fromTempResource()->setContents($this->getContents());
+              ? FileObject::fromTempFile($resourceFile)
+              : FileObject::fromTempResource()->setContents($this->getContents());
 
         $image = (new ImageSource)->prepare(
             ['type' => $this->mime, 'file' => $temp->path(), 'directory' => tmp()],
@@ -123,7 +123,7 @@ class ImageObject extends AbstractObject
 
         unset($temp);
 
-        $this->resource = imagecreatefromstring($image->toString());
+        $this->resource     = imagecreatefromstring($image->toString());
         $this->resourceFile = $image->save(); // As temp file.
 
         return $this;

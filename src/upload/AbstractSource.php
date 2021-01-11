@@ -152,9 +152,9 @@ abstract class AbstractSource implements Stringable
         }
 
         [$error, $source, $directory] = [
-            $file['error'] ?? null,
-            $file['file'] ?? $file['tmp_name'] ?? null,
-            $file['directory'] ?? $this->options['directory'] ?? null
+            $file['error']     ?? null,
+            $file['file']      ?? $file['tmp_name']           ?? null,
+            $file['directory'] ?? $this->options['directory'] ?? null,
         ];
 
         $error && throw new UploadException(
@@ -231,7 +231,7 @@ abstract class AbstractSource implements Stringable
 
         $this->source     = $source;
         $this->sourceInfo = [
-            'type' => $type, 'size' => $size,
+            'type' => $type, 'size'      => $size,
             'name' => $name, 'extension' => $extension
         ];
         $this->options    = ['directory' => $directory] + $this->options; // Reset.
