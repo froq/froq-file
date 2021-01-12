@@ -31,8 +31,11 @@ class ImageObject extends AbstractObject
     protected static array $mimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
     /** @var array */
-    protected static array $optionsDefault = ['jpegQuality' => -1, 'webpQuality' => -1,
-        'pngZipLevel' => -1, 'pngFilters' => -1];
+    protected static array $optionsDefault = [
+        'jpegQuality'  => -1, 'webpQuality' => -1,
+        'pngZipLevel'  => -1, 'pngFilters'  => -1,
+        'transparency' => true, // For only webp's.
+    ];
 
     /**
      * Get mimes.
@@ -220,10 +223,12 @@ class ImageObject extends AbstractObject
 
         match ($this->mime) {
             self::MIME_JPEG => imagejpeg($this->resource, null, $this->options['jpegQuality']),
+            self::MIME_WEBP => $this->options['transparency'] // For some speed (@default=true).
+                ? imagewebp($copy = $this->createResourceCopy(), null, $this->options['webpQuality'])
+                : imagewebp($this->resource, null, $this->options['webpQuality']),
             self::MIME_PNG  => imagepng($copy = $this->createResourceCopy(), null, $this->options['pngZipLevel'],
-                    $this->options['pngFilters']),
+                $this->options['pngFilters']),
             self::MIME_GIF  => imagegif($copy = $this->createResourceCopy()),
-            self::MIME_WEBP => imagewebp($copy = $this->createResourceCopy(), null, $this->options['webpQuality']),
         };
 
         $copy && $this->removeResourceCopy($copy);
