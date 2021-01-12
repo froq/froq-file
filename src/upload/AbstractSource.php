@@ -219,6 +219,9 @@ abstract class AbstractSource implements Stringable
             }
         }
 
+        // Special directive for directory for using system tempory directory.
+        $directory = ($directory == '@tmp') ? tmp() : $directory;
+
         if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
             throw new UploadException(
                 'Cannot make directory [error: %s]',
