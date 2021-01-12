@@ -50,8 +50,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null           $resourceFile @internal
      * @throws froq\file\ObjectException
      */
-    public function __construct($resource = null, string $mime = null, array $options = null,
-        string $resourceFile = null)
+    public function __construct($resource = null, string $mime = null, array $options = null, string $resourceFile = null)
     {
         if ($resource != null) {
             if ($this instanceof FileObject) {
@@ -78,9 +77,9 @@ abstract class AbstractObject implements Sizable, Stringable
             }
         }
 
-        $this->resource = $resource;
+        $this->resource     = $resource;
         $this->resourceFile = $resourceFile;
-        $this->mime = $mime;
+        $this->mime         = $mime;
 
         $this->setOptions($options, static::$optionsDefault);
     }
@@ -209,7 +208,7 @@ abstract class AbstractObject implements Sizable, Stringable
     public final function open(string $file, string $mime = null, array $options = null): self
     {
         if ($this instanceof TempFileObject) {
-            throw new ObjectException('Method open() not available for %s', TempFileObject::class);
+            throw new ObjectException('Method %s() not available for %s', [__method__, TempFileObject::class]);
         }
 
         $this->free();
@@ -217,9 +216,9 @@ abstract class AbstractObject implements Sizable, Stringable
 
         $that = static::fromFile($file, $mime, $options);
 
-        $this->resource = $that->resource;
+        $this->resource     = $that->resource;
         $this->resourceFile = $that->resourceFile;
-        $this->mime = $that->mime;
+        $this->mime         = $that->mime;
 
         $that->free();
 
@@ -334,10 +333,10 @@ abstract class AbstractObject implements Sizable, Stringable
     public static final function fromTempResource(string $mime = null, array $options = null): static
     {
         if (static::class != FileObject::class) {
-            throw new ObjectException('Method fromTempResource() available for only %s', FileObject::class);
+            throw new ObjectException('Method %s() available for only %s', [__method__, FileObject::class]);
         }
 
-        $resource = tmpfile();
+        $resource     = tmpfile();
         $resourceFile = fmeta($resource)['uri'];
 
         return self::fromResource($resource, $mime, $options, $resourceFile);

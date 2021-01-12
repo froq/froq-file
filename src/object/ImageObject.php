@@ -297,7 +297,7 @@ class ImageObject extends AbstractObject
     public final function size(): int
     {
         $ret = ($resourceFile = $this->getResourceFile()) ? filesize($resourceFile)
-            : (($contents = $this->getContents()) ? strlen($contents) : false);
+             : (($contents = $this->getContents()) ? strlen($contents) : false);
 
         return ($ret !== false) ? $ret : -1;
     }
@@ -345,7 +345,7 @@ class ImageObject extends AbstractObject
         $that = new static($resource, $mime, $options);
 
         // To speed up resize(), crop(), getContents() etc.
-        $that->resourceFile = file_create_temp('froq/img');
+        $that->resourceFile = file_create_temp('froq/image');
         $that->resourceFile || throw new ObjectException('Cannot create resource file [error: %s]', '@error');
 
         file_set_contents($that->resourceFile, $string);

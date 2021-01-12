@@ -194,7 +194,7 @@ class FileObject extends AbstractObject
     public final function offset(int $where = null, int $whence = null): int|bool|null
     {
         return ($where === null) ? $this->getPosition()
-            : $this->setPosition($where, ($whence ?? SEEK_SET));
+             : $this->setPosition($where, ($whence ?? SEEK_SET));
     }
 
     /**
