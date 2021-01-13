@@ -401,7 +401,7 @@ class ImageSource extends AbstractSource
 
         // Free sources.
         if ($this->options['clear']) {
-            if ($this->useImagick) {
+            if ($this->usingImagick()) {
                 $this->sourceImage && $this->sourceImage->clear();
                 $this->targetImage && $this->targetImage->clear();
             }
