@@ -26,7 +26,10 @@ class ImageSource extends AbstractSource
     public const QUALITY = -1;
 
     /** @const array */
-    public const SUPPORTED_TYPES = [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP];
+    public const SUPPORTED_TYPES = [
+        IMAGETYPE_JPEG, IMAGETYPE_WEBP,
+        IMAGETYPE_PNG,  IMAGETYPE_GIF,
+    ];
 
     /** @var GdImage|Imagick|null */
     protected GdImage|Imagick|null $sourceImage;
