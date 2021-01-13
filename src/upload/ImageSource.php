@@ -42,10 +42,8 @@ class ImageSource extends AbstractSource
 
     /** @var array */
     protected static array $optionsDefault = [
-        'jpegQuality' => -1,
-        'webpQuality' => -1,
-        'useImagick'  => false,
-        'stripImage'  => false,
+        'jpegQuality' => -1,    'webpQuality' => -1,
+        'useImagick'  => false, 'stripImage'  => false,
     ];
 
     /** @var bool */
