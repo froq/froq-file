@@ -271,6 +271,12 @@ class ImageSource extends AbstractSource
      */
     public final function cropThumbnail(int $width, int $height = null): self
     {
+        if ($width < 0 || $height < 0) {
+            throw new UploadException('Both with and height must be greater than -1');
+        } elseif ($width == 0 && $height == 0) {
+            throw new UploadException('Either with or height must be greater than 0');
+        }
+
         $this->fillInfo();
 
         [$origWidth, $origHeight] = $this->getInfo();
