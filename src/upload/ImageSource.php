@@ -140,9 +140,7 @@ class ImageSource extends AbstractSource
 
             try {
                 $imagick = $this->targetImage;
-                ($size >= 1_000_000 || $size <= 750_000) // Choose faster method (1mb|750kb).
-                    ? $imagick->thumbnailImage($newWidth, $newHeight)
-                    : $imagick->resizeImage($newWidth, $newHeight, Imagick::FILTER_BOX, 1.0);
+                $imagick->scaleImage($newWidth, $newHeight);
             } catch (ImagickException $e) {
                 throw new UploadException($e);
             }
@@ -658,11 +656,10 @@ class ImageSource extends AbstractSource
         $type = $this->getType();
 
         if ($image instanceof Imagick) {
-            if ($this->options['jpegQuality'] && $type == IMAGETYPE_JPEG) {
+            $quality = (int) ($this->options['jpegQuality'] ?? $this->options['webpQuality']);
+            if ($quality && ($type == IMAGETYPE_JPEG || $type == IMAGETYPE_WEBP)) {
                 $image->setImageCompression(Imagick::COMPRESSION_JPEG);
-                $image->setImageCompressionQuality( // Wants uint as default, interesting..
-                    $this->options['jpegQuality'] > -1 ? $this->options['jpegQuality'] : 0
-                );
+                $image->setImageCompressionQuality($quality > -1 ? $quality : 0); // Wants uint, interesting..
             }
 
             // Strip preserving ICC profile.
@@ -714,11 +711,10 @@ class ImageSource extends AbstractSource
         $type = $this->getType();
 
         if ($image instanceof Imagick) {
-            if ($this->options['jpegQuality'] && $type == IMAGETYPE_JPEG) {
+            $quality = (int) ($this->options['jpegQuality'] ?? $this->options['webpQuality']);
+            if ($quality && ($type == IMAGETYPE_JPEG || $type == IMAGETYPE_WEBP)) {
                 $image->setImageCompression(Imagick::COMPRESSION_JPEG);
-                $image->setImageCompressionQuality( // Wants uint as default, interesting..
-                    $this->options['jpegQuality'] > -1 ? $this->options['jpegQuality'] : 0
-                );
+                $image->setImageCompressionQuality($quality > -1 ? $quality : 0); // Wants uint, interesting..
             }
 
             // Strip preserving ICC profile.
