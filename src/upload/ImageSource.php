@@ -181,13 +181,7 @@ class ImageSource extends AbstractSource
      */
     public final function resizeThumbnail(int $width, int $height = null): self
     {
-        if ($width == 0) {
-            $width = $height;
-        } elseif ($height == 0) {
-            $height = $width;
-        }
-
-        return $this->resize($width, $height);
+        return $this->resize($width, $height ?? 0);
     }
 
     /**
