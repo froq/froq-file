@@ -258,7 +258,7 @@ abstract class AbstractObject implements Sizable, Stringable
             throw new ObjectException('Cannot make directory [error: %s, directory: %s]',
                 ['@error', $directory]);
         } elseif (!is_writable($directory)) {
-            throw new ObjectException('Cannot into write %s directory, it is not writable',
+            throw new ObjectException('Cannot write %s directory, it is not writable',
                 $directory);
         }
 
