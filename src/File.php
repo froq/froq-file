@@ -272,9 +272,10 @@ final class File
                     $file, FileError::NO_PERMISSION
                 );
             } elseif (stripos($error, 'valid path') || stripos($error, 'null bytes')) {
+                $path  = (strlen($file) < 255) ? $file : substr($file, 0, 255) . '...';
                 $error = new FileError(
                     'No valid path `%s`',
-                    strtr($file, ["\0" => "\\0"]), FileError::INVALID_PATH
+                    strtr($path, ["\0" => "\\0"]), FileError::INVALID_PATH
                 );
             } else {
                 $error = new FileError($error);
