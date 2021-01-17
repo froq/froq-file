@@ -190,7 +190,7 @@ abstract class AbstractSource implements Stringable
 
         $size    ??= filesize($source);
         $type    ??= Mime::getType($source);
-        $extension = Mime::getExtension($source);
+        $extension = Mime::getExtension($source) ?: Mime::getExtensionByType($type);
 
         if (!$this->isAllowedType($type)) {
             throw new UploadException(
