@@ -657,9 +657,9 @@ class ImageSource extends AbstractSource
 
         if ($image instanceof Imagick) {
             $quality = (int) ($this->options['jpegQuality'] ?? $this->options['webpQuality']);
-            if ($quality && ($type == IMAGETYPE_JPEG || $type == IMAGETYPE_WEBP)) {
+            if ($quality > 0 && ($type == IMAGETYPE_JPEG || $type == IMAGETYPE_WEBP)) {
                 $image->setImageCompression(Imagick::COMPRESSION_JPEG);
-                $image->setImageCompressionQuality($quality > -1 ? $quality : 0); // Wants uint, interesting..
+                $image->setImageCompressionQuality($quality);
             }
 
             // Strip image, optionally preserving ICC profile.
@@ -712,9 +712,9 @@ class ImageSource extends AbstractSource
 
         if ($image instanceof Imagick) {
             $quality = (int) ($this->options['jpegQuality'] ?? $this->options['webpQuality']);
-            if ($quality && ($type == IMAGETYPE_JPEG || $type == IMAGETYPE_WEBP)) {
+            if ($quality > 0 && ($type == IMAGETYPE_JPEG || $type == IMAGETYPE_WEBP)) {
                 $image->setImageCompression(Imagick::COMPRESSION_JPEG);
-                $image->setImageCompressionQuality($quality > -1 ? $quality : 0); // Wants uint, interesting..
+                $image->setImageCompressionQuality($quality);
             }
 
             // Strip image, optionally preserving ICC profile.
