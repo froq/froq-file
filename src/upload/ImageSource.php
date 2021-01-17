@@ -46,7 +46,7 @@ class ImageSource extends AbstractSource
     /** @var array */
     protected static array $optionsDefault = [
         'jpegQuality' => -1,    'webpQuality' => -1,
-        'useImagick'  => false, 'stripImage'  => false,
+        'useImagick'  => false, 'stripImage'  => false, 'stripImageIcc' => false,
     ];
 
     /** @var bool */
@@ -662,9 +662,9 @@ class ImageSource extends AbstractSource
                 $image->setImageCompressionQuality($quality > -1 ? $quality : 0); // Wants uint, interesting..
             }
 
-            // Strip preserving ICC profile.
+            // Strip image, optionally preserving ICC profile.
             if ($this->options['stripImage']) {
-                $profiles = $image->getImageProfiles('icc', true);
+                $this->options['stripImageIcc'] || $profiles = $image->getImageProfiles('icc', true);
                 $image->stripImage();
                 if (!empty($profiles['icc'])) {
                     $image->profileImage('icc', $profiles['icc']);
@@ -717,9 +717,9 @@ class ImageSource extends AbstractSource
                 $image->setImageCompressionQuality($quality > -1 ? $quality : 0); // Wants uint, interesting..
             }
 
-            // Strip preserving ICC profile.
+            // Strip image, optionally preserving ICC profile.
             if ($this->options['stripImage']) {
-                $profiles = $image->getImageProfiles('icc', true);
+                $this->options['stripImageIcc'] || $profiles = $image->getImageProfiles('icc', true);
                 $image->stripImage();
                 if (!empty($profiles['icc'])) {
                     $image->profileImage('icc', $profiles['icc']);
