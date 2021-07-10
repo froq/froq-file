@@ -3,6 +3,7 @@
  * MIMEs.
  * Original source: https://github.com/jshttp/mime-db
  */
+
 return [
     // 'application/octet-stream' => ['bin', 'dms', 'lrf', 'mar', 'so', 'dist', 'distz', 'pkg', 'bpk', 'dump', 'elc', 'deploy', 'exe', 'dll', 'deb', 'dmg', 'iso', 'img', 'msi', 'msp', 'msm', 'buffer'],
 
@@ -722,7 +723,7 @@ return [
     'image/ief' => ['ief'],
     'image/jls' => ['jls'],
     'image/jp2' => ['jp2', 'jpg2'],
-    'image/jpeg' => ['jpeg', 'jpg', 'jpe'],
+    'image/jpeg' => ['jpg', 'jpeg', 'jpe'],
     'image/jpm' => ['jpm'],
     'image/jpx' => ['jpx', 'jpf'],
     'image/ktx' => ['ktx'],

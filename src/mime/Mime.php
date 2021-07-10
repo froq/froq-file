@@ -1,72 +1,54 @@
 <?php
 /**
- * MIT License <https://opensource.org/licenses/mit>
- *
- * Copyright (c) 2015 Kerem Güneş
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished
- * to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Copyright (c) 2015 · Kerem Güneş
+ * Apache License 2.0 · http://github.com/froq/froq-file
  */
 declare(strict_types=1);
 
 namespace froq\file\mime;
 
-use froq\file\Util as FileUtil;
 use froq\file\mime\{MimeException, MimeTypes};
+use froq\file\File;
 use Error;
 
 /**
  * Mime.
+ *
+ * Represents a static class entity which is able to get files' mime types and extensions.
+ *
  * @package froq\file\mime
  * @object  froq\file\mime\Mime
- * @author  Kerem Güneş <k-gun@mail.com>
- * @since   1.0, 4.0 Moved to "mime" directory.
+ * @author  Kerem Güneş
+ * @since   1.0, 4.0 Moved to mime directory.
  * @static
  */
 final class Mime
 {
     /**
-     * Get type.
+     * Get file type.
+     *
      * @param  string $file
      * @param  bool   $errorCheck
-     * @return ?string
+     * @return string|null
      * @throws froq\file\MimeException
      */
-    public static function getType(string $file, bool $errorCheck = true): ?string
+    public static function getType(string $file, bool $errorCheck = true): string|null
     {
-        if ($errorCheck) {
-            FileUtil::errorCheck($file, $error);
-            if ($error != null) {
-                throw new MimeException($error->getMessage(), null, $error->getCode());
-            }
+        if ($errorCheck && File::errorCheck($file, $error)) {
+            throw new MimeException($error->getMessage(), null, $error->getCode());
         }
 
         $type = null;
 
         try {
-            // This function might be not available.
-            $type =@ mime_content_type($file);
+            // This function may be not available.
+            $type = mime_content_type($file);
             if ($type === false) {
                 throw new MimeException('@error');
             }
-        } catch (Error $e) {
+        } catch (Error) {
             try {
-                // This function might be not available.
+                // This function may be not available.
                 $exec = exec('file -i '. escapeshellarg($file));
                 if (preg_match('~: *([^/ ]+/[^; ]+)~', $exec, $match)) {
                     $type = $match[1];
@@ -74,7 +56,7 @@ final class Mime
                         $type = 'directory';
                     }
                 }
-            } catch (Error $e) {}
+            } catch (Error) {}
         }
 
         // Try by extension.
@@ -89,25 +71,24 @@ final class Mime
     }
 
     /**
-     * Get extension.
+     * Get file extension.
+     *
      * @param  string $file
-     * @return ?string
+     * @return string|null
      * @since  3.0
      */
-    public static function getExtension(string $file): ?string
+    public static function getExtension(string $file): string|null
     {
-        if (ctype_print($file)) { // Safe.
-            return pathinfo($file, PATHINFO_EXTENSION);
-        }
-        return null;
+        return file_extension($file, false);
     }
 
     /**
-     * Get type by extension.
+     * Get a file type by extension.
+     *
      * @param  string $extension
-     * @return ?string
+     * @return string|null
      */
-    public static function getTypeByExtension(string $extension): ?string
+    public static function getTypeByExtension(string $extension): string|null
     {
         $search = strtolower($extension);
 
@@ -121,12 +102,13 @@ final class Mime
     }
 
     /**
-     * Get extension by type.
+     * Get a file extension by type.
+     *
      * @param  string $type
      * @param  int    $i
-     * @return ?string
+     * @return string|null
      */
-    public static function getExtensionByType(string $type, int $i = 0): ?string
+    public static function getExtensionByType(string $type, int $i = 0): string|null
     {
         $search = strtolower($type);
 

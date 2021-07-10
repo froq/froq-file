@@ -5,17 +5,17 @@
  */
 declare(strict_types=1);
 
-namespace froq\file\mime;
+namespace froq\file\object;
 
 use froq\file\FileException;
 
 /**
- * Mime Exception.
+ * Object Exception.
  *
- * @package froq\file\mime
- * @object  froq\file\mime\MimeException
+ * @package froq\file\object
+ * @object  froq\file\object\ObjectException
  * @author  Kerem Güneş
- * @since   3.0, 4.0 Moved to mime directory.
+ * @since   5.0
  */
-class MimeException extends FileException
+class ObjectException extends FileException
 {}
