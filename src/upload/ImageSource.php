@@ -136,8 +136,6 @@ class ImageSource extends AbstractSource
         );
 
         if ($this->usingImagick()) {
-            $size = filesize($this->getSource());
-
             try {
                 $imagick = $this->targetImage;
                 $imagick->scaleImage($newWidth, $newHeight);
@@ -394,7 +392,8 @@ class ImageSource extends AbstractSource
     public final function clear(bool $force = false): void
     {
         if ($force || $this->options['clearSource']) {
-            is_file($file = $this->getSource()) && unlink($file);
+            $file = $this->getSource();
+            is_file($file) && unlink($file);
         }
 
         // Free sources.
