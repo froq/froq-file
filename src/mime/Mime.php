@@ -7,8 +7,9 @@ declare(strict_types=1);
 
 namespace froq\file\mime;
 
-use froq\file\mime\{MimeException, MimeTypes};
-use froq\file\File;
+use froq\file\mime\{Mimes, MimeException};
+use froq\file\{File, FileError};
+use StaticClass;
 use Error;
 
 /**
@@ -22,10 +23,10 @@ use Error;
  * @since   1.0, 4.0 Moved to mime directory.
  * @static
  */
-final class Mime
+final class Mime extends StaticClass
 {
     /**
-     * Get file type.
+     * Get a file type.
      *
      * @param  string $file
      * @param  bool   $errorCheck
@@ -35,7 +36,12 @@ final class Mime
     public static function getType(string $file, bool $errorCheck = true): string|null
     {
         if ($errorCheck && File::errorCheck($file, $error)) {
-            throw new MimeException($error->getMessage(), null, $error->getCode());
+            // Return "directory" as type if error is directory error.
+            if ($error->getCode() == FileError::DIRECTORY) {
+                return 'directory';
+            }
+
+            throw new MimeException($error);
         }
 
         $type = null;
@@ -51,9 +57,11 @@ final class Mime
                 // This function may be not available.
                 $exec = exec('file -i '. escapeshellarg($file));
                 if (preg_match('~: *([^/ ]+/[^; ]+)~', $exec, $match)) {
-                    $type = $match[1];
+                    $type = strtolower($match[1]);
                     if ($type == 'inode/directory') {
                         $type = 'directory';
+                    } elseif ($type == 'inode/x-empty') {
+                        $type = 'application/x-empty';
                     }
                 }
             } catch (Error) {}
@@ -71,7 +79,7 @@ final class Mime
     }
 
     /**
-     * Get file extension.
+     * Get a file extension.
      *
      * @param  string $file
      * @return string|null
@@ -83,7 +91,7 @@ final class Mime
     }
 
     /**
-     * Get a file type by extension.
+     * Get a file type by given extension.
      *
      * @param  string $extension
      * @return string|null
@@ -92,8 +100,12 @@ final class Mime
     {
         $search = strtolower($extension);
 
-        foreach (MimeTypes::all() as $type => $extensions) {
-            if (in_array($search, $extensions, true)) {
+        if (str_starts_with($search, '.')) {
+            $search = ltrim($search, '.');
+        }
+
+        foreach (Mimes::all() as $type => $extensions) {
+            if (equal($search, ...$extensions)) {
                 return $type;
             }
         }
@@ -102,19 +114,19 @@ final class Mime
     }
 
     /**
-     * Get a file extension by type.
+     * Get a file extension by given type.
      *
      * @param  string $type
-     * @param  int    $i
+     * @param  int    $index
      * @return string|null
      */
-    public static function getExtensionByType(string $type, int $i = 0): string|null
+    public static function getExtensionByType(string $type, int $index = 0): string|null
     {
         $search = strtolower($type);
 
-        foreach (MimeTypes::all() as $type => $extensions) {
-            if ($search === $type) {
-                return $extensions[$i] ?? null;
+        foreach (Mimes::all() as $type => $extensions) {
+            if (equal($search, $type)) {
+                return $extensions[$index] ?? null;
             }
         }
 

@@ -7,16 +7,20 @@ declare(strict_types=1);
 
 namespace froq\file\mime;
 
+use StaticClass;
+
 /**
- * Mime Types.
+ * Mimes.
+ *
+ * Represents an MIME Type registry with `all()` method.
  *
  * @package froq\file\mime
- * @object  froq\file\mime\MimeTypes
+ * @object  froq\file\mime\Mimes
  * @author  Kerem Güneş
  * @since   3.0, 4.0 Moved to mime directory.
- * @static
+ * @static @internal
  */
-final class MimeTypes
+final class Mimes extends StaticClass
 {
     /** @var array */
     private static array $all;

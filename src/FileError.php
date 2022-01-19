@@ -21,10 +21,11 @@ class FileError extends Error
 {
     /**
      * Error codes.
+     *
      * @const int
      */
-    public const DIRECTORY_GIVEN = 1,
-                 INVALID_PATH    = 2,
-                 NO_FILE         = 3,
-                 NO_PERMISSION   = 4;
+    public const DIRECTORY            = 1,
+                 NO_FILE_EXISTS       = 2,
+                 NO_ACCESS_PERMISSION = 3,
+                 NO_VALID_PATH        = 4;
 }

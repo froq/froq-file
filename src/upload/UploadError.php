@@ -21,6 +21,7 @@ class UploadError extends FileError
 {
     /**
      * Errors.
+     *
      * @const int
      */
     public const INTERNAL                     = 1,
@@ -37,6 +38,7 @@ class UploadError extends FileError
 
     /**
      * Messages.
+     *
      * @const array
      */
     public const MESSAGES = [

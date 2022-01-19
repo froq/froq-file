@@ -9,6 +9,7 @@ namespace froq\file;
 
 use froq\file\mime\{Mime, MimeException};
 use froq\file\{FileError, FileException};
+use StaticClass;
 use Error;
 
 /**
@@ -24,7 +25,7 @@ use Error;
  *          into AbstractSource.
  * @static
  */
-final class File
+final class File extends StaticClass
 {
     /**
      * Get file type.
@@ -76,17 +77,6 @@ final class File
     }
 
     /**
-     * Check whether a file is existing.
-     *
-     * @param  string $file
-     * @return bool
-     */
-    public static function isExists(string $file): bool
-    {
-        return self::isFile($file);
-    }
-
-    /**
      * Check whether a file is readable.
      *
      * @param  string $file
@@ -106,6 +96,50 @@ final class File
     public static function isWritable(string $file): bool
     {
         return self::isFile($file) && is_writable($file);
+    }
+
+    /**
+     * Check whether a file is available to read/write.
+     *
+     * @param  string $file
+     * @return bool
+     * @since  6.0
+     */
+    public static function isAvailable(string $file): bool
+    {
+        return self::isReadable($file) && self::isWritable($file);
+    }
+
+    /**
+     * Make a file.
+     *
+     * @param  string $file
+     * @param  int    $mode
+     * @param  bool   $tmp
+     * @return bool
+     * @throws froq\file\FileException
+     * @since  6.0
+     */
+    public static function make(string $file, int $mode = 0644, bool $tmp = false): bool
+    {
+        $res =@ mkfile($file, $mode, $tmp);
+
+        return ($res !== null) ? $res : throw new FileException('@error');
+    }
+
+    /**
+     * Unmake (remove) a file.
+     *
+     * @param  string $file
+     * @return bool
+     * @throws froq\file\FileException
+     * @since  6.0
+     */
+    public static function unmake(string $file): bool
+    {
+        $res =@ rmfile($file);
+
+        return ($res !== null) ? $res : throw new FileException('@error');
     }
 
     /**
@@ -244,7 +278,7 @@ final class File
         // a valid path, string given in..
         $fp = null;
         try {
-            $fp = fopen($file, 'r');
+            $fp =@ fopen($file, 'r');
         } catch (Error $e) {
             $error = $e->getMessage();
         }
@@ -254,8 +288,8 @@ final class File
 
             if (is_dir($file)) {
                 $error = new FileError(
-                    'Given path `%s` is a directory',
-                    $file, FileError::DIRECTORY_GIVEN
+                    'Given path is a directory [path: `%s`]',
+                    $file, FileError::DIRECTORY
                 );
             } // else ok.
         } else {
@@ -263,19 +297,19 @@ final class File
 
             if (stripos($error, 'no such file')) {
                 $error = new FileError(
-                    'No file exists such `%s`',
-                    $file, FileError::NO_FILE
+                    'No file exists [file: `%s`]',
+                    $file, FileError::NO_FILE_EXISTS
                 );
             } elseif (stripos($error, 'permission denied')) {
                 $error = new FileError(
-                    'No permission for accessing `%s`',
-                    $file, FileError::NO_PERMISSION
+                    'No access permission [file: `%s`]',
+                    $file, FileError::NO_ACCESS_PERMISSION
                 );
             } elseif (stripos($error, 'valid path') || stripos($error, 'null bytes')) {
-                $path  = (strlen($file) < 255) ? $file : substr($file, 0, 255) . '...';
+                $path  = substr($file, 0, 255) . '...';
                 $error = new FileError(
-                    'No valid path `%s`',
-                    strtr($path, ["\0" => "\\0"]), FileError::INVALID_PATH
+                    'No valid path [path: `%s`]',
+                    strtr($path, ["\0" => "\\0"]), FileError::NO_VALID_PATH
                 );
             } else {
                 $error = new FileError($error);

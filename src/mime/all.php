@@ -928,5 +928,6 @@ return [
     'x-world/x-vrml' => ['wrl'],
     'x-world/x-vrt' => ['vrt'],
 
-    'directory' => ['']
+    'inode/directory' => ['directory'],
+    'directory' => ['directory']
 ];

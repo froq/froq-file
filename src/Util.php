@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\common\object\StaticClass;
+use StaticClass;
 
 /**
  * Util.
@@ -21,18 +21,21 @@ use froq\common\object\StaticClass;
 final class Util extends StaticClass
 {
     /**
-     * Format bytes to human readable text.
+     * Convert integer bytes to human-readable text.
      *
      * @param  int $bytes
+     * @param  int $precision
      * @return string
      */
     public static function formatBytes(int $bytes, int $precision = 2): string
     {
-        static $base = 1024, $units = ['B', 'KB', 'MB', 'GB'];
+        $base  = 1024;
+        $units = ['B', 'KB', 'MB', 'GB'];
 
         $i = 0;
         while ($bytes > $base) {
-            $i++; $bytes /= $base;
+            $i++;
+            $bytes /= $base;
         }
 
         return round($bytes, $precision) . $units[$i];
@@ -40,14 +43,15 @@ final class Util extends StaticClass
 
 
     /**
-     * Convert human readable text to integer.
+     * Convert human-readable text to integer bytes.
      *
      * @param  string $bytes
      * @return int
      */
     public static function convertBytes(string $bytes): int
     {
-        static $base = 1024, $units = ['', 'K', 'M', 'G'];
+        $base  = 1024;
+        $units = ['', 'K', 'M', 'G'];
 
         // Eg: 6.4M or 6.4MB => 6.4MB, 64M or 64MB => 64MB.
         if (sscanf($bytes, '%f%c', $byte, $unit) == 2) {
