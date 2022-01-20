@@ -36,12 +36,12 @@ final class Mime extends StaticClass
     public static function getType(string $file, bool $errorCheck = true): string|null
     {
         if ($errorCheck && File::errorCheck($file, $error)) {
-            // Return "directory" as type if error is directory error.
-            if ($error->getCode() == FileError::DIRECTORY) {
-                return 'directory';
+            if ($error->getCode() !== FileError::DIRECTORY) {
+                throw new MimeException($error->getMessage(), code: $error->getCode(), cause: $error);
             }
 
-            throw new MimeException($error->getMessage(), null, $error->getCode());
+            // Return "directory" as type if error is directory error.
+            return 'directory';
         }
 
         $type = null;
