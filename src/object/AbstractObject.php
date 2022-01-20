@@ -24,10 +24,10 @@ use froq\common\interface\{Sizable, Stringable};
 abstract class AbstractObject implements Sizable, Stringable
 {
     /**
-     * @see froq\common\trait\ApplyTrait
      * @see froq\common\trait\OptionTrait
+     * @see froq\common\trait\ApplyTrait
      */
-    use ApplyTrait, OptionTrait;
+    use OptionTrait, ApplyTrait;
 
     /** @var ?resource|?GdImage */
     protected $resource = null;
