@@ -177,7 +177,7 @@ abstract class AbstractSource implements Stringable
         // Validate file existence and give a proper error.
         if (!realpath($source)) {
             if (File::errorCheck($source, $error)) {
-                throw new UploadException($error);
+                throw new UploadException($error->getMessage(), null, $error->getCode());
             }
 
             throw new UploadException(
