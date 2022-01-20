@@ -30,13 +30,13 @@ abstract class AbstractObject implements Sizable, Stringable
     use ApplyTrait, OptionTrait;
 
     /** @var ?resource|?GdImage */
-    protected $resource;
+    protected $resource = null;
 
     /** @var ?string */
-    protected ?string $resourceFile;
+    protected ?string $resourceFile = null;
 
     /** @var ?string */
-    protected ?string $mime;
+    protected ?string $mime = null;
 
     /** @var ?bool */
     protected ?bool $freed = null;
@@ -107,7 +107,7 @@ abstract class AbstractObject implements Sizable, Stringable
      *
      * @return string|null
      */
-    public final function getResourceFile()
+    public final function getResourceFile(): string|null
     {
         return $this->resourceFile;
     }
@@ -140,7 +140,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function &createResourceCopy()
     {
-        if (empty($this->resource)) {
+        if (!$this->resource) {
             return null;
         }
 
@@ -282,17 +282,19 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function free(): void
     {
-        if (isset($this->resource) && is_stream($this->resource)) {
+        if ($this->resource && is_stream($this->resource)) {
             fclose($this->resource);
         }
-        if (isset($this->resourceFile) && is_tmpnam($this->resourceFile)) {
+        if ($this->resourceFile && is_tmpnam($this->resourceFile)) {
             unlink($this->resourceFile);
         }
 
-        // Void.
-        $this->resource = $this->resourceFile = null;
-
+        // Tick.
         $this->freed = true;
+
+        // Clean up.
+        $this->resource     = null;
+        $this->resourceFile = null;
     }
 
     /**
@@ -303,6 +305,18 @@ abstract class AbstractObject implements Sizable, Stringable
     public final function isFreed(): bool
     {
         return ($this->freed === true);
+    }
+
+    /**
+     * Check resource state.
+     *
+     * @return bool
+     */
+    public final function isValid(): bool
+    {
+        return ($this->resource && (
+            is_stream($this->resource) || is_image($this->resource)
+        ));
     }
 
     /**
@@ -365,10 +379,10 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     protected final function resourceCheck(): void
     {
-        if ($this->freed) {
+        if ($this->isFreed()) {
             throw new ObjectException('No resource to process with, it is freed');
         }
-        if (empty($this->resource) || (!is_stream($this->resource) && !is_image($this->resource))) {
+        if (!$this->isValid()) {
             throw new ObjectException('No resource to process with, it is not valid [resource: %s]',
                 get_type($this->resource));
         }
