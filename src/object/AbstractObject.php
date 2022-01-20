@@ -33,7 +33,7 @@ abstract class AbstractObject implements Sizable, Stringable
     protected $resource;
 
     /** @var ?string */
-    protected $resourceFile;
+    protected ?string $resourceFile;
 
     /** @var ?string */
     protected ?string $mime;
