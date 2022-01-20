@@ -52,16 +52,20 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public function __construct($resource = null, string $mime = null, array $options = null, string $resourceFile = null)
     {
-        if ($resource != null) {
+        if ($resource) {
             if ($this instanceof FileObject) {
                 if (!is_stream($resource)) {
-                    throw new ObjectException('Resource type must be stream, %s given',
-                        get_type($resource));
+                    throw new ObjectException(
+                        'Resource type must be stream, %s given',
+                        get_type($resource)
+                    );
                 }
             } elseif ($this instanceof ImageObject) {
                 if ($mime && !in_array($mime, static::$mimes)) {
-                    throw new ObjectException('Invalid MIME `%s`, valids are: %s',
-                        [$mime, join(', ', static::$mimes)]);
+                    throw new ObjectException(
+                        'Invalid MIME `%s`, valids are: %s',
+                        [$mime, join(', ', static::$mimes)]
+                    );
                 }
 
                 // When a resource given, eg: fopen('path/to/file.jpg', 'rb').
@@ -71,8 +75,10 @@ abstract class AbstractObject implements Sizable, Stringable
                 }
 
                 if (!is_image($resource)) {
-                    throw new ObjectException('Resource type must be stream|GdImage, %s given',
-                        get_type($resource));
+                    throw new ObjectException(
+                        'Resource type must be stream|GdImage, %s given',
+                        get_type($resource)
+                    );
                 }
             }
         }
@@ -182,7 +188,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function removeResourceCopy(&$copy): bool|null
     {
-        if ($copy == null) {
+        if (!$copy) {
             return null;
         }
 
@@ -208,7 +214,10 @@ abstract class AbstractObject implements Sizable, Stringable
     public final function open(string $file, string $mime = null, array $options = null): self
     {
         if ($this instanceof TempFileObject) {
-            throw new ObjectException('Method %s() not available for %s', [__method__, TempFileObject::class]);
+            throw new ObjectException(
+                'Method %s() not available for %s',
+                [__method__, TempFileObject::class]
+            );
         }
 
         $this->free();
@@ -250,16 +259,20 @@ abstract class AbstractObject implements Sizable, Stringable
     public final function save(string $directory, string $name = null, int $mode = null): string
     {
         $directory = trim($directory);
-        if ($directory == '') {
+        if ($directory === '') {
             throw new ObjectException('Empty directory given');
         }
 
         if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
-            throw new ObjectException('Cannot make directory [error: %s, directory: %s]',
-                ['@error', $directory]);
+            throw new ObjectException(
+                'Cannot make directory [directory: %s, error: %s]',
+                [$directory, '@error']
+            );
         } elseif (!is_writable($directory)) {
-            throw new ObjectException('Cannot write %s directory, it is not writable',
-                $directory);
+            throw new ObjectException(
+                'Cannot write directory, it is not writable [directory: %s]',
+                $directory
+            );
         }
 
         // Make a random UUID name if no name given.
@@ -346,8 +359,11 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public static final function fromTempResource(string $mime = null, array $options = null): static
     {
-        if (static::class != FileObject::class) {
-            throw new ObjectException('Method %s() available for only %s', [__method__, FileObject::class]);
+        if (static::class !== FileObject::class) {
+            throw new ObjectException(
+                'Method %s() available for only %s',
+                [__method__, FileObject::class]
+            );
         }
 
         $resource     = tmpfile();
