@@ -41,7 +41,7 @@ final class Mime extends StaticClass
                 return 'directory';
             }
 
-            throw new MimeException($error);
+            throw new MimeException($error->getMessage(), null, $error->getCode());
         }
 
         $type = null;
