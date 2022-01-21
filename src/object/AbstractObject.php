@@ -413,7 +413,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * @return static
      * @throws froq\file\object\ObjectException
      */
-    abstract public static function fromFile(string $file, string $mime = null, array $options = null): static;
+    public abstract static function fromFile(string $file, string $mime = null, array $options = null): static;
 
     /**
      * Create a file/image object from string.
@@ -424,5 +424,5 @@ abstract class AbstractObject implements Sizable, Stringable
      * @return static
      * @throws froq\file\object\ObjectException
      */
-    abstract public static function fromString(string $string, string $mime = null, array $options = null): static;
+    public abstract static function fromString(string $string, string $mime = null, array $options = null): static;
 }
