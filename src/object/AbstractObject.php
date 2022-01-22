@@ -60,10 +60,10 @@ abstract class AbstractObject implements Sizable, Stringable
                     );
                 }
             } elseif ($this instanceof ImageObject) {
-                if ($mime && !in_array($mime, static::$mimes)) {
+                if ($mime && !in_array($mime, static::MIMES)) {
                     throw new ObjectException(
                         'Invalid MIME `%s`, valids are: %s',
-                        [$mime, join(static::$mimes)]
+                        [$mime, join(', ', static::MIMES)]
                     );
                 }
 

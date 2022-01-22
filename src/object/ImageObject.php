@@ -23,11 +23,11 @@ use froq\file\File;
 class ImageObject extends AbstractObject
 {
     /** @const string */
-    public const MIME_JPEG = 'image/jpeg', MIME_PNG  = 'image/png',
-                 MIME_GIF  = 'image/gif',  MIME_WEBP = 'image/webp';
+    public final const MIME_JPEG = 'image/jpeg', MIME_PNG  = 'image/png',
+                       MIME_GIF  = 'image/gif',  MIME_WEBP = 'image/webp';
 
     /** @var array */
-    protected static array $mimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    public final const MIMES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
     /** @var array */
     protected static array $optionsDefault = [
@@ -43,7 +43,7 @@ class ImageObject extends AbstractObject
      */
     public final function getMimes(): array
     {
-        return self::$mimes;
+        return self::MIMES;
     }
 
     /**
@@ -208,9 +208,9 @@ class ImageObject extends AbstractObject
                 'No MIME given yet, try after calling setMime()'
             );
         }
-        if (!in_array($this->mime, self::$mimes)) {
+        if (!in_array($this->mime, self::MIMES)) {
             throw new ImageObjectException(
-                'Invalid MIME `%s`, valids are: %s', [$this->mime, join(self::$mimes)]
+                'Invalid MIME `%s`, valids are: %s', [$this->mime, join(', ', self::MIMES)]
             );
         }
 
