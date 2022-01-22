@@ -122,7 +122,7 @@ final class File extends StaticClass
     {
         $res =@ mkfile($file, $mode, $tmp);
 
-        return ($res !== null) ? $res : throw new FileException('@error');
+        return $res ?: throw new FileException('@error');
     }
 
     /**
@@ -137,7 +137,28 @@ final class File extends StaticClass
     {
         $res =@ rmfile($file);
 
-        return ($res !== null) ? $res : throw new FileException('@error');
+        return $res ?: throw new FileException('@error');
+    }
+
+    /**
+     * Open a file as FileObject.
+     *
+     * @param  string      $file
+     * @param  string      $mode
+     * @param  string|null $mime
+     * @param  array|null  $options
+     * @return froq\file\FileObject
+     * @throws froq\file\FileException
+     */
+    public static function open(string $file, string $mode = 'r+b', string $mime = null, array $options = null): FileObject
+    {
+        $options['mode'] = $mode;
+
+        try {
+            return FileObject::fromFile($file, $mime, $options);
+        } catch (FileObjectException $e) {
+            throw new FileException($e->getMessage(), code: $e->getCode(), cause: $e->getCause());
+        }
     }
 
     /**
@@ -148,7 +169,7 @@ final class File extends StaticClass
      * @throws froq\file\FileException
      * @since  4.0
      */
-    public static function read(mixed $file): string
+    public static function getContents(mixed $file): string
     {
         if (is_string($file)) {
             $ret =@ file_get_contents($file);
@@ -179,7 +200,7 @@ final class File extends StaticClass
      * @throws froq\file\FileException
      * @since  4.0
      */
-    public static function write(mixed $file, string $contents, int $flags = 0): bool
+    public static function setContents(mixed $file, string $contents, int $flags = 0): bool
     {
         if (is_string($file)) {
             $ret =@ file_set_contents($file, $contents, $flags);
@@ -198,27 +219,6 @@ final class File extends StaticClass
         }
 
         return true;
-    }
-
-    /**
-     * Open a file as FileObject.
-     *
-     * @param  string      $file
-     * @param  string      $mode
-     * @param  string|null $mime
-     * @param  array|null  $options
-     * @return froq\file\FileObject
-     * @throws froq\file\FileException
-     */
-    public static function open(string $file, string $mode = 'r+b', string $mime = null, array $options = null): FileObject
-    {
-        $options['mode'] = $mode;
-
-        try {
-            return FileObject::fromFile($file, $mime, $options);
-        } catch (FileObjectException $e) {
-            throw new FileException($e->getMessage(), code: $e->getCode(), cause: $e->getCause());
-        }
     }
 
     /**
