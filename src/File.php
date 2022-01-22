@@ -120,24 +120,20 @@ final class File extends StaticClass
      */
     public static function make(string $file, int $mode = 0644, bool $tmp = false): bool
     {
-        $res =@ mkfile($file, $mode, $tmp);
-
-        return $res ?: throw new FileException('@error');
+        return @mkfile($file, $mode, $tmp) ?: throw new FileException('@error');
     }
 
     /**
-     * Unmake (remove) a file.
+     * Remove a file.
      *
      * @param  string $file
      * @return bool
      * @throws froq\file\FileException
      * @since  6.0
      */
-    public static function unmake(string $file): bool
+    public static function remove(string $file): bool
     {
-        $res =@ rmfile($file);
-
-        return $res ?: throw new FileException('@error');
+        return @rmfile($file) ?: throw new FileException('@error');
     }
 
     /**
