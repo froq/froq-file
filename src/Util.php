@@ -41,7 +41,6 @@ final class Util extends StaticClass
         return round($bytes, $precision) . $units[$i];
     }
 
-
     /**
      * Convert human-readable text to integer bytes.
      *
