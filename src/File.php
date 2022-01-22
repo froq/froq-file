@@ -8,20 +8,19 @@ declare(strict_types=1);
 namespace froq\file;
 
 use froq\file\mime\{Mime, MimeException};
+use froq\file\object\{FileObject, FileObjectException};
 use StaticClass;
 use Error;
 
 /**
  * File.
  *
- * Represents a static class entity which is able to get files' types/extensions, check types, modes, access perms
- * or to read/write processes.
+ * Represents a static file utility class.
  *
  * @package froq\file
  * @object  froq\file\File
  * @author  Kerem Güneş
- * @since   3.0, 4.0 Made static, added getType(),getExtension(),read(),write(),mode(), moved all other stuff
- *          into AbstractSource.
+ * @since   3.0, 4.0
  * @static
  */
 final class File extends StaticClass
@@ -146,7 +145,7 @@ final class File extends StaticClass
      *
      * @param  mixed<string|resource> $file
      * @return string
-     * @throws froq\file\UtilException
+     * @throws froq\file\FileException
      * @since  4.0
      */
     public static function read(mixed $file): string
@@ -156,13 +155,13 @@ final class File extends StaticClass
         } elseif (is_stream($file)) {
             $ret =@ stream_get_contents($file, -1, 0);
         } else {
-            throw new UtilException(
+            throw new FileException(
                 'Invalid file type `%s`, valids are: string, stream', $type
             );
         }
 
         if ($ret === false) {
-            throw new UtilException(
+            throw new FileException(
                 'Cannot read file [file: %s, error: %s]', [$file, '@error']
             );
         }
@@ -177,7 +176,7 @@ final class File extends StaticClass
      * @param  string                 $contents
      * @param  int                    $flags
      * @return bool
-     * @throws froq\file\UtilException
+     * @throws froq\file\FileException
      * @since  4.0
      */
     public static function write(mixed $file, string $contents, int $flags = 0): bool
@@ -187,13 +186,13 @@ final class File extends StaticClass
         } elseif (is_stream($file)) {
             $ret =@ stream_set_contents($file, $contents);
         } else {
-            throw new UtilException(
+            throw new FileException(
                 'Invalid file type `%s`, valids are: string, stream', $type
             );
         }
 
         if ($ret === null) {
-            throw new UtilException(
+            throw new FileException(
                 'Cannot write file [file: %s, error: %s]', [$file, '@error']
             );
         }
@@ -202,12 +201,33 @@ final class File extends StaticClass
     }
 
     /**
+     * Open a file as FileObject.
+     *
+     * @param  string      $file
+     * @param  string      $mode
+     * @param  string|null $mime
+     * @param  array|null  $options
+     * @return froq\file\FileObject
+     * @throws froq\file\FileException
+     */
+    public static function open(string $file, string $mode = 'r+b', string $mime = null, array $options = null): FileObject
+    {
+        $options['mode'] = $mode;
+
+        try {
+            return FileObject::fromFile($file, $mime, $options);
+        } catch (FileObjectException $e) {
+            throw new FileException($e->getMessage(), code: $e->getCode(), cause: $e->getCause());
+        }
+    }
+
+    /**
      * Set/get file mode.
      *
      * @param  string   $file
      * @param  int|null $mode
      * @return string|null
-     * @throws froq\file\UtilException
+     * @throws froq\file\FileException
      * @since  4.0
      */
     public static function mode(string $file, int|bool $mode = null): string|null
@@ -217,7 +237,7 @@ final class File extends StaticClass
             if (is_int($mode)) {
                 $ret =@ chmod($file, $mode);
                 if ($ret === false) {
-                    throw new UtilException(
+                    throw new FileException(
                         'Cannot set file mode [file: %s, error: %s]',
                         [$file, '@error']
                     );
@@ -228,7 +248,7 @@ final class File extends StaticClass
             else {
                 $ret =@ fileperms($file);
                 if ($ret === false) {
-                    throw new UtilException(
+                    throw new FileException(
                         'Cannot get file stat [file: %s, error: %s]',
                         [$file, '@error']
                     );
@@ -244,7 +264,7 @@ final class File extends StaticClass
         // Get full permissions.
         $perms =@ fileperms($file);
         if ($perms === false) {
-            throw new UtilException(
+            throw new FileException(
                 'Cannot get file stat [file: %s, error: %s]',
                 [$file, '@error']
             );
