@@ -28,28 +28,28 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     use ApplyTrait, OptionTrait;
 
-    /** @var ?resource|?GdImage */
-    protected $resource = null;
+    /** @var mixed<resource|GdImage>|null */
+    protected mixed $resource = null;
 
-    /** @var ?string */
-    protected ?string $resourceFile = null;
+    /** @var string|null */
+    protected string|null $resourceFile = null;
 
-    /** @var ?string */
-    protected ?string $mime = null;
+    /** @var string|null */
+    protected string|null $mime = null;
 
-    /** @var ?bool */
-    protected ?bool $freed = null;
+    /** @var bool|null */
+    protected bool|null $freed = null;
 
     /**
      * Constructor.
      *
-     * @param  resource|GdImage|null $resource
-     * @param  string|null           $mime
-     * @param  array|null            $options
-     * @param  string|null           $resourceFile @internal
+     * @param  mixed<resource|GdImage>|null $resource
+     * @param  string|null                  $mime
+     * @param  array|null                   $options
+     * @param  string|null                  $resourceFile @internal
      * @throws froq\file\ObjectException
      */
-    public function __construct($resource = null, string $mime = null, array $options = null, string $resourceFile = null)
+    public function __construct(mixed $resource = null, string $mime = null, array $options = null, string $resourceFile = null)
     {
         if ($resource) {
             if ($this instanceof FileObject) {
@@ -63,7 +63,7 @@ abstract class AbstractObject implements Sizable, Stringable
                 if ($mime && !in_array($mime, static::$mimes)) {
                     throw new ObjectException(
                         'Invalid MIME `%s`, valids are: %s',
-                        [$mime, join(', ', static::$mimes)]
+                        [$mime, join(static::$mimes)]
                     );
                 }
 
@@ -100,9 +100,9 @@ abstract class AbstractObject implements Sizable, Stringable
     /**
      * Get resource.
      *
-     * @return resource|GdImage|null
+     * @return mixed<resource|GdImage>|null
      */
-    public final function getResource()
+    public final function getResource(): mixed
     {
         return $this->resource;
     }
@@ -141,9 +141,9 @@ abstract class AbstractObject implements Sizable, Stringable
     /**
      * Create a resource copy.
      *
-     * @return &resource|&GdImage|null
+     * @return &mixed<resource|GdImage>|null
      */
-    public final function &createResourceCopy()
+    public final function &createResourceCopy(): mixed
     {
         if (!$this->resource) {
             return null;
@@ -182,10 +182,10 @@ abstract class AbstractObject implements Sizable, Stringable
     /**
      * Remove a resource copy.
      *
-     * @param  resource|GdImage &$copy
+     * @param  mixed<resource|GdImage> &$copy
      * @return bool|null
      */
-    public final function removeResourceCopy(&$copy): bool|null
+    public final function removeResourceCopy(mixed &$copy): bool|null
     {
         if (!$copy) {
             return null;
@@ -410,7 +410,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null $mime
      * @param  array|null  $options
      * @return static
-     * @throws froq\file\object\ObjectException
+     * @throws froq\file\object\{FileObjectException|ImageObjectException}
      */
     public abstract static function fromFile(string $file, string $mime = null, array $options = null): static;
 
@@ -421,7 +421,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null $mime
      * @param  array|null  $options
      * @return static
-     * @throws froq\file\object\ObjectException
+     * @throws froq\file\object\{FileObjectException|ImageObjectException}
      */
     public abstract static function fromString(string $string, string $mime = null, array $options = null): static;
 }
