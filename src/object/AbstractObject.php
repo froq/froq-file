@@ -7,27 +7,26 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
-use froq\file\object\{ObjectException, FileObject, ImageObject};
-use froq\common\trait\{OptionTrait, ApplyTrait};
+use froq\common\trait\{ApplyTrait, OptionTrait};
 use froq\common\interface\{Sizable, Stringable};
 
 /**
  * Abstract Object.
  *
- * Represents an abstract object entity which aims to work with file/image resources in OOP style.
+ * Represents an abstract class for working with file/image resources in OOP style.
  *
  * @package froq\file\object
  * @object  froq\file\object\AbstractObject
  * @author  Kerem Güneş
- * @since   4.0, 5.0 Moved to object directory.
+ * @since   4.0, 5.0
  */
 abstract class AbstractObject implements Sizable, Stringable
 {
     /**
-     * @see froq\common\trait\OptionTrait
      * @see froq\common\trait\ApplyTrait
+     * @see froq\common\trait\OptionTrait
      */
-    use OptionTrait, ApplyTrait;
+    use ApplyTrait, OptionTrait;
 
     /** @var ?resource|?GdImage */
     protected $resource = null;

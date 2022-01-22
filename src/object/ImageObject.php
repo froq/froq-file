@@ -7,19 +7,18 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
-use froq\file\object\{AbstractObject, ObjectException, FileObject};
 use froq\file\upload\ImageSource;
 use froq\file\File;
 
 /**
  * Image Object.
  *
- * Represents an image object entity which aims to work with image resources in OOP style.
+ * Represents an image class for working with image resources in OOP style.
  *
  * @package froq\file\object
  * @object  froq\file\object\ImageObject
  * @author  Kerem Güneş
- * @since   4.0, 5.0 Moved to object directory.
+ * @since   4.0, 5.0
  */
 class ImageObject extends AbstractObject
 {
@@ -66,12 +65,7 @@ class ImageObject extends AbstractObject
      */
     public final function valid(): bool
     {
-        try {
-            $this->resourceCheck();
-            return true;
-        } catch (ObjectException) {
-            return false;
-        }
+        return ($this->resource && !$this->freed);
     }
 
     /**
@@ -199,7 +193,7 @@ class ImageObject extends AbstractObject
      * Get image contents as binary format.
      *
      * @return string|null
-     * @throws froq\file\object\ObjectException
+     * @throws froq\file\object\ImageObjectException
      */
     public final function getContents(): string|null
     {
@@ -210,10 +204,14 @@ class ImageObject extends AbstractObject
         $this->resourceCheck();
 
         if (!isset($this->mime)) {
-            throw new ObjectException('No MIME given yet, try after calling setMime()');
+            throw new ImageObjectException(
+                'No MIME given yet, try after calling setMime()'
+            );
         }
         if (!in_array($this->mime, self::$mimes)) {
-            throw new ObjectException('Invalid MIME `%s`, valids are: %s', [$this->mime, join(self::$mimes)]);
+            throw new ImageObjectException(
+                'Invalid MIME `%s`, valids are: %s', [$this->mime, join(self::$mimes)]
+            );
         }
 
         ob_start();
@@ -321,11 +319,11 @@ class ImageObject extends AbstractObject
     public static final function fromFile(string $file, string $mime = null, array $options = null): static
     {
         if (File::errorCheck($file, $error)) {
-            throw new ObjectException($error->getMessage(), code: $error->getCode(), cause: $error);
+            throw new ImageObjectException($error->getMessage(), code: $error->getCode(), cause: $error);
         }
 
         $resource = imagecreatefromstring(file_get_contents($file));
-        $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
+        $resource || throw new ImageObjectException('Cannot create resource [error: %s]', '@error');
 
         $mime ??= mime_content_type($file);
 
@@ -343,7 +341,7 @@ class ImageObject extends AbstractObject
     public static final function fromString(string $string, string $mime = null, array $options = null): static
     {
         $resource = imagecreatefromstring($string);
-        $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
+        $resource || throw new ImageObjectException('Cannot create resource [error: %s]', '@error');
 
         $mime ??= getimagesizefromstring($string)['mime'];
 
@@ -351,7 +349,7 @@ class ImageObject extends AbstractObject
 
         // To speed up resize(), crop(), getContents() etc.
         $that->resourceFile = file_create_temp('froq/image');
-        $that->resourceFile || throw new ObjectException('Cannot create resource file [error: %s]', '@error');
+        $that->resourceFile || throw new ImageObjectException('Cannot create resource file [error: %s]', '@error');
 
         file_set_contents($that->resourceFile, $string);
 

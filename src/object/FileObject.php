@@ -7,18 +7,17 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
-use froq\file\object\{AbstractObject, ObjectException};
 use froq\file\File;
 
 /**
  * File Object.
  *
- * Represents a file object entity which aims to work with file resources in OOP style.
+ * Represents a file class for working with file resources in OOP style.
  *
  * @package froq\file\object
  * @object  froq\file\object\FileObject
  * @author  Kerem Güneş
- * @since   4.0, 5.0 Moved to object directory.
+ * @since   4.0, 5.0
  */
 class FileObject extends AbstractObject
 {
@@ -406,11 +405,11 @@ class FileObject extends AbstractObject
     public static final function fromFile(string $file, string $mime = null, array $options = null): static
     {
         if (File::errorCheck($file, $error)) {
-            throw new ObjectException($error->getMessage(), code: $error->getCode(), cause: $error);
+            throw new FileObjectException($error->getMessage(), code: $error->getCode(), cause: $error);
         }
 
         $resource = fopen($file, ($options['mode'] ?? self::$optionsDefault['mode']));
-        $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
+        $resource || throw new FileObjectException('Cannot create resource [error: %s]', '@error');
 
         $mime ??= mime_content_type($file);
 
@@ -423,7 +422,7 @@ class FileObject extends AbstractObject
     public static final function fromString(string $string, string $mime = null, array $options = null): static
     {
         $resource = fopen('php://temp', ($options['mode'] ?? self::$optionsDefault['mode']));
-        $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
+        $resource || throw new FileObjectException('Cannot create resource [error: %s]', '@error');
 
         fwrite($resource, $string);
 
