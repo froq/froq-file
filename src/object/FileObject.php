@@ -52,7 +52,7 @@ class FileObject extends AbstractObject
 
         $ret = fread($this->resource, $length);
 
-        return ($ret !== false && $ret !== '') ? $ret : null;
+        return ($ret !== false) ? $ret : null;
     }
 
     /**
