@@ -306,7 +306,7 @@ final class File extends StaticClass
 
             if (is_dir($file)) {
                 $error = new FileError(
-                    'Given path is a directory [path: `%s`]',
+                    'Given path is a directory [path: %s]',
                     $file, FileError::DIRECTORY
                 );
             } // else ok.
@@ -315,18 +315,18 @@ final class File extends StaticClass
 
             if (stripos($error, 'no such file')) {
                 $error = new FileError(
-                    'No file exists [file: `%s`]',
+                    'No file exists [file: %s]',
                     $file, FileError::NO_FILE_EXISTS
                 );
             } elseif (stripos($error, 'permission denied')) {
                 $error = new FileError(
-                    'No access permission [file: `%s`]',
+                    'No access permission [file: %s]',
                     $file, FileError::NO_ACCESS_PERMISSION
                 );
             } elseif (stripos($error, 'valid path') || stripos($error, 'null bytes')) {
                 $path  = substr($file, 0, 255) . '...';
                 $error = new FileError(
-                    'No valid path [path: `%s`]',
+                    'No valid path [path: %s]',
                     strtr($path, ["\0" => "\\0"]), FileError::NO_VALID_PATH
                 );
             } else {
