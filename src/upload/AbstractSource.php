@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace froq\file\upload;
 
-use froq\file\mime\{Mime, MimeException};
 use froq\file\{File, Util as FileUtil};
+use froq\file\mime\{Mime, MimeException};
 use froq\common\interface\Stringable;
 use froq\common\trait\{ApplyTrait, OptionTrait};
 
