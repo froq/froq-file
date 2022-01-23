@@ -10,7 +10,7 @@ namespace froq\file\upload;
 /**
  * File Source
  *
- * Represents an uploaded file entity which aims to with files in OOP style with a few safety options.
+ * An uploaded file class for working with files in OOP style with a few safety options.
  *
  * @package froq\file\upload
  * @object  froq\file\upload\FileSource

@@ -12,7 +12,7 @@ use GdImage, Imagick, ImagickException;
 /**
  * Image Source.
  *
- * Represents an uploaded image entity which aims to work images in OOP style with a few safety options.
+ * An uploaded image image for working images in OOP style with a few safety options.
  *
  * @package froq\file\upload
  * @object  froq\file\upload\ImageSource
@@ -44,8 +44,9 @@ class ImageSource extends AbstractSource
 
     /** @var array */
     protected static array $optionsDefault = [
-        'jpegQuality' => -1,    'webpQuality' => -1,
-        'useImagick'  => false, 'stripImage'  => false, 'stripImageIcc' => false,
+        'jpegQuality' => -1,    'webpQuality'   => -1,
+        'stripImage'  => false, 'stripImageIcc' => false,
+        'useImagick'  => false,
     ];
 
     /** @var bool */
