@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
+use froq\file\File;
 use froq\common\trait\{ApplyTrait, OptionTrait};
 use froq\common\interface\{Sizable, Stringable};
 
@@ -47,21 +48,24 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null                  $mime
      * @param  array|null                   $options
      * @param  string|null                  $resourceFile @internal
-     * @throws froq\file\ObjectException
+     * @throws froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     public function __construct(mixed $resource = null, string $mime = null, array $options = null, string $resourceFile = null)
     {
         if ($resource) {
             if ($this instanceof FileObject) {
                 if (!is_stream($resource)) {
-                    throw new ObjectException(
+                    self::throw(
                         'Resource type must be stream, %s given',
                         get_type($resource)
                     );
                 }
+
+                // For clean ups (mostly for temps).
+                $resourceFile ??= fmeta($resource)['uri'];
             } elseif ($this instanceof ImageObject) {
                 if ($mime && !in_array($mime, static::MIMES)) {
-                    throw new ObjectException(
+                    self::throw(
                         'Invalid MIME `%s` [valids: %s]',
                         [$mime, join(',', static::MIMES)]
                     );
@@ -74,7 +78,7 @@ abstract class AbstractObject implements Sizable, Stringable
                 }
 
                 if (!is_image($resource)) {
-                    throw new ObjectException(
+                    self::throw(
                         'Resource type must be stream|GdImage, %s given',
                         get_type($resource)
                     );
@@ -198,37 +202,50 @@ abstract class AbstractObject implements Sizable, Stringable
             return true;
         }
 
-        throw new ObjectException('Invalid resource copy [valids: stream,GdImage]');
+        self::throw('Invalid resource copy [valids: stream,GdImage]');
     }
 
     /**
      * Open a file as resource.
      *
-     * @param  string      $file
+     * @param  string|null $file
      * @param  string|null $mime
      * @param  array|null  $options
      * @return self
      * @since  5.0
      */
-    public final function open(string $file, string $mime = null, array $options = null): self
+    public final function open(string $file = null, string $mime = null, array $options = null): self
     {
-        if ($this instanceof TempFileObject) {
-            throw new ObjectException(
-                'Method %s() not available for %s',
-                [__method__, TempFileObject::class]
-            );
+        self::ban(__method__, 1);
+
+        $file ??= $this->resourceFile;
+        if ($file === null || trim($file) === '') {
+            self::throw('No file given & no resource file to process');
         }
 
+        // Free.
         $this->free();
         $this->freed = null;
 
-        $that = static::fromFile($file, $mime, $options);
+        $resource = null;
+        try {
+            if ($this instanceof FileObject) {
+                $resource = fopen($file, ($options['mode'] ?? static::$optionsDefault['mode']));
+            } elseif ($this instanceof ImageObject) {
+                if (File::errorCheck($file, $error)) {
+                    throw $error;
+                }
 
-        $this->resource     = $that->resource;
-        $this->resourceFile = $that->resourceFile;
-        $this->mime         = $that->mime;
+                $resource = imagecreatefromstring(file_get_contents($file));
+            }
+        } catch (\Throwable $e) {
+            self::throw($e->getMessage(), code: $e->getCode(), cause: $e);
+        }
 
-        $that->free();
+        $this->resource     = $resource ?: self::throw('Cannot create resource [error: %s]', '@error');
+        $this->resourceFile = $file;    // To clean ups & speed ups resize(), crop(), getContents() etc.
+        $this->mime         = $mime     ?? mime_content_type($file);
+        $this->options      = $options  ?? $this->options;
 
         return $this;
     }
@@ -241,9 +258,9 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function close(): bool
     {
-        $this->free();
+        self::ban(__method__, 1);
 
-        return $this->isFreed();
+        return $this->free();
     }
 
     /**
@@ -253,60 +270,76 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null $name
      * @param  int|null    $mode
      * @return string
-     * @throws froq\file\ObjectException
+     * @throws froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     public final function save(string $directory, string $name = null, int $mode = null): string
     {
-        $directory = trim($directory);
-        if ($directory === '') {
-            throw new ObjectException('Empty directory given');
+        if (trim($directory) === '') {
+            self::throw('Empty directory given');
         }
 
         if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
-            throw new ObjectException(
+            self::throw(
                 'Cannot make directory [directory: %s, error: %s]',
                 [$directory, '@error']
             );
         } elseif (!is_writable($directory)) {
-            throw new ObjectException(
-                'Cannot write directory, it is not writable [directory: %s]',
+            self::throw(
+                'Cannot write directory, not writable [directory: %s]',
                 $directory
             );
         }
 
         // Make a random UUID name if no name given.
-        $file = chop($directory, '/') .'/'. ($name ?: uuid());
+        $file = chop($directory, '/') .'/'. ($name ?: uuid(timed: true));
 
         // Default is 0644.
         $mode && touch($file) && chmod($file, $mode);
 
         if (file_put_contents($file, $this->toString()) === false) {
-            throw new ObjectException('Cannot write file [error: %s]', '@error');
+            self::throw('Cannot write file [error: %s]', '@error');
         }
 
         return $file;
     }
 
     /**
+     * Unsave file/image a saved absolute file.
+     *
+     * @param  string $file
+     * @return bool
+     */
+    public final function unsave(string $file): bool
+    {
+        return is_file($file) && unlink($file);
+    }
+
+    /**
      * Free resources.
      *
-     * @return void
+     * @return bool
      */
-    public final function free(): void
+    public final function free(): bool
     {
-        if ($this->resource && is_stream($this->resource)) {
-            fclose($this->resource);
-        }
-        if ($this->resourceFile && is_tmpnam($this->resourceFile)) {
-            unlink($this->resourceFile);
+        if (!$this->freed) {
+            $this->freed = true;
+
+            if ($this->resource && is_stream($this->resource)) {
+                $this->freed = fclose($this->resource);
+            }
+            if ($this->resourceFile && is_tmpnam($this->resourceFile)) {
+                $this->freed = unlink($this->resourceFile);
+            }
+
+            // Clean up.
+            $this->resource     = null;
+            $this->resourceFile = null;
+
+            return $this->freed;
         }
 
-        // Tick.
-        $this->freed = true;
-
-        // Clean up.
-        $this->resource     = null;
-        $this->resourceFile = null;
+        // Closed before.
+        return false;
     }
 
     /**
@@ -316,7 +349,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function isFreed(): bool
     {
-        return ($this->freed === true);
+        return (bool) $this->freed;
     }
 
     /**
@@ -337,16 +370,17 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  resource    $resource
      * @param  string|null $mime
      * @param  array|null  $options
-     * @param  string|null $resourceFile @internal
+     * @param  string|null $file @internal
      * @return static
-     * @throws froq\file\object\ObjectException
+     * @throws froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
-    public static final function fromResource($resource, string $mime = null, array $options = null,
-        string $resourceFile = null): static
+    public static final function fromResource($resource, string $mime = null, array $options = null, string $file = null): static
     {
-        $resource || throw new ObjectException('Empty resource given');
+        self::ban(__method__);
 
-        return new static($resource, $mime, $options, $resourceFile);
+        $resource || self::throw('Empty resource given');
+
+        return new static($resource, $mime, $options, resourceFile: $file);
     }
 
     /**
@@ -355,20 +389,17 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null $mime
      * @param  array|null  $options
      * @return static
+     * @throws froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     public static final function fromTempResource(string $mime = null, array $options = null): static
     {
-        if (static::class !== FileObject::class) {
-            throw new ObjectException(
-                'Method %s() available for only %s',
-                [__method__, FileObject::class]
-            );
-        }
+        self::ban(__method__);
 
-        $resource     = tmpfile();
-        $resourceFile = fmeta($resource)['uri'];
+        // Not using 'php://temp', cus used for file_get_contents() stuff.
+        $resource = tmpfile();
+        $resource || self::throw('Empty resource returned [error: %s]', '@error');
 
-        return self::fromResource($resource, $mime, $options, $resourceFile);
+        return new static($resource, $mime, $options, resourceFile: null);
     }
 
     /**
@@ -378,29 +409,59 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null $mime
      * @param  array|null  $options
      * @return static
+     * @throws froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
-    public static final function fromTempFile(string $file = null, string $mime = null, array $options = null): static
+    public static final function fromTempFile(string $mime = null, array $options = null): static
     {
-        $resource = $file ? fopen($file, 'r+b') : fopen(tmpnam(), 'w+b');
+        self::ban(__method__);
 
-        return self::fromResource($resource, $mime, $options, $file);
+        $resource = fopen($file = tmpnam(), 'w+b');
+        $resource || self::throw('Empty resource returned [error: %s]', '@error');
+
+        return new static($resource, $mime, $options, resourceFile: $file);
     }
 
     /**
      * Check resource validity.
      *
      * @return void
-     * @throws froq\file\object\ObjectException
+     * @throws froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     protected final function resourceCheck(): void
     {
         if ($this->isFreed()) {
-            throw new ObjectException('No resource to process with, it is freed');
+            self::throw('No resource to process with, freed');
         }
         if (!$this->isValid()) {
-            throw new ObjectException('No resource to process with, it is not valid [resource: %s]',
+            self::throw('No resource to process with, not valid [resource: %s]',
                 get_type($this->resource));
         }
+    }
+
+    /**
+     * Ban given method for unrelated objectz.
+     */
+    private static function ban(string $method, int $type = 0): void
+    {
+        if ($type == 0 && !is_class_of(static::class, FileObject::class)) {
+            self::throw('Method %s() is not available for non %s object(s)', [$method, FileObject::class]);
+        } elseif ($type == 1 && is_class_of(static::class, TempFileObject::class)) {
+            self::throw('Method %s() is not available for %s object(s)', [$method, TempFileObject::class]);
+        }
+    }
+
+    /**
+     * Throw a related exception.
+     */
+    private static function throw(...$args): void
+    {
+        $exception = match (true) {
+            is_class_of(static::class, TempFileObject::class) => TempFileObjectException::class,
+            is_class_of(static::class, FileObject::class)     => FileObjectException::class,
+            is_class_of(static::class, ImageObject::class)    => ImageObjectException::class,
+        };
+
+        throw new $exception(...$args);
     }
 
     /**

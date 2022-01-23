@@ -15,7 +15,7 @@ use Error;
 /**
  * File.
  *
- * Represents a static file utility class.
+ * A static file utility class.
  *
  * @package froq\file
  * @object  froq\file\File

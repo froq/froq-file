@@ -7,8 +7,6 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
-use froq\file\object\FileObject;
-
 /**
  * Temp File Object.
  *

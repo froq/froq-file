@@ -55,7 +55,10 @@ class ImageObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        return new ImageObject($this->createResourceCopy(), $this->mime);
+        return new ImageObject(
+            $this->createResourceCopy(),
+            $this->mime, $this->options, $this->resourceFile
+        );
     }
 
     /**
@@ -78,8 +81,8 @@ class ImageObject extends AbstractObject
      */
     public final function resize(int $width, int $height, array $options = null): self
     {
-        $temp = ($resourceFile = $this->getResourceFile())
-              ? FileObject::fromTempFile($resourceFile)
+        $temp = $this->resourceFile
+              ? FileObject::fromResource(fopen($this->resourceFile, 'rb'))
               : FileObject::fromTempResource()->setContents($this->getContents());
 
         $image = (new ImageSource)->prepare(
@@ -89,7 +92,7 @@ class ImageObject extends AbstractObject
              'webpQuality' => $options['webpQuality'] ?? $this->options['webpQuality']]
         )->resize($width, $height, $options);
 
-        unset($temp);
+        unset($temp); // Free.
 
         $this->resource     = imagecreatefromstring($image->toString());
         $this->resourceFile = $image->save(); // As temp file.
@@ -107,8 +110,8 @@ class ImageObject extends AbstractObject
      */
     public final function crop(int $width, int $height = null, array $options = null): self
     {
-        $temp = ($resourceFile = $this->getResourceFile())
-              ? FileObject::fromTempFile($resourceFile)
+        $temp = $this->resourceFile
+              ? FileObject::fromResource(fopen($this->resourceFile, 'rb'))
               : FileObject::fromTempResource()->setContents($this->getContents());
 
         $image = (new ImageSource)->prepare(
@@ -118,7 +121,7 @@ class ImageObject extends AbstractObject
              'webpQuality' => $options['webpQuality'] ?? $this->options['webpQuality']]
         )->crop($width, $height, $options);
 
-        unset($temp);
+        unset($temp); // Free.
 
         $this->resource     = imagecreatefromstring($image->toString());
         $this->resourceFile = $image->save(); // As temp file.
@@ -156,7 +159,7 @@ class ImageObject extends AbstractObject
 
             // For only JPEG (and also PNG? https://stackoverflow.com/q/9542359/362780).
             if ($info['type'] == 2 && function_exists('exif_read_data')) {
-                $fp = tmpfile();
+                $fp = fopen('php://temp', 'w+b');
                 fwrite($fp, $contents) && $info['exif'] = exif_read_data($fp);
                 fclose($fp);
 
@@ -197,8 +200,8 @@ class ImageObject extends AbstractObject
      */
     public final function getContents(): string|null
     {
-        if ($resourceFile = $this->getResourceFile()) {
-            return file_get_contents($resourceFile);
+        if ($this->resourceFile) {
+            return file_get_contents($this->resourceFile);
         }
 
         $this->resourceCheck();
@@ -299,8 +302,8 @@ class ImageObject extends AbstractObject
      */
     public final function size(): int
     {
-        $ret = ($resourceFile = $this->getResourceFile()) ? filesize($resourceFile)
-             : (($contents = $this->getContents()) ? strlen($contents) : false);
+        $ret = $this->resourceFile ? filesize($this->resourceFile)
+             : ($contents = $this->getContents() ? strlen($contents) : false);
 
         return ($ret !== false) ? $ret : -1;
     }
@@ -319,7 +322,7 @@ class ImageObject extends AbstractObject
     public static final function fromFile(string $file, string $mime = null, array $options = null): static
     {
         if (File::errorCheck($file, $error)) {
-            throw new ImageObjectException($error->getMessage(), code: $error->getCode(), cause: $error);
+            throw new ImageObjectException($error->message, code: $error->code, cause: $error);
         }
 
         $resource = imagecreatefromstring(file_get_contents($file));
@@ -348,10 +351,10 @@ class ImageObject extends AbstractObject
         $that = new static($resource, $mime, $options);
 
         // To speed up resize(), crop(), getContents() etc.
-        $that->resourceFile = file_create_temp('froq/image');
+        $that->resourceFile = tmpnam();
         $that->resourceFile || throw new ImageObjectException('Cannot create resource file [error: %s]', '@error');
 
-        file_set_contents($that->resourceFile, $string);
+        file_put_contents($that->resourceFile, $string);
 
         return $that;
     }

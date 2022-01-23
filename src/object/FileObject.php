@@ -155,7 +155,10 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        return new FileObject($this->createResourceCopy(), $this->mime);
+        return new FileObject(
+            $this->createResourceCopy(),
+            $this->mime, $this->options, $this->resourceFile
+        );
     }
 
     /**
@@ -366,7 +369,7 @@ class FileObject extends AbstractObject
      */
     public final function isEnded(): bool
     {
-        return ($this->resource && feof($this->resource));
+        return (!$this->resource || feof($this->resource));
     }
 
     /**
@@ -405,10 +408,10 @@ class FileObject extends AbstractObject
     public static final function fromFile(string $file, string $mime = null, array $options = null): static
     {
         if (File::errorCheck($file, $error)) {
-            throw new FileObjectException($error->getMessage(), code: $error->getCode(), cause: $error);
+            throw new FileObjectException($error->message, code: $error->code, cause: $error);
         }
 
-        $resource = fopen($file, ($options['mode'] ?? self::$optionsDefault['mode']));
+        $resource = fopen($file, ($options['mode'] ?? static::$optionsDefault['mode']));
         $resource || throw new FileObjectException('Cannot create resource [error: %s]', '@error');
 
         $mime ??= mime_content_type($file);
@@ -421,7 +424,7 @@ class FileObject extends AbstractObject
      */
     public static final function fromString(string $string, string $mime = null, array $options = null): static
     {
-        $resource = fopen('php://temp', ($options['mode'] ?? self::$optionsDefault['mode']));
+        $resource = fopen('php://temp', ($options['mode'] ?? static::$optionsDefault['mode']));
         $resource || throw new FileObjectException('Cannot create resource [error: %s]', '@error');
 
         fwrite($resource, $string);
