@@ -62,8 +62,8 @@ abstract class AbstractObject implements Sizable, Stringable
             } elseif ($this instanceof ImageObject) {
                 if ($mime && !in_array($mime, static::MIMES)) {
                     throw new ObjectException(
-                        'Invalid MIME `%s`, valids are: %s',
-                        [$mime, join(', ', static::MIMES)]
+                        'Invalid MIME `%s` [valids: %s]',
+                        [$mime, join(',', static::MIMES)]
                     );
                 }
 
@@ -198,7 +198,7 @@ abstract class AbstractObject implements Sizable, Stringable
             return true;
         }
 
-        throw new ObjectException('Invalid resource copy, valids are: stream, GdImage');
+        throw new ObjectException('Invalid resource copy [valids: stream,GdImage]');
     }
 
     /**

@@ -462,7 +462,7 @@ class ImageSource extends AbstractSource
         }
 
         if (!in_array($info[2], self::SUPPORTED_TYPES)) {
-            throw new UploadException('Invalid image type, valids are: JPEG, PNG, GIF, WEBP');
+            throw new UploadException('Invalid image type [valids: JPEG,PNG,GIF,WEBP]');
         }
 
         // Add suggestive names.

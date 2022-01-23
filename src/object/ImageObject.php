@@ -210,7 +210,7 @@ class ImageObject extends AbstractObject
         }
         if (!in_array($this->mime, self::MIMES)) {
             throw new ImageObjectException(
-                'Invalid MIME `%s`, valids are: %s', [$this->mime, join(', ', self::MIMES)]
+                'Invalid MIME `%s` [valids: %s]', [$this->mime, join(',', self::MIMES)]
             );
         }
 

@@ -271,7 +271,7 @@ abstract class AbstractSource implements Stringable
 
             $hashAlgo = $hashAlgos[$this->options['hashLength'] ?? $hashLengthDefault] ?? null;
             $hashAlgo || throw new UploadException(
-                'Invalid `hashLength` option `%s`, valids are: 8, 16, 32, 40',
+                'Invalid `hashLength` option `%s` [valids: 8,16,32,40]',
                 $this->options['hashLength']
             );
 
@@ -280,7 +280,7 @@ abstract class AbstractSource implements Stringable
                 'file'  => hash_file($hashAlgo, $this->source),
                 'name'  => hash($hashAlgo, $name),
                 default => throw new UploadException(
-                    'Invalid `hash` option `%s`, valids are: rand, file, name', $hash
+                    'Invalid `hash` option `%s` [valids: rand,file,name]', $hash
                 ),
             };
 
