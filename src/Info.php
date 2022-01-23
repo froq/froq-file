@@ -23,6 +23,9 @@ use SplFileInfo;
  */
 class Info extends SplFileInfo
 {
+    /** @var string */
+    public readonly string $pathOrig;
+
     /** @var array|null */
     public readonly array|null $pathInfo;
 
@@ -40,12 +43,15 @@ class Info extends SplFileInfo
             throw new InfoException('Invalid path, empty path given');
         }
 
+        // Keep original path.
+        $this->pathOrig = $path;
+
         // This will resolve real path as well.
         $this->pathInfo = get_path_info($path);
 
         // Prevent link resolutions.
         if (is_link($path)) {
-            $path = $path;
+            // Pass.
         } else {
             $path = $this->pathInfo['path'];
         }
