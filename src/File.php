@@ -158,6 +158,27 @@ final class File extends StaticClass
     }
 
     /**
+     * Open a temp file as FileObject.
+     *
+     * @param  string      $file
+     * @param  string      $mode
+     * @param  string|null $mime
+     * @param  array|null  $options
+     * @return froq\file\FileObject
+     * @throws froq\file\FileException
+     */
+    public static function openTemp(string $mode = 'w+b', string $mime = null, array $options = null): FileObject
+    {
+        $options['mode'] = $mode;
+
+        try {
+            return FileObject::fromTempFile($mime, $options);
+        } catch (FileObjectException $e) {
+            throw new FileException($e->message, code: $e->code, cause: $e->cause);
+        }
+    }
+
+    /**
      * Read entire contents from a file/stream.
      *
      * @param  mixed<string|resource> $file
@@ -332,6 +353,21 @@ final class File extends StaticClass
      */
     public static function errorCheck(string $file, FileError &$error = null): bool
     {
+        $error = null;
+        if (str_contains($file, "\0")) {
+            $error = new FileError(
+                'No valid path, path contains NULL-bytes',
+                $file, FileError::NO_VALID_PATH
+            );
+            return true;
+        } elseif (trim($file) === '') {
+            $error = new FileError(
+                'No valid path, path is empty',
+                $file, FileError::NO_VALID_PATH
+            );
+            return true;
+        }
+
         // Sadly is_file(), is_readable(), stat() even SplFileInfo is not giving a proper error when
         // a 'permission' / 'not exists' / 'null byte (\0)' error occurs, or path is a directory. :/
         // Also seems not documented on php.net but when $filename contains null byte (\0) then a
