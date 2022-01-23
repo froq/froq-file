@@ -168,6 +168,22 @@ final class File extends StaticClass
     public static function getContents(mixed $file): string
     {
         if (is_string($file)) {
+            if (is_dir($file)) {
+                throw new FileException(
+                    'Cannot write file, it\'s a directory [file: %s]', $file
+                );
+            }
+            if (!file_exists($file)) {
+                throw new FileException(
+                    'Cannot read file, it\'s not existing [file: %s]', $file
+                );
+            }
+            if (!is_readable($file)) {
+                throw new FileException(
+                    'Cannot read file, it\'s not readable [file: %s]', $file
+                );
+            }
+
             $ret =@ file_get_contents($file);
         } elseif (is_stream($file)) {
             $ret =@ stream_get_contents($file, -1, 0);
@@ -199,6 +215,17 @@ final class File extends StaticClass
     public static function setContents(mixed $file, string $contents, int $flags = 0): bool
     {
         if (is_string($file)) {
+            if (is_dir($file)) {
+                throw new FileException(
+                    'Cannot write file, it\'s a directory [file: %s]', $file
+                );
+            }
+            if (file_exists($file) && !is_writable($file)) {
+                throw new FileException(
+                    'Cannot write file, it\'s not writable [file: %s]', $file
+                );
+            }
+
             $ret =@ file_set_contents($file, $contents, $flags);
         } elseif (is_stream($file)) {
             $ret =@ stream_set_contents($file, $contents);
