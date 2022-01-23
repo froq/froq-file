@@ -7,12 +7,10 @@ declare(strict_types=1);
 
 namespace froq\file\upload;
 
-use froq\file\upload\{UploadError, UploadException, ImageSource};
 use froq\file\mime\{Mime, MimeException};
 use froq\file\{File, Util as FileUtil};
-use froq\common\trait\{ApplyTrait, OptionTrait};
 use froq\common\interface\Stringable;
-use Throwable;
+use froq\common\trait\{ApplyTrait, OptionTrait};
 
 /**
  * Abstract Source.
@@ -23,7 +21,7 @@ use Throwable;
  * @package froq\file\upload
  * @object  froq\file\upload\AbstractSource
  * @author  Kerem Güneş
- * @since   4.0, 5.0 Moved to upload directory, derived from AbstractUploader.
+ * @since   4.0, 5.0
  */
 abstract class AbstractSource implements Stringable
 {
@@ -73,7 +71,7 @@ abstract class AbstractSource implements Stringable
     {
         try {
             $this->clear();
-        } catch (Throwable) {}
+        } catch (\Throwable) {}
     }
 
     /**

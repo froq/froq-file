@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace froq\file\upload;
 
-use froq\file\upload\{AbstractSource, UploadException};
 use GdImage, Imagick, ImagickException;
 
 /**
@@ -18,7 +17,7 @@ use GdImage, Imagick, ImagickException;
  * @package froq\file\upload
  * @object  froq\file\upload\ImageSource
  * @author  Kerem Güneş
- * @since   3.0, 5.0 Moved to upload directory, derived from ImageUploader.
+ * @since   3.0, 5.0
  */
 class ImageSource extends AbstractSource
 {
@@ -86,14 +85,14 @@ class ImageSource extends AbstractSource
      * @param  int        $height
      * @param  array|null $options
      * @return self
-     * @throws froq\file\upload\UploadException
+     * @throws froq\file\upload\ImageSourceException
      */
     public final function resize(int $width, int $height, array $options = null): self
     {
         if ($width < 0 || $height < 0) {
-            throw new UploadException('Both with and height must be greater than -1');
+            throw new ImageSourceException('Both with and height must be greater than -1');
         } elseif ($width == 0 && $height == 0 && empty($options['resample'])) {
-            throw new UploadException('Either with or height must be greater than 0');
+            throw new ImageSourceException('Either with or height must be greater than 0');
         }
 
         $this->fillInfo();
@@ -140,7 +139,7 @@ class ImageSource extends AbstractSource
                 $imagick = $this->targetImage;
                 $imagick->scaleImage($newWidth, $newHeight);
             } catch (ImagickException $e) {
-                throw new UploadException($e);
+                throw new ImageSourceException($e);
             }
         } else {
             // Handle transparency.
@@ -156,7 +155,7 @@ class ImageSource extends AbstractSource
             imagecopyresampled(
                 $this->targetImage, $this->sourceImage,
                 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight
-            ) || throw new UploadException('Failed resampling target image [error: %s]', '@error');
+            ) || throw new ImageSourceException('Failed resampling target image [error: %s]', '@error');
 
         }
 
@@ -188,14 +187,14 @@ class ImageSource extends AbstractSource
      * @param  int|null   $height
      * @param  array|null $options
      * @return self
-     * @throws froq\file\upload\UploadException
+     * @throws froq\file\upload\ImageSourceException
      */
     public final function crop(int $width, int $height = null, array $options = null): self
     {
         if ($width < 0 || $height < 0) {
-            throw new UploadException('Both with and height must be greater than -1');
+            throw new ImageSourceException('Both with and height must be greater than -1');
         } elseif ($width == 0 && $height == 0) {
-            throw new UploadException('Either with or height must be greater than 0');
+            throw new ImageSourceException('Either with or height must be greater than 0');
         }
 
         $this->fillInfo();
@@ -233,7 +232,7 @@ class ImageSource extends AbstractSource
                 $imagick->cropImage($width, $height, $x, $y);
                 $imagick->setImagePage(0, 0, 0, 0);
             } catch (ImagickException $e) {
-                throw new UploadException($e);
+                throw new ImageSourceException($e);
             }
         } else {
             // Handle transparency.
@@ -249,7 +248,7 @@ class ImageSource extends AbstractSource
             imagecopyresampled(
                 $this->targetImage, $this->sourceImage,
                 0, 0, $x, $y, $width, $height, $width, $height
-            ) || throw new UploadException('Failed cropping target image [error: %s]', '@error');
+            ) || throw new ImageSourceException('Failed cropping target image [error: %s]', '@error');
         }
 
         // Store new dimensions.
@@ -269,9 +268,9 @@ class ImageSource extends AbstractSource
     public final function cropThumbnail(int $width, int $height = null): self
     {
         if ($width < 0 || $height < 0) {
-            throw new UploadException('Both with and height must be greater than -1');
+            throw new ImageSourceException('Both with and height must be greater than -1');
         } elseif ($width == 0 && $height == 0) {
-            throw new UploadException('Either with or height must be greater than 0');
+            throw new ImageSourceException('Either with or height must be greater than 0');
         }
 
         $this->fillInfo();
@@ -338,7 +337,7 @@ class ImageSource extends AbstractSource
             $degree = -$degree;
 
             $this->targetImage = imagerotate($this->targetImage, $degree, $background ?? 0) ?: null;
-            $this->targetImage || throw new UploadException('Failed rotating target image [error: %s]', '@error');
+            $this->targetImage || throw new ImageSourceException('Failed rotating target image [error: %s]', '@error');
         }
 
         // Tick for using resized image.
@@ -366,7 +365,7 @@ class ImageSource extends AbstractSource
             return $target;
         }
 
-        throw new UploadException('Failed saving image [error: %s]', '@error');
+        throw new ImageSourceException('Failed saving image [error: %s]', '@error');
     }
 
     /**
@@ -383,7 +382,7 @@ class ImageSource extends AbstractSource
             return $target;
         }
 
-        throw new UploadException('Failed moving image [error: %s]', '@error');
+        throw new ImageSourceException('Failed moving image [error: %s]', '@error');
     }
 
     /**
@@ -422,14 +421,14 @@ class ImageSource extends AbstractSource
      */
     public final function display(): void
     {
-        echo $this->toString();
+        print $this->toString();
     }
 
     /**
      * Get image info.
      *
      * @return array
-     * @throws froq\file\upload\UploadException
+     * @throws froq\file\upload\ImageSourceException
      */
     public final function getInfo(): array
     {
@@ -437,14 +436,14 @@ class ImageSource extends AbstractSource
             return $this->info;
         }
 
-        throw new UploadException('No info filled yet, try after calling fillInfo()');
+        throw new ImageSourceException('No info filled yet, try after calling fillInfo()');
     }
 
     /**
      * Fill image info.
      *
      * @return void
-     * @throws froq\file\upload\UploadException
+     * @throws froq\file\upload\ImageSourceException
      * @internal
      */
     public final function fillInfo(): void
@@ -458,11 +457,11 @@ class ImageSource extends AbstractSource
         $info = $info ?? ($this->info ?? null);
 
         if (empty($info)) {
-            throw new UploadException('Failed getting source info [error: %s]', '@error');
+            throw new ImageSourceException('Failed getting source info [error: %s]', '@error');
         }
 
         if (!in_array($info[2], self::SUPPORTED_TYPES)) {
-            throw new UploadException('Invalid image type [valids: JPEG,PNG,GIF,WEBP]');
+            throw new ImageSourceException('Invalid image type [valids: JPEG,PNG,GIF,WEBP]');
         }
 
         // Add suggestive names.
@@ -582,7 +581,7 @@ class ImageSource extends AbstractSource
      * Create source image.
      *
      * @return GdImage|Imagick
-     * @throws froq\file\upload\UploadException
+     * @throws froq\file\upload\ImageSourceException
      */
     protected final function createSourceImage(): GdImage|Imagick
     {
@@ -609,7 +608,7 @@ class ImageSource extends AbstractSource
             };
         }
 
-        return $image ?: throw new UploadException('Failed creating source image [error: %s]', '@error');
+        return $image ?: throw new ImageSourceException('Failed creating source image [error: %s]', '@error');
     }
 
     /**
@@ -618,7 +617,7 @@ class ImageSource extends AbstractSource
      * @param  array        $dimensions
      * @param  Imagick|null $sourceImage
      * @return GdImage|Imagick
-     * @throws froq\file\upload\UploadException
+     * @throws froq\file\upload\ImageSourceException
      */
     protected final function createTargetImage(array $dimensions, Imagick $sourceImage = null): GdImage|Imagick
     {
@@ -631,26 +630,28 @@ class ImageSource extends AbstractSource
                 return $sourceImage->getImage();
             }
 
-            throw new UploadException('Cannot create target image, no source image exists');
+            throw new ImageSourceException('Cannot create target image, no source image exists');
         }
 
         // Discard source image.
         $image = imagecreatetruecolor(...$dimensions);
 
-        return $image ?: throw new UploadException('Failed creating target image [error: %s]', '@error');
+        return $image ?: throw new ImageSourceException('Failed creating target image [error: %s]', '@error');
     }
 
     /**
      * Output processed image as binary string.
      *
      * @return string
-     * @throws froq\file\upload\UploadException
+     * @throws froq\file\upload\ImageSourceException
      */
     protected final function output(): string
     {
         $image = $this->getTargetImage();
-        $image || throw new UploadException('No target image created yet, call one of these methods first: '
-            . 'resample(), resize(), resizeThumbnail(), crop(), cropThumbnail() or rotate()');
+        $image || throw new ImageSourceException(
+            'No target image created yet, call one of these methods first: '.
+            'resample(), resize(), resizeThumbnail(), crop(), cropThumbnail() or rotate()'
+        );
 
         $type = $this->getType();
 
@@ -673,7 +674,7 @@ class ImageSource extends AbstractSource
             try {
                 return $image->getImageBlob();
             } catch (ImagickException $e) {
-                throw new UploadException($e);
+                throw new ImageSourceException($e);
             }
         }
 
@@ -688,7 +689,7 @@ class ImageSource extends AbstractSource
             return ob_get_clean();
         }
 
-        throw new UploadException('Failed processing image [error: %s]', '@error');
+        throw new ImageSourceException('Failed processing image [error: %s]', '@error');
     }
 
     /**
@@ -696,16 +697,18 @@ class ImageSource extends AbstractSource
      *
      * @param  string $to
      * @return string
-     * @throws froq\file\upload\UploadException
+     * @throws froq\file\upload\ImageSourceException
      */
     protected final function outputTo(string $to): string
     {
         $to = trim($to);
-        $to || throw new UploadException('Empty target file path given');
+        $to || throw new ImageSourceException('Empty target file path given');
 
         $image = $this->getTargetImage();
-        $image || throw new UploadException('No target image created yet, call one of these methods first: '
-            . 'resample(), resize(), resizeThumbnail(), crop(), cropThumbnail() or rotate()');
+        $image || throw new ImageSourceException(
+            'No target image created yet, call one of these methods first: '.
+            'resample(), resize(), resizeThumbnail(), crop(), cropThumbnail() or rotate()'
+        );
 
         $type = $this->getType();
 
@@ -729,7 +732,7 @@ class ImageSource extends AbstractSource
                 $image->writeImage($to);
                 return $to;
             } catch (ImagickException $e) {
-                throw new UploadException($e);
+                throw new ImageSourceException($e);
             }
         }
 
@@ -742,6 +745,6 @@ class ImageSource extends AbstractSource
             return $to;
         }
 
-        throw new UploadException('Failed processing image [error: %s]', '@error');
+        throw new ImageSourceException('Failed processing image [error: %s]', '@error');
     }
 }

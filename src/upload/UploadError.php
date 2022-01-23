@@ -15,7 +15,7 @@ use froq\file\FileError;
  * @package froq\file\upload
  * @object  froq\file\upload\UploadError
  * @author  Kerem Güneş
- * @since   4.0, 5.0 Moved to upload directory.
+ * @since   4.0, 5.0
  */
 class UploadError extends FileError
 {

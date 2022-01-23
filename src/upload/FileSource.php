@@ -7,8 +7,6 @@ declare(strict_types=1);
 
 namespace froq\file\upload;
 
-use froq\file\upload\{AbstractSource, UploadException};
-
 /**
  * File Source
  *
@@ -17,7 +15,7 @@ use froq\file\upload\{AbstractSource, UploadException};
  * @package froq\file\upload
  * @object  froq\file\upload\FileSource
  * @author  Kerem Güneş
- * @since   3.0, 5.0 Moved to upload directory, derived from FileUploader.
+ * @since   3.0, 5.0
  */
 class FileSource extends AbstractSource
 {
@@ -35,7 +33,7 @@ class FileSource extends AbstractSource
             return $target;
         }
 
-        throw new UploadException('Failed saving file [error: %s]', '@error');
+        throw new FileSourceException('Failed saving file [error: %s]', '@error');
     }
 
     /**
@@ -52,7 +50,7 @@ class FileSource extends AbstractSource
             return $target;
         }
 
-        throw new UploadException('Failed moving file [error: %s]', '@error');
+        throw new FileSourceException('Failed moving file [error: %s]', '@error');
     }
 
     /**

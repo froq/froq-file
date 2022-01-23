@@ -7,15 +7,13 @@ declare(strict_types=1);
 
 namespace froq\file\upload;
 
-use froq\file\FileException;
-
 /**
- * Upload Exception.
+ * Image Source Exception.
  *
  * @package froq\file\upload
- * @object  froq\file\upload\UploadException
+ * @object  froq\file\upload\ImageSourceException
  * @author  Kerem Güneş
- * @since   4.0, 5.0
+ * @since   6.0
  */
-class UploadException extends FileException
+class ImageSourceException extends UploadException
 {}
