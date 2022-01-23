@@ -26,12 +26,12 @@ use Error;
 final class File extends StaticClass
 {
     /**
-     * Get file type.
+     * Get file mime.
      *
      * @param  string $file
      * @return string|null
      */
-    public static function getType(string $file): string|null
+    public static function getMime(string $file): string|null
     {
         try { return Mime::getType($file); }
             catch (MimeException) { return null; }
