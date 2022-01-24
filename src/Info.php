@@ -87,11 +87,7 @@ class Info extends SplFileInfo
      */
     public final function getMime(): string|null
     {
-        try {
-            return Mime::getType($this->getPathname());
-        } catch (MimeException) {
-            return null;
-        }
+        return \froq\file\File::getMime($this->getPathname());
     }
 
     /** @override */ #[\ReturnTypeWillChange]
