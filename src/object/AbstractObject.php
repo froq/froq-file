@@ -350,9 +350,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function isValid(): bool
     {
-        return ($this->resource && (
-            is_stream($this->resource) || is_image($this->resource)
-        ));
+        return $this->resource && (is_stream($this->resource) || is_image($this->resource));
     }
 
     /**
