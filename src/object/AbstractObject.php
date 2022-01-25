@@ -52,23 +52,17 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public function __construct(mixed $resource = null, string $mime = null, array $options = null, string $resourceFile = null)
     {
-        if ($resource) {
+        if ($resource !== null) {
             if ($this instanceof FileObject) {
                 if (!is_stream($resource)) {
-                    self::throw(
-                        'Resource type must be stream, %s given',
-                        get_type($resource)
-                    );
+                    self::throw('Resource type must be stream, %t given', $resource);
                 }
 
                 // For clean ups (mostly for temps).
                 $resourceFile ??= fmeta($resource)['uri'];
             } elseif ($this instanceof ImageObject) {
                 if ($mime && !in_array($mime, static::MIMES)) {
-                    self::throw(
-                        'Invalid MIME `%s` [valids: %s]',
-                        [$mime, join(',', static::MIMES)]
-                    );
+                    self::throw('Invalid MIME `%s` [valids: %s]', [$mime, join(',', static::MIMES)]);
                 }
 
                 // When a resource given, eg: fopen('path/to/file.jpg', 'rb').
@@ -78,10 +72,7 @@ abstract class AbstractObject implements Sizable, Stringable
                 }
 
                 if (!is_image($resource)) {
-                    self::throw(
-                        'Resource type must be stream|GdImage, %s given',
-                        get_type($resource)
-                    );
+                    self::throw('Resource type must be stream|GdImage, %t given', $resource);
                 }
             }
         }
