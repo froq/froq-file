@@ -9,8 +9,6 @@ namespace froq\file\mime;
 
 use froq\file\mime\{Mimes, MimeException};
 use froq\file\{File, FileError};
-use StaticClass;
-use Error;
 
 /**
  * Mime.
@@ -23,7 +21,7 @@ use Error;
  * @since   1.0, 4.0 Moved to mime directory.
  * @static
  */
-final class Mime extends StaticClass
+final class Mime extends \StaticClass
 {
     /**
      * Get a file type.
@@ -52,7 +50,7 @@ final class Mime extends StaticClass
             if ($type === false) {
                 throw new MimeException('@error');
             }
-        } catch (Error) {
+        } catch (\Error) {
             try {
                 // This function may be not available.
                 $exec = exec('file -i '. escapeshellarg($file));
@@ -64,7 +62,7 @@ final class Mime extends StaticClass
                         $type = 'application/x-empty';
                     }
                 }
-            } catch (Error) {}
+            } catch (\Error) {}
         }
 
         // Try by extension.

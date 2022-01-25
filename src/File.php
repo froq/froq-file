@@ -9,8 +9,6 @@ namespace froq\file;
 
 use froq\file\mime\{Mime, MimeException};
 use froq\file\object\{FileObject, FileObjectException};
-use StaticClass;
-use Error;
 
 /**
  * File.
@@ -23,7 +21,7 @@ use Error;
  * @since   3.0, 4.0
  * @static
  */
-final class File extends StaticClass
+final class File extends \StaticClass
 {
     /**
      * Get file mime.
@@ -58,7 +56,7 @@ final class File extends StaticClass
     {
         // Errors happen in strict mode, else warning only.
         try { return is_file($path); }
-            catch (Error) { return null; }
+            catch (\Error) { return null; }
     }
 
     /**
@@ -71,7 +69,7 @@ final class File extends StaticClass
     {
         // Errors happen in strict mode, else warning only.
         try { return is_dir($path); }
-            catch (Error) { return null; }
+            catch (\Error) { return null; }
     }
 
     /**
@@ -376,7 +374,7 @@ final class File extends StaticClass
         $fp = null;
         try {
             $fp =@ fopen($file, 'r');
-        } catch (Error $e) {
+        } catch (\Error $e) {
             $error = $e->getMessage();
         }
 

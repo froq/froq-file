@@ -7,8 +7,6 @@ declare(strict_types=1);
 
 namespace froq\file\mime;
 
-use StaticClass;
-
 /**
  * Mimes.
  *
@@ -20,7 +18,7 @@ use StaticClass;
  * @since   3.0, 4.0 Moved to mime directory.
  * @static @internal
  */
-final class Mimes extends StaticClass
+final class Mimes extends \StaticClass
 {
     /** @var array */
     private static array $all;
