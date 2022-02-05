@@ -126,7 +126,8 @@ class ImageSource extends AbstractSource
             $newHeight = (int) ($height > 0 ? $height : $origHeight);
         }
 
-        // Fix 1px gap. @cancel: not using "bestfit" option below.
+        // @cancel: Not using "bestfit" option below.
+        // Fix 1px gap.
         // if ($newWidth < $newHeight) $newWidth += 1;
         // if ($newHeight < $newWidth) $newHeight += 1;
 
