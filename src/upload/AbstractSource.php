@@ -7,10 +7,11 @@ declare(strict_types=1);
 
 namespace froq\file\upload;
 
-use froq\file\{File, Util as FileUtil};
+use froq\file\File;
 use froq\file\mime\{Mime, MimeException};
 use froq\common\interface\Stringable;
 use froq\common\trait\{ApplyTrait, OptionTrait};
+use froq\util\Util;
 
 /**
  * Abstract Source.
@@ -207,7 +208,7 @@ abstract class AbstractSource implements Stringable
         }
 
         if ($this->options['maxFileSize']) {
-            $maxFileSize = FileUtil::convertBytes((string) $this->options['maxFileSize']);
+            $maxFileSize = Util::convertBytes((string) $this->options['maxFileSize']);
             if ($maxFileSize > -1 && $size > $maxFileSize) {
                 self::throw(
                     'File size exceeded, `maxFileSize` option: %s (%s bytes)',
