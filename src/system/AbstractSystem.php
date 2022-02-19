@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace froq\file\system;
 
 use froq\file\mime\{Mime, MimeException};
+use froq\util\Util;
 
 /**
  * Abstract System.
@@ -409,7 +410,7 @@ abstract class AbstractSystem
     public final function getSize(bool $format = false): int|string|null
     {
         if ($this->isReadable()) {
-            $return = fn($s) => $format ? \froq\file\Util::formatBytes($s) : $s;
+            $return = fn($s) => $format ? Util::formatBytes($s) : $s;
 
             switch (true) {
                 case ($this instanceof File):
