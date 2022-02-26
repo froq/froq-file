@@ -20,8 +20,7 @@ use froq\file\FileError;
 class UploadError extends FileError
 {
     /**
-     * Errors.
-     *
+     * Types.
      * @const int
      */
     public const INTERNAL                     = 1,
@@ -38,7 +37,6 @@ class UploadError extends FileError
 
     /**
      * Messages.
-     *
      * @const array
      */
     public const MESSAGES = [

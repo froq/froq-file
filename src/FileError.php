@@ -19,7 +19,10 @@ use froq\common\Error;
  */
 class FileError extends Error
 {
-    /** @const int */
+    /**
+     * Types.
+     * @const int
+     */
     public const DIRECTORY            = 1,
                  NO_FILE_EXISTS       = 2,
                  NO_ACCESS_PERMISSION = 3,
