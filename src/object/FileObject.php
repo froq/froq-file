@@ -242,7 +242,8 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        [$stat, $meta] = [fstat($fp), fmeta($fp)];
+        $stat = fstat($this->resource);
+        $meta = fmeta($this->resource);
 
         return ($stat && $meta) ? $stat + ['meta' => $meta] : null;
     }
