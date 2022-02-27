@@ -53,42 +53,36 @@ class Directory extends AbstractSystem
      *
      * @param  string $pattern
      * @param  int    $flags
-     * @return array|null
+     * @return array
      */
-    public final function glob(string $pattern, int $flags = 0): array|null
+    public final function glob(string $pattern, int $flags = 0): array
     {
         // Prevent recursions for "*" stuff.
         if (!str_starts_with($pattern, '/')) {
             $pattern = '/' . $pattern;
         }
 
-        $ret = glob($this->path . $pattern, $flags);
-
-        return ($ret !== false) ? $ret : null;
+        return glob($this->path . $pattern, $flags) ?: [];
     }
 
     /**
      * Get (sub) dirs.
      *
-     * @return array|null
+     * @return array
      */
-    public final function getDirs(): array|null
+    public final function getDirs(): array
     {
-        $glob = $this->glob('*');
-
-        return ($glob !== null) ? array_filter($glob, 'is_dir') : null;
+        return array_filter($this->glob('*'), 'is_dir');
     }
 
     /**
      * Get files.
      *
-     * @return array|null
+     * @return array
      */
-    public final function getFiles(): array|null
+    public final function getFiles(): array
     {
-        $glob = $this->glob('*');
-
-        return ($glob !== null) ? array_filter($glob, 'is_file') : null;
+        return array_filter($this->glob('*'), 'is_file');
     }
 
     /**
@@ -130,8 +124,7 @@ class Directory extends AbstractSystem
         };
         // Oh, my lad..
         $rmrf = function ($root) use (&$rmrf, &$rmrfExec) {
-            $paths = glob($root . '/*');
-            if ($paths) {
+            if ($paths = glob($root . '/*')) {
                 foreach ($paths as $path) {
                     if (is_file($path)) {
                         unlink($path);
@@ -147,14 +140,14 @@ class Directory extends AbstractSystem
         // Drop files (try).
         $rmrfExec($this->path);
 
-        // Drop others if any left.
-        foreach ((array) $this->getFiles() as $path) {
-            unlink($path);
+        // Drop others (if any left).
+        foreach ($this->getFiles() as $cur) {
+            unlink($cur);
         }
-        foreach ((array) $this->getDirs() as $path) {
-            $rmrfExec($path);
-            $rmrf($path);
-            rmdir($path);
+        foreach ($this->getDirs() as $cur) {
+            $rmrfExec($cur);
+            $rmrf($cur);
+            rmdir($cur);
         }
 
         return (bool) $this->isEmpty();
