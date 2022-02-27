@@ -50,9 +50,7 @@ class Info extends SplFileInfo
         $this->pathInfo = get_path_info($path);
 
         // Prevent link resolutions.
-        if (is_link($path)) {
-            // Pass.
-        } else {
+        if (!is_link($path)) {
             $path = $this->pathInfo['path'];
         }
 
