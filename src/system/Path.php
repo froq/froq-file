@@ -25,8 +25,8 @@ class Path extends AbstractSystem
     public final const SEPARATOR = PATH_SEPARATOR;
 
     /** @const string */
-    public final const TYPE_DIR = 'dir', TYPE_DIRECTORY = 'dir', // Alias.
-                       TYPE_FILE = 'file', TYPE_LINK = 'link';
+    public final const TYPE_DIR  = 'dir',  TYPE_DIRECTORY = 'dir', // Alias.
+                       TYPE_FILE = 'file', TYPE_LINK      = 'link';
 
     /** @const array<string> */
     public final const TYPES = ['dir', 'file', 'link'];
