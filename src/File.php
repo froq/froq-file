@@ -355,13 +355,13 @@ final class File extends \StaticClass
         if (str_contains($file, "\0")) {
             $error = new FileError(
                 'No valid path, path contains NULL-bytes',
-                $file, FileError::NO_VALID_PATH
+                code: FileError::NO_VALID_PATH
             );
             return true;
         } elseif (trim($file) === '') {
             $error = new FileError(
                 'No valid path, path is empty',
-                $file, FileError::NO_VALID_PATH
+                code: FileError::NO_VALID_PATH
             );
             return true;
         }
@@ -401,10 +401,10 @@ final class File extends \StaticClass
                     $file, FileError::NO_ACCESS_PERMISSION
                 );
             } elseif (stripos($error, 'valid path') || stripos($error, 'null bytes')) {
-                $path  = substr($file, 0, 255) . '...';
+                $path  = strtr(substr($file, 0, 255), ["\0" => "\\0"]) . '...';
                 $error = new FileError(
                     'No valid path [path: %s]',
-                    strtr($path, ["\0" => "\\0"]), FileError::NO_VALID_PATH
+                    $path, FileError::NO_VALID_PATH
                 );
             } else {
                 $error = new FileError($error);
