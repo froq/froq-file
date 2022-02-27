@@ -33,7 +33,7 @@ class FileSource extends AbstractSource
             return $target;
         }
 
-        throw new FileSourceException('Failed saving file [error: %s]', '@error');
+        throw new FileSourceException('Failed saving file [error: @error]');
     }
 
     /**
@@ -50,7 +50,7 @@ class FileSource extends AbstractSource
             return $target;
         }
 
-        throw new FileSourceException('Failed moving file [error: %s]', '@error');
+        throw new FileSourceException('Failed moving file [error: @error]');
     }
 
     /**

@@ -12,7 +12,7 @@ use GdImage, Imagick, ImagickException;
 /**
  * Image Source.
  *
- * An uploaded image image for working images in OOP style with a few safety options.
+ * An uploaded image class for working images in OOP style with a few safety options.
  *
  * @package froq\file\upload
  * @object  froq\file\upload\ImageSource
@@ -45,6 +45,7 @@ class ImageSource extends AbstractSource
     /** @var array */
     protected static array $optionsDefault = [
         'jpegQuality' => -1,    'webpQuality'   => -1,
+        'pngQuality'  => -1,    'pngFilters'    => -1,
         'stripImage'  => false, 'stripImageIcc' => false,
         'useImagick'  => false,
     ];
@@ -91,16 +92,16 @@ class ImageSource extends AbstractSource
     public final function resize(int $width, int $height, array $options = null): self
     {
         if ($width < 0 || $height < 0) {
-            throw new ImageSourceException('Both with and height must be greater than -1');
+            throw new ImageSourceException('Both width and height must be greater than -1');
         } elseif ($width == 0 && $height == 0 && empty($options['resample'])) {
-            throw new ImageSourceException('Either with or height must be greater than 0');
+            throw new ImageSourceException('Either width or height must be greater than 0');
         }
 
         $this->fillInfo();
 
         // @defaults=false,true
-        $adjust     = $options['adjust']     ?? false;
-        $proportion = $options['proportion'] ?? true;
+        $adjust     = (bool) ($options['adjust'] ?? false);
+        $proportion = (bool) ($options['proportion'] ?? true);
 
         [$origWidth, $origHeight, $type] = $this->getInfo();
 
@@ -157,7 +158,7 @@ class ImageSource extends AbstractSource
             imagecopyresampled(
                 $this->targetImage, $this->sourceImage,
                 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight
-            ) || throw new ImageSourceException('Failed resampling target image [error: %s]', '@error');
+            ) || throw new ImageSourceException('Failed resampling target image [error: @error]');
 
         }
 
@@ -194,15 +195,15 @@ class ImageSource extends AbstractSource
     public final function crop(int $width, int $height = null, array $options = null): self
     {
         if ($width < 0 || $height < 0) {
-            throw new ImageSourceException('Both with and height must be greater than -1');
+            throw new ImageSourceException('Both width and height must be greater than -1');
         } elseif ($width == 0 && $height == 0) {
-            throw new ImageSourceException('Either with or height must be greater than 0');
+            throw new ImageSourceException('Either width or height must be greater than 0');
         }
 
         $this->fillInfo();
 
         // @default=false
-        $proportion = $options['proportion'] ?? false;
+        $proportion = (bool) ($options['proportion'] ?? false);
 
         [$origWidth, $origHeight, $type] = $this->getInfo();
 
@@ -220,13 +221,11 @@ class ImageSource extends AbstractSource
             $cropHeight = $height;
         }
 
-        $x = (int) (($options['x'] ?? null) ?? ($origWidth - $cropWidth) / $div);
-        $y = (int) (($options['y'] ?? null) ?? ($origHeight - $cropHeight) / $div);
+        $x = (int) (($options['x'] ?? 0) ?? ($origWidth - $cropWidth) / $div);
+        $y = (int) (($options['y'] ?? 0) ?? ($origHeight - $cropHeight) / $div);
 
         $this->sourceImage = $this->createSourceImage();
-        $this->targetImage = $this->createTargetImage([$width, $height],
-            $this->usingImagick() ? $this->sourceImage : null
-        );
+        $this->targetImage = $this->createTargetImage([$width, $height], $this->usingImagick() ? $this->sourceImage : null);
 
         if ($this->usingImagick()) {
             try {
@@ -250,7 +249,7 @@ class ImageSource extends AbstractSource
             imagecopyresampled(
                 $this->targetImage, $this->sourceImage,
                 0, 0, $x, $y, $width, $height, $width, $height
-            ) || throw new ImageSourceException('Failed cropping target image [error: %s]', '@error');
+            ) || throw new ImageSourceException('Failed cropping target image [error: @error]');
         }
 
         // Store new dimensions.
@@ -270,9 +269,9 @@ class ImageSource extends AbstractSource
     public final function cropThumbnail(int $width, int $height = null): self
     {
         if ($width < 0 || $height < 0) {
-            throw new ImageSourceException('Both with and height must be greater than -1');
+            throw new ImageSourceException('Both width and height must be greater than -1');
         } elseif ($width == 0 && $height == 0) {
-            throw new ImageSourceException('Either with or height must be greater than 0');
+            throw new ImageSourceException('Either width or height must be greater than 0');
         }
 
         $this->fillInfo();
@@ -338,8 +337,8 @@ class ImageSource extends AbstractSource
             // Fix GD "counter clockwise" stuff.
             $degree = -$degree;
 
-            $this->targetImage = imagerotate($this->targetImage, $degree, $background ?? 0) ?: null;
-            $this->targetImage || throw new ImageSourceException('Failed rotating target image [error: %s]', '@error');
+            $this->targetImage = imagerotate($this->targetImage, $degree, $background ?? 0)
+                ?: throw new ImageSourceException('Failed rotating target image [error: @error]');
         }
 
         // Tick for using resized image.
@@ -354,7 +353,7 @@ class ImageSource extends AbstractSource
     public final function save(string $name = null, string $appendix = null, bool $appendNewDimensions = false): string
     {
         if ($appendNewDimensions) {
-            $appendix = ($appendix == null)
+            $appendix = ($appendix === null)
                 ? vsprintf('%dx%d', $this->getNewDimensions())
                 : vsprintf('%dx%d-%s', array_merge($this->getNewDimensions(), [$appendix]));
         }
@@ -367,7 +366,7 @@ class ImageSource extends AbstractSource
             return $target;
         }
 
-        throw new ImageSourceException('Failed saving image [error: %s]', '@error');
+        throw new ImageSourceException('Failed saving image [error: @error]');
     }
 
     /**
@@ -384,7 +383,7 @@ class ImageSource extends AbstractSource
             return $target;
         }
 
-        throw new ImageSourceException('Failed moving image [error: %s]', '@error');
+        throw new ImageSourceException('Failed moving image [error: @error]');
     }
 
     /**
@@ -450,19 +449,20 @@ class ImageSource extends AbstractSource
      */
     public final function fillInfo(): void
     {
+        $info = null;
+
         if ($this->resized) { // Use resized image as source.
             $info = getimagesizefromstring($this->toString());
         } elseif (empty($this->info)) {
             $info = getimagesize($this->getSource());
         }
 
-        $info = $info ?? ($this->info ?? null);
+        $info = $info ?: ($this->info ?? null);
 
-        if (empty($info)) {
-            throw new ImageSourceException('Failed getting source info [error: %s]', '@error');
+        if (!$info) {
+            throw new ImageSourceException('Failed getting source info [error: @error]');
         }
-
-        if (!in_array($info[2], self::SUPPORTED_TYPES)) {
+        if (!isset($info[2]) || !in_array($info[2], self::SUPPORTED_TYPES, true)) {
             throw new ImageSourceException('Invalid image type [valids: JPEG,PNG,GIF,WEBP]');
         }
 
@@ -610,7 +610,7 @@ class ImageSource extends AbstractSource
             };
         }
 
-        return $image ?: throw new ImageSourceException('Failed creating source image [error: %s]', '@error');
+        return $image ?: throw new ImageSourceException('Failed creating source image [error: @error]');
     }
 
     /**
@@ -638,7 +638,7 @@ class ImageSource extends AbstractSource
         // Discard source image.
         $image = imagecreatetruecolor(...$dimensions);
 
-        return $image ?: throw new ImageSourceException('Failed creating target image [error: %s]', '@error');
+        return $image ?: throw new ImageSourceException('Failed creating target image [error: @error]');
     }
 
     /**
@@ -684,27 +684,27 @@ class ImageSource extends AbstractSource
 
         if (match ($type) {
             IMAGETYPE_JPEG => imagejpeg($image, null, $this->options['jpegQuality']),
-            IMAGETYPE_PNG  => imagepng($image),
-            IMAGETYPE_GIF  => imagegif($image),
             IMAGETYPE_WEBP => imagewebp($image, null, $this->options['webpQuality']),
+            IMAGETYPE_PNG  => imagepng($image, null, $this->options['pngQuality'], $this->options['pngFilters']),
+            IMAGETYPE_GIF  => imagegif($image),
         }) {
             return ob_get_clean();
         }
 
-        throw new ImageSourceException('Failed processing image [error: %s]', '@error');
+        throw new ImageSourceException('Failed processing image [error: @error]');
     }
 
     /**
      * Output processed image as an absolute file.
      *
-     * @param  string $to
+     * @param  string $file
      * @return string
      * @throws froq\file\upload\ImageSourceException
      */
-    protected final function outputTo(string $to): string
+    protected final function outputTo(string $file): string
     {
-        $to = trim($to);
-        $to || throw new ImageSourceException('Empty target file path given');
+        $file = trim($file);
+        $file || throw new ImageSourceException('Empty target file');
 
         $image = $this->getTargetImage();
         $image || throw new ImageSourceException(
@@ -731,22 +731,22 @@ class ImageSource extends AbstractSource
             }
 
             try {
-                $image->writeImage($to);
-                return $to;
+                $image->writeImage($file);
+                return $file;
             } catch (ImagickException $e) {
                 throw new ImageSourceException($e);
             }
         }
 
         if (match ($type) {
-            IMAGETYPE_JPEG => imagejpeg($image, $to, $this->options['jpegQuality']),
-            IMAGETYPE_PNG  => imagepng($image),
-            IMAGETYPE_GIF  => imagegif($image),
-            IMAGETYPE_WEBP => imagewebp($image, $to, $this->options['webpQuality']),
+            IMAGETYPE_JPEG => imagejpeg($image, $file, $this->options['jpegQuality']),
+            IMAGETYPE_WEBP => imagewebp($image, $file, $this->options['webpQuality']),
+            IMAGETYPE_PNG  => imagepng($image, $file, $this->options['pngQuality'], $this->options['pngFilters']),
+            IMAGETYPE_GIF  => imagegif($image, $file),
         }) {
-            return $to;
+            return $file;
         }
 
-        throw new ImageSourceException('Failed processing image [error: %s]', '@error');
+        throw new ImageSourceException('Failed processing image [error: @error]');
     }
 }
