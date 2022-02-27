@@ -225,7 +225,7 @@ class ImageObject extends AbstractObject
         }
         if (!in_array($this->mime, self::MIMES)) {
             throw new ImageObjectException(
-                'Invalid MIME `%s` [valids: %s]', [$this->mime, join(',', self::MIMES)]
+                'Invalid MIME `%s` [valids: %s]', [$this->mime, join(', ', self::MIMES)]
             );
         }
 
@@ -337,8 +337,8 @@ class ImageObject extends AbstractObject
             throw new ImageObjectException($error->message, code: $error->code, cause: $error);
         }
 
-        $resource = imagecreatefromstring(file_get_contents($file));
-        $resource || throw new ImageObjectException('Cannot create resource [error: %s]', '@error');
+        $resource = imagecreatefromstring(file_get_contents($file))
+            ?: throw new ImageObjectException('Cannot create resource [error: @error]');
 
         $mime ??= mime_content_type($file);
 
@@ -355,16 +355,16 @@ class ImageObject extends AbstractObject
      */
     public static final function fromString(string $string, string $mime = null, array $options = null): static
     {
-        $resource = imagecreatefromstring($string);
-        $resource || throw new ImageObjectException('Cannot create resource [error: %s]', '@error');
+        $resource = imagecreatefromstring($string)
+            ?: throw new ImageObjectException('Cannot create resource [error: @error]');
 
         $mime ??= getimagesizefromstring($string)['mime'];
 
         $that = new static($resource, $mime, $options);
 
         // To speed up resize(), crop(), getContents() etc.
-        $that->resourceFile = tmpnam();
-        $that->resourceFile || throw new ImageObjectException('Cannot create resource file [error: %s]', '@error');
+        $that->resourceFile = tmpnam()
+            ?: throw new ImageObjectException('Cannot create resource file [error: @error]');
 
         file_put_contents($that->resourceFile, $string);
 

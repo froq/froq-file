@@ -32,14 +32,14 @@ abstract class AbstractObject implements Sizable, Stringable
     /** @var mixed<resource|GdImage>|null */
     protected mixed $resource = null;
 
-    /** @var string|null */
-    protected string|null $resourceFile = null;
+    /** @var ?string */
+    protected ?string $resourceFile = null;
 
-    /** @var string|null */
-    protected string|null $mime = null;
+    /** @var ?string */
+    protected ?string $mime = null;
 
-    /** @var bool|null */
-    protected bool|null $freed = null;
+    /** @var ?bool */
+    protected ?bool $freed = null;
 
     /**
      * Constructor.
