@@ -32,7 +32,7 @@ class ImageObject extends AbstractObject
     /** @var array */
     protected static array $optionsDefault = [
         'jpegQuality'  => -1, 'webpQuality' => -1,
-        'pngZipLevel'  => -1, 'pngFilters'  => -1,
+        'pngQuality'   => -1, 'pngFilters'  => -1,
         'transparency' => true, // For only webp's.
     ];
 
@@ -85,11 +85,17 @@ class ImageObject extends AbstractObject
               ? FileObject::fromResource(fopen($this->resourceFile, 'rb'))
               : FileObject::fromTempResource()->setContents($this->getContents());
 
+        array_extract(
+            array_merge($this->options, (array) $options),
+            'jpegQuality, webpQuality, pngQuality, pngFilters',
+            $jpegQuality, $webpQuality, $pngQuality, $pngFilters,
+        );
+
         $image = (new ImageSource)->prepare(
             ['type' => $this->mime, 'file' => $temp->path(), 'directory' => tmp()],
             ['clear' => false, 'clearSource' => false, 'useImagick' => true,
-             'jpegQuality' => $options['jpegQuality'] ?? $this->options['jpegQuality'],
-             'webpQuality' => $options['webpQuality'] ?? $this->options['webpQuality']]
+             'jpegQuality' => $jpegQuality, 'webpQuality' => $webpQuality,
+             'pngQuality'  => $pngQuality,  'pngFilters'  => $pngFilters]
         )->resize($width, $height, $options);
 
         unset($temp); // Free.
@@ -114,11 +120,17 @@ class ImageObject extends AbstractObject
               ? FileObject::fromResource(fopen($this->resourceFile, 'rb'))
               : FileObject::fromTempResource()->setContents($this->getContents());
 
+        array_extract(
+            array_merge($this->options, (array) $options),
+            'jpegQuality, webpQuality, pngQuality, pngFilters',
+            $jpegQuality, $webpQuality, $pngQuality, $pngFilters,
+        );
+
         $image = (new ImageSource)->prepare(
             ['type' => $this->mime, 'file' => $temp->path(), 'directory' => tmp()],
             ['clear' => false, 'clearSource' => false, 'useImagick' => true,
-             'jpegQuality' => $options['jpegQuality'] ?? $this->options['jpegQuality'],
-             'webpQuality' => $options['webpQuality'] ?? $this->options['webpQuality']]
+             'jpegQuality' => $jpegQuality, 'webpQuality' => $webpQuality,
+             'pngQuality'  => $pngQuality,  'pngFilters'  => $pngFilters]
         )->crop($width, $height, $options);
 
         unset($temp); // Free.
@@ -227,7 +239,7 @@ class ImageObject extends AbstractObject
             self::MIME_WEBP => $this->options['transparency'] // For some speed (@default=true).
                 ? imagewebp($copy = $this->createResourceCopy(), null, $this->options['webpQuality'])
                 : imagewebp($this->resource, null, $this->options['webpQuality']),
-            self::MIME_PNG  => imagepng($copy = $this->createResourceCopy(), null, $this->options['pngZipLevel'],
+            self::MIME_PNG  => imagepng($copy = $this->createResourceCopy(), null, $this->options['pngQuality'],
                 $this->options['pngFilters']),
             self::MIME_GIF  => imagegif($copy = $this->createResourceCopy()),
         };
