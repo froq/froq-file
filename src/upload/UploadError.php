@@ -20,7 +20,7 @@ use froq\file\FileError;
 class UploadError extends FileError
 {
     /**
-     * Types.
+     * Codes.
      * @const int
      */
     public const INTERNAL                     = 1,
