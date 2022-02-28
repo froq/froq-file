@@ -177,9 +177,15 @@ class Path extends AbstractSystem
         return rmdir($this->path);
     }
 
-    /** @aliasOf makeDirectory() */
-    public final function makeDir(...$args) { return $this->makeDirectory(...$args); }
+    /** @alias makeDirectory() */
+    public final function makeDir(...$args)
+    {
+        return $this->makeDirectory(...$args);
+    }
 
-    /** @aliasOf removeDirectory() */
-    public final function removeDir(...$args) { return $this->removeDirectory(...$args); }
+    /** @alias removeDirectory() */
+    public final function removeDir(...$args)
+    {
+        return $this->removeDirectory(...$args);
+    }
 }
