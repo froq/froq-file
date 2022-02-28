@@ -162,7 +162,7 @@ class Path extends AbstractSystem
      * @param  bool $recursive
      * @return bool
      */
-    public final function makeDirectory(int $mode = 0755, bool $recursive = false): bool
+    public final function makeDirectory(int $mode = 0755, bool $recursive = true): bool
     {
         return mkdir($this->path, $mode, $recursive);
     }
@@ -184,8 +184,8 @@ class Path extends AbstractSystem
     }
 
     /** @alias removeDirectory() */
-    public final function removeDir(...$args)
+    public final function removeDir()
     {
-        return $this->removeDirectory(...$args);
+        return $this->removeDirectory();
     }
 }

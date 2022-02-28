@@ -111,14 +111,14 @@ final class File extends \StaticClass
      *
      * @param  string $file
      * @param  int    $mode
-     * @param  bool   $tmp
+     * @param  bool   $temp
      * @return bool
      * @throws froq\file\FileException
      * @since  6.0
      */
-    public static function make(string $file, int $mode = 0644, bool $tmp = false): bool
+    public static function make(string $file, int $mode = 0644, bool $temp = false): bool
     {
-        return @mkfile($file, $mode, $tmp) ?: throw new FileException('@error');
+        return @file_create($file, $mode, $temp) ?: throw new FileException('@error');
     }
 
     /**
@@ -131,7 +131,7 @@ final class File extends \StaticClass
      */
     public static function remove(string $file): bool
     {
-        return @rmfile($file) ?: throw new FileException('@error');
+        return @file_remove($file) ?: throw new FileException('@error');
     }
 
     /**
