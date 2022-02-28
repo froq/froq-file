@@ -66,7 +66,7 @@ class File extends AbstractSystem
 
         if (file_put_contents($this->path, '', LOCK_EX) === false) {
             throw new FileException(
-                'Cannot empty file [file: %s, error: %s]', [$this->path, '@error']
+                'Cannot empty file `%s` [error: %s]', [$this->path, '@error']
             );
         }
 

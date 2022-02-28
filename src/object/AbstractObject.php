@@ -48,7 +48,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null                  $mime
      * @param  array|null                   $options
      * @param  string|null                  $resourceFile @internal
-     * @throws froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
+     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     public function __construct(mixed $resource = null, string $mime = null, array $options = null, string $resourceFile = null)
     {
@@ -261,7 +261,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null $name
      * @param  int|null    $mode
      * @return string
-     * @throws froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
+     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     public final function save(string $directory, string $name = null, int $mode = null): string
     {
@@ -361,13 +361,13 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  array|null  $options
      * @param  string|null $file @internal
      * @return static
-     * @throws froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
+     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     public static final function fromResource($resource, string $mime = null, array $options = null, string $file = null): static
     {
         self::ban(__method__);
 
-        $resource || self::throw('Empty resource given');
+        $resource ?: self::throw('Empty resource given');
 
         return new static($resource, $mime, $options, resourceFile: $file);
     }
@@ -378,15 +378,14 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null $mime
      * @param  array|null  $options
      * @return static
-     * @throws froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
+     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     public static final function fromTempResource(string $mime = null, array $options = null): static
     {
         self::ban(__method__);
 
         // Not using 'php://temp', cus used for file_get_contents() stuff.
-        $resource = tmpfile();
-        $resource || self::throw('Empty resource returned [error: %s]', '@error');
+        $resource = tmpfile() ?: self::throw('Empty resource returned [error: @error]');
 
         return new static($resource, $mime, $options, resourceFile: null);
     }
@@ -398,14 +397,14 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null $mime
      * @param  array|null  $options
      * @return static
-     * @throws froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
+     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     public static final function fromTempFile(string $mime = null, array $options = null): static
     {
         self::ban(__method__);
 
-        $resource = fopen($file = tmpnam(), 'w+b');
-        $resource || self::throw('Empty resource returned [error: %s]', '@error');
+        $file     = tmpnam();
+        $resource = fopen($file, 'w+b') ?: self::throw('Empty resource returned [error: @error]');
 
         return new static($resource, $mime, $options, resourceFile: $file);
     }
@@ -414,7 +413,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * Check resource validity.
      *
      * @return void
-     * @throws froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
+     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     protected final function resourceCheck(): void
     {
@@ -428,7 +427,7 @@ abstract class AbstractObject implements Sizable, Stringable
     }
 
     /**
-     * Ban given method for unrelated objectz.
+     * Ban given method for unrelated objects.
      */
     private static function ban(string $method, int $type = 0): void
     {

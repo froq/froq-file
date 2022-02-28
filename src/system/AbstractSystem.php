@@ -70,7 +70,7 @@ abstract class AbstractSystem
         }
     }
 
-    /** @magic __get() */
+    /** @magic */
     public function __get(string $property): mixed
     {
         if ($this->pathInfo && array_key_exists($property, $this->pathInfo)) {
@@ -85,7 +85,7 @@ abstract class AbstractSystem
         return null;
     }
 
-    /** @magic __toString() */
+    /** @magic */
     public function __toString(): string
     {
         return $this->path;
@@ -309,7 +309,7 @@ abstract class AbstractSystem
 
         if (is_string($mode)) {
             $ops = array_filter(
-                array_map('strtolower', split('\|', $mode)),
+                array_map('strtolower', split('|', $mode)),
                 fn($op) => in_array($op, self::OPS)
             );
 
