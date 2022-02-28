@@ -233,7 +233,7 @@ abstract class AbstractObject implements Sizable, Stringable
             self::throw($e->getMessage(), code: $e->getCode(), cause: $e);
         }
 
-        $this->resource     = $resource ?: self::throw('Cannot create resource [error: %s]', '@error');
+        $this->resource     = $resource ?: self::throw('Cannot create resource [error: @error]');
         $this->resourceFile = $file;    // To clean ups & speed ups resize(), crop(), getContents() etc.
         $this->mime         = $mime     ?? mime_content_type($file);
         $this->options      = $options  ?? $this->options;
@@ -288,7 +288,7 @@ abstract class AbstractObject implements Sizable, Stringable
         $mode && touch($file) && chmod($file, $mode);
 
         if (file_put_contents($file, $this->toString()) === false) {
-            self::throw('Cannot write file [error: %s]', '@error');
+            self::throw('Cannot write file [error: @error]');
         }
 
         return $file;

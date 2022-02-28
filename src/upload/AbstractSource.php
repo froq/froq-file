@@ -29,7 +29,6 @@ abstract class AbstractSource implements Stringable
     /**
      * @see froq\common\trait\ApplyTrait
      * @see froq\common\trait\OptionTrait
-     * @since 5.0
      */
     use ApplyTrait, OptionTrait;
 
@@ -45,10 +44,10 @@ abstract class AbstractSource implements Stringable
     /** @var array */
     protected static array $optionsDefault = [
         'hash'              => null,  // Available commands: 'rand', 'file' or 'name' (default=none).
-        'hashLength'        => null,  // 8, 16, 32 or 40 (default=32).
+        'hashLength'        => null,  // Available lengths: 8, 16, 32 or 40 (default=32).
         'maxFileSize'       => null,  // In binary mode: for 2 megabytes 2048, 2048k or 2m.
-        'allowedTypes'      => '*',   // "*" all allowed or 'image/jpeg,image/png' etc.
-        'allowedExtensions' => '*',   // "*" all allowed or 'jpg,jpeg' etc.
+        'allowedTypes'      => '*',   // All '*' allowed or 'image/jpeg,image/png' etc.
+        'allowedExtensions' => '*',   // All '*' allowed or 'jpg,jpeg' etc.
         'clear'             => true,  // To free resources after saving/moving file etc.
         'clearSource'       => false, // To delete sources after saving/moving files etc.
         'overwrite'         => false, // To prevent existing file overwrite.
@@ -70,55 +69,41 @@ abstract class AbstractSource implements Stringable
      */
     public function __destruct()
     {
-        try {
-            $this->clear();
-        } catch (\Throwable) {}
+        try { $this->clear(); } catch (\Throwable) {}
     }
 
     /**
      * Get source file.
      *
      * @return string
-     * @throws froq\file\upload\{FileSourceException|ImageSourceException}
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      */
     public final function getSource(): string
     {
-        if (isset($this->source)) {
-            return $this->source;
-        }
-
-        self::throw('No source ready yet, call prepare() first');
+        return $this->source ?? self::throw('No source yet, call prepare() first');
     }
 
     /**
      * Get source info.
      *
      * @return array
-     * @throws froq\file\upload\{FileSourceException|ImageSourceException}
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      */
     public final function getSourceInfo(): array
     {
-        if (isset($this->sourceInfo)) {
-            return $this->sourceInfo;
-        }
-
-        self::throw('No source info ready yet, call prepare() first');
+        return $this->sourceInfo ?? self::throw('No source info yet, call prepare() first');
     }
 
     /**
      * Get target file.
      *
      * @return string
-     * @throws froq\file\upload\{FileSourceException|ImageSourceException}
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      * @since  5.0
      */
     public final function getTarget(): string
     {
-        if (isset($this->target)) {
-            return $this->target;
-        }
-
-        self::throw('No target ready yet, call save() or move() first');
+        return $this->target ?? self::throw('No target yet, call save() or move() first');
     }
 
     /**
@@ -137,14 +122,14 @@ abstract class AbstractSource implements Stringable
      * @param  array      $file
      * @param  array|null $options
      * @return self
-     * @throws froq\file\upload\{FileSourceException|ImageSourceException}
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      */
     public final function prepare(array $file, array $options = null): self
     {
         // Add deferred options.
         if ($options) {
             $this->options = array_replace($this->options, $options);
-
+            // For ImageSource only.
             if ($this->options['useImagick'] && $this instanceof ImageSource) {
                 $this->useImagick = true;
             }
@@ -158,30 +143,30 @@ abstract class AbstractSource implements Stringable
 
         $error && self::throw(
             UploadError::MESSAGES[$error] ?? 'Unknown error',
-            null, UploadError::INTERNAL
+            code: UploadError::INTERNAL
         );
 
-        $source = trim((string) $source);
+        $source = get_real_path((string) $source, true);
         $source || self::throw(
-            'No source given, `file` or `tmp_name` field must not be empty',
-            null, UploadError::NO_VALID_FILE
+            'No source given, `file` or `tmp_name` field cannot be empty',
+            code: UploadError::NO_VALID_FILE
         );
 
-        $directory = trim((string) $directory);
+        $directory = get_real_path((string) $directory);
         $directory || self::throw(
-            'No directory given, `directory` field or option must not be empty',
-            null, UploadError::DIRECTORY_EMPTY
+            'No directory given, `directory` field or option cannot be empty',
+            code: UploadError::DIRECTORY_EMPTY
         );
 
         // Validate file existence and give a proper error.
-        if (!realpath($source)) {
+        if (!$source) {
             if (File::errorCheck($source, $error)) {
                 self::throw($error->message, code: $error->code, cause: $error);
             }
 
             self::throw(
-                'No source file exists such `%s`',
-                $source, UploadError::NO_VALID_SOURCE
+                'No source file exists such `%s`', $source,
+                code: UploadError::NO_VALID_SOURCE
             );
         }
 
@@ -195,7 +180,7 @@ abstract class AbstractSource implements Stringable
             self::throw(
                 'Type `%s` not allowed via options, allowed types: %s',
                 [$type, $this->options['allowedTypes']],
-                UploadError::OPTION_NOT_ALLOWED_TYPE
+                code: UploadError::OPTION_NOT_ALLOWED_TYPE
             );
         }
 
@@ -203,7 +188,7 @@ abstract class AbstractSource implements Stringable
             self::throw(
                 'Extension `%s` not allowed via options, allowed extensions: %s',
                 [$extension, $this->options['allowedExtensions']],
-                UploadError::OPTION_NOT_ALLOWED_EXTENSION
+                code: UploadError::OPTION_NOT_ALLOWED_EXTENSION
             );
         }
 
@@ -213,7 +198,7 @@ abstract class AbstractSource implements Stringable
                 self::throw(
                     'File size exceeded, `maxFileSize` option: %s (%s bytes)',
                     [$this->options['maxFileSize'], $maxFileSize],
-                    UploadError::OPTION_SIZE_EXCEEDED
+                    code: UploadError::OPTION_SIZE_EXCEEDED
                 );
             }
         }
@@ -224,7 +209,8 @@ abstract class AbstractSource implements Stringable
         if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
             self::throw(
                 'Cannot make directory [directory: %s, error: %s]',
-                [$directory, '@error'], UploadError::DIRECTORY_ERROR
+                [$directory, '@error'],
+                code: UploadError::DIRECTORY_ERROR
             );
         }
 
@@ -247,7 +233,7 @@ abstract class AbstractSource implements Stringable
      * @param  string      $name
      * @param  string|null $appendix
      * @return string|null
-     * @throws froq\file\upload\{FileSourceException|ImageSourceException}
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      */
     public final function prepareName(string $name, string $appendix = null): string|null
     {
@@ -283,7 +269,7 @@ abstract class AbstractSource implements Stringable
                 ),
             };
 
-            $name || self::throw('Cannot hash file name [error: %s]', '@error');
+            $name || self::throw('Cannot hash file name [error: @error]');
         }
 
         // Appendix like 'crop' (ie: abc123-crop.jpg).
@@ -302,7 +288,7 @@ abstract class AbstractSource implements Stringable
      * @param  string|null $name
      * @param  string|null $appendix
      * @return string
-     * @throws froq\file\upload\{FileSourceException|ImageSourceException}
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      */
     public final function prepareTarget(string $name = null, string $appendix = null): string
     {
@@ -317,7 +303,7 @@ abstract class AbstractSource implements Stringable
                         self::throw(
                             'Extension `%s` not allowed via options, allowed extensions: %s',
                             [$extension, $this->options['allowedExtensions']],
-                            UploadError::OPTION_NOT_ALLOWED_EXTENSION
+                            code: UploadError::OPTION_NOT_ALLOWED_EXTENSION
                         );
                     }
 
@@ -336,7 +322,6 @@ abstract class AbstractSource implements Stringable
             $target = $target .'.'. $extension;
         }
 
-        // Store.
         $this->target = $target;
 
         return $target;
@@ -354,7 +339,7 @@ abstract class AbstractSource implements Stringable
         $types = (string) $this->options['allowedTypes'];
 
         return (
-                $types === '*'
+                $types == '*' // All.
             || ($types[0] == '~' && preg_test($types, $type))
             || in_array($type, preg_split('~\s*,\s*~', $types, flags: 1))
         );
@@ -372,7 +357,7 @@ abstract class AbstractSource implements Stringable
         $extensions = (string) $this->options['allowedExtensions'];
 
         return (
-                $extensions === '*'
+                $extensions == '*' // All.
             || ($extensions[0] == '~' && preg_test($extensions, $extension))
             || in_array($extension, preg_split('~\s*,\s*~', $extensions, flags: 1))
         );
@@ -383,7 +368,7 @@ abstract class AbstractSource implements Stringable
      *
      * @param  string $target
      * @return void
-     * @throws froq\file\upload\{FileSourceException|ImageSourceException}
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      * @since  5.0
      */
     protected final function overwriteCheck(string $target): void
@@ -391,7 +376,7 @@ abstract class AbstractSource implements Stringable
         if (!$this->options['overwrite'] && file_exists($target)) {
             self::throw(
                 'Cannot overwrite existing file `%s`', $target,
-                UploadError::OPTION_NOT_ALLOWED_OVERWRITE
+                code: UploadError::OPTION_NOT_ALLOWED_OVERWRITE
             );
         }
     }
