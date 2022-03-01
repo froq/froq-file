@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace froq\file\system;
 
-use froq\file\object\{FileObject, FileObjectException};
+use froq\file\object\FileObject;
 
 /**
  * File.
@@ -92,10 +92,10 @@ class File extends AbstractSystem
      * Set contents of a file.
      *
      * @param  string $contents
-     * @return string
+     * @return bool
      * @throws froq\file\system\FileException
      */
-    public final function setContents(string $contents, int $flags = 0)
+    public final function setContents(string $contents, int $flags = 0): bool
     {
         try {
             return \froq\file\File::setContents($this->path, $contents, $flags);
