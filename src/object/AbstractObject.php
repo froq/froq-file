@@ -270,15 +270,9 @@ abstract class AbstractObject implements Sizable, Stringable
         }
 
         if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
-            self::throw(
-                'Cannot make directory [directory: %s, error: %s]',
-                [$directory, '@error']
-            );
+            self::throw('Cannot make directory [directory: %s, error: @error]', $directory);
         } elseif (!is_writable($directory)) {
-            self::throw(
-                'Cannot write directory, not writable [directory: %s]',
-                $directory
-            );
+            self::throw('Cannot write directory, not writable [directory: %s]', $directory);
         }
 
         // Make a random UUID name if no name given.
