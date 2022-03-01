@@ -10,13 +10,13 @@ namespace froq\file\mime;
 /**
  * Mimes.
  *
- * Represents an MIME Type registry with `all()` method.
+ * An MIME Type registry class with `all()` method.
  *
  * @package froq\file\mime
  * @object  froq\file\mime\Mimes
  * @author  Kerem Güneş
- * @since   3.0, 4.0 Moved to mime directory.
- * @static @internal
+ * @since   3.0, 4.0
+ * @static
  */
 final class Mimes extends \StaticClass
 {

@@ -15,7 +15,7 @@ use froq\file\FileException;
  * @package froq\file\mime
  * @object  froq\file\mime\MimeException
  * @author  Kerem Güneş
- * @since   3.0, 4.0 Moved to mime directory.
+ * @since   3.0, 4.0
  */
 class MimeException extends FileException
 {}
