@@ -7,18 +7,17 @@ declare(strict_types=1);
 
 namespace froq\file\mime;
 
-use froq\file\mime\{Mimes, MimeException};
 use froq\file\{File, FileError};
 
 /**
  * Mime.
  *
- * Represents a static class entity which is able to get files' mime types and extensions.
+ * A static class, able to get files's MIME types and extensions.
  *
  * @package froq\file\mime
  * @object  froq\file\mime\Mime
  * @author  Kerem Güneş
- * @since   1.0, 4.0 Moved to mime directory.
+ * @since   1.0, 4.0
  * @static
  */
 final class Mime extends \StaticClass
