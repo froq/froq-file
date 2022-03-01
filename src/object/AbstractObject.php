@@ -269,20 +269,20 @@ abstract class AbstractObject implements Sizable, Stringable
             self::throw('Empty directory given');
         }
 
-        if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
-            self::throw('Cannot make directory [directory: %s, error: @error]', $directory);
-        } elseif (!is_writable($directory)) {
-            self::throw('Cannot write directory, not writable [directory: %s]', $directory);
+        if (!dirmake($directory)) {
+            self::throw('Cannot make directory [directory: %S, error: @error]', $directory);
         }
 
-        // Make a random UUID name if no name given.
+        // Make a file name with time-prefixed UUID if none given.
         $file = chop($directory, '/') .'/'. ($name ?: uuid(timed: true));
-
-        // Default is 0644.
-        $mode && touch($file) && chmod($file, $mode);
 
         if (file_put_contents($file, $this->toString()) === false) {
             self::throw('Cannot write file [error: @error]');
+        }
+
+        // Default is 0644.
+        if ($mode && !(touch($file) && chmod($file, $mode))) {
+            self::throw('Cannot touch file [error: @error]');
         }
 
         return $file;
