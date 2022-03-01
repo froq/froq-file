@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace froq\file;
 
 use froq\file\system\{Path, File, Directory};
+use froq\common\interface\{Arrayable, Objectable};
 
 /**
  * Info.
@@ -19,7 +20,7 @@ use froq\file\system\{Path, File, Directory};
  * @author  Kerem Güneş
  * @since   6.0
  */
-class Info extends \SplFileInfo
+class Info extends \SplFileInfo implements Arrayable, Objectable
 {
     /** @var string */
     public readonly string $pathOrig;
@@ -175,6 +176,22 @@ class Info extends \SplFileInfo
     public final function isDirectory()
     {
         return parent::isDir();
+    }
+
+    /**
+     * @inheritDoc froq\common\interface\Arrayable
+     */
+    public final function toArray(): array
+    {
+        return $this->pathInfo;
+    }
+
+    /**
+     * @inheritDoc froq\common\interface\Objectable
+     */
+    public final function toObject(): object
+    {
+        return (object) $this->pathInfo;
     }
 
     /**
