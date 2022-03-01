@@ -7,9 +7,7 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\file\mime\{Mime, MimeException};
 use froq\file\system\{Path, File, Directory};
-use SplFileInfo;
 
 /**
  * Info.
@@ -21,7 +19,7 @@ use SplFileInfo;
  * @author  Kerem Güneş
  * @since   6.0
  */
-class Info extends SplFileInfo
+class Info extends \SplFileInfo
 {
     /** @var string */
     public readonly string $pathOrig;
@@ -39,14 +37,14 @@ class Info extends SplFileInfo
     {
         if (str_contains($path, "\0")) {
             throw new InfoException('Invalid path, path contains NULL-bytes');
-        } elseif (trim($path) === '') {
+        } elseif (trim($path) == '') {
             throw new InfoException('Invalid path, empty path given');
         }
 
         // Keep original path.
         $this->pathOrig = $path;
 
-        // This will resolve real path as well.
+        // This resolves real path as well.
         $this->pathInfo = get_path_info($path);
 
         // Prevent link resolutions.
@@ -57,7 +55,7 @@ class Info extends SplFileInfo
         parent::__construct($path);
     }
 
-    /** @magic __get() */
+    /** @magic */
     public function __get(string $property): mixed
     {
         if ($this->pathInfo && array_key_exists($property, $this->pathInfo)) {
@@ -72,20 +70,10 @@ class Info extends SplFileInfo
         return null;
     }
 
-    /** @magic __toString() */
+    /** @magic */
     public function __toString(): string
     {
         return $this->path;
-    }
-
-    /**
-     * Get file mime.
-     *
-     * @return string|null
-     */
-    public final function getMime(): string|null
-    {
-        return \froq\file\File::getMime($this->getPathname());
     }
 
     /** @override */ #[\ReturnTypeWillChange]
@@ -100,16 +88,26 @@ class Info extends SplFileInfo
         return $this->pathInfo['extension'];
     }
 
+    /** @override */ #[\ReturnTypeWillChange]
+    public final function getFilename(): string|null
+    {
+        return $this->pathInfo['filename'];
+    }
+
     /** @missing */
     public final function getDirname(): string
     {
         return $this->pathInfo['dirname'];
     }
 
-    /** @override */
-    public final function getFilename(): string
+    /**
+     * Get file mime.
+     *
+     * @return string|null
+     */
+    public final function getMime(): string|null
     {
-        return $this->pathInfo['filename'];
+        return \froq\file\File::getMime($this->getPathname());
     }
 
     /**
@@ -172,11 +170,17 @@ class Info extends SplFileInfo
         return new Directory($this->getPathname());
     }
 
-    /** @aliasOf toDir() */
-    public final function toDirectory() { return $this->toDir(); }
+    /** @alias toDir() */
+    public final function toDirectory()
+    {
+        return $this->toDir();
+    }
 
-    /** @aliasOf SplFileInfo.isDir() */
-    public final function isDirectory() { return parent::isDir(); }
+    /** @alias SplFileInfo.isDir() */
+    public final function isDirectory()
+    {
+        return parent::isDir();
+    }
 
     /**
      * Normalize given path.
