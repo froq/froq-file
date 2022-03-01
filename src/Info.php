@@ -52,21 +52,6 @@ class Info extends \SplFileInfo implements Arrayable, Objectable
     }
 
     /** @magic */
-    public function __get(string $property): mixed
-    {
-        if ($this->pathInfo && array_key_exists($property, $this->pathInfo)) {
-            return $this->pathInfo[$property];
-        }
-
-        trigger_error(
-            'Undefined property: '. $this::class .'::$'. $property,
-            E_USER_WARNING // Act like original.
-        );
-
-        return null;
-    }
-
-    /** @magic */
     public function __toString(): string
     {
         return $this->path;
