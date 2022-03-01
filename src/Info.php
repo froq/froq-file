@@ -47,12 +47,7 @@ class Info extends \SplFileInfo
         // This resolves real path as well.
         $this->pathInfo = get_path_info($path);
 
-        // Prevent link resolutions.
-        if (!is_link($path)) {
-            $path = $this->pathInfo['path'];
-        }
-
-        parent::__construct($path);
+        parent::__construct($this->pathInfo['path']);
     }
 
     /** @magic */
