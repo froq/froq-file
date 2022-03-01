@@ -219,14 +219,9 @@ class ImageObject extends AbstractObject
         $this->resourceCheck();
 
         if (!isset($this->mime)) {
-            throw new ImageObjectException(
-                'No MIME given yet, try after calling setMime()'
-            );
-        }
-        if (!in_array($this->mime, self::MIMES)) {
-            throw new ImageObjectException(
-                'Invalid MIME `%s` [valids: %s]', [$this->mime, join(', ', self::MIMES)]
-            );
+            throw new ImageObjectException('No MIME given yet, try after calling setMime()');
+        } elseif (!in_array($this->mime, self::MIMES)) {
+            throw new ImageObjectException('Invalid MIME `%s` [valids: %a]', [$this->mime, self::MIMES]);
         }
 
         ob_start();

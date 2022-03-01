@@ -48,16 +48,11 @@ class Path extends AbstractSystem
         $realType = $this->getType();
 
         if ($type !== null) {
+            // Validate given type.
             if (!in_array($type, self::TYPES)) {
-                throw new PathException(
-                    'Invalid type `%s` [valids: %s]',
-                    [$type, join(',', self::TYPES)]
-                );
+                throw new PathException('Invalid type `%s` [valids: %a]', [$type, self::TYPES]);
             } elseif ($type != $realType) {
-                throw new PathException(
-                    'Unmatched types `%s != %s`',
-                    [$type, $realType]
-                );
+                throw new PathException('Unmatched types `%s != %s`', [$type, $realType]);
             }
             $this->type = $type;
         } else {

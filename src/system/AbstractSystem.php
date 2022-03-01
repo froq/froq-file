@@ -312,11 +312,7 @@ abstract class AbstractSystem
                 array_map('strtolower', split('|', $mode)),
                 fn($op) => in_array($op, self::OPS)
             );
-
-            $ops || self::throw(
-                'Invalid mode `%s` [valids: %s]',
-                [$mode, join(',', self::OPS)]
-            );
+            $ops || self::throw('Invalid mode `%s` [valids: %a]', [$mode, self::OPS]);
 
             $mode = 0;
             foreach ($ops as $op) {

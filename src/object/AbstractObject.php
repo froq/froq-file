@@ -62,7 +62,7 @@ abstract class AbstractObject implements Sizable, Stringable
                 $resourceFile ??= fmeta($resource)['uri'];
             } elseif ($this instanceof ImageObject) {
                 if ($mime && !in_array($mime, static::MIMES)) {
-                    self::throw('Invalid MIME `%s` [valids: %s]', [$mime, join(',', static::MIMES)]);
+                    self::throw('Invalid MIME `%s` [valids: %a]', [$mime, static::MIMES]);
                 }
 
                 // When a resource given, eg: fopen('path/to/file.jpg', 'rb').
