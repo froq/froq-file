@@ -23,15 +23,15 @@ use froq\util\Util;
 abstract class AbstractSystem
 {
     /** @const int */
-    public final const ALL = 7, READ = 1,
-                       WRITE = 2, EXECUTE = 4;
+    public final const MODE_ALL   = 7, MODE_READ    = 1,
+                       MODE_WRITE = 2, MODE_EXECUTE = 4;
 
     /** @const string */
-    public final const OP_ALL = 'all', OP_READ = 'read',
-                       OP_WRITE = 'write', OP_EXECUTE = 'execute';
+    public final const MODE_OP_ALL   = 'all',   MODE_OP_READ    = 'read',
+                       MODE_OP_WRITE = 'write', MODE_OP_EXECUTE = 'execute';
 
     /** @const array */
-    public final const OPS = ['all', 'read', 'write', 'execute'];
+    public final const MODE_OPS = ['all', 'read', 'write', 'execute'];
 
     /** @var string */
     public readonly string $path;
@@ -46,7 +46,7 @@ abstract class AbstractSystem
      * Constructor.
      *
      * @param  string $path
-     * @throws froq\file\{PathException|FileException|DirectoryException}
+     * @causes froq\file\{PathException|FileException|DirectoryException}
      */
     public function __construct(string $path)
     {
@@ -59,7 +59,7 @@ abstract class AbstractSystem
         // Keep original path.
         $this->pathOrig = $path;
 
-        // This will resolve real path as well.
+        // This resolves real path as well.
         $this->pathInfo = get_path_info($path);
 
         // Prevent link resolutions.
@@ -68,21 +68,6 @@ abstract class AbstractSystem
         } else {
             $this->path = $this->pathInfo['path'];
         }
-    }
-
-    /** @magic */
-    public function __get(string $property): mixed
-    {
-        if ($this->pathInfo && array_key_exists($property, $this->pathInfo)) {
-            return $this->pathInfo[$property];
-        }
-
-        trigger_error(
-            'Undefined property: '. $this::class .'::$'. $property,
-            E_USER_WARNING // Act like original.
-        );
-
-        return null;
     }
 
     /** @magic */
@@ -114,21 +99,23 @@ abstract class AbstractSystem
     /**
      * Get real path.
      *
+     * @param  bool $check
      * @return string|null
      */
-    public final function getRealPath(string|bool $check = true): string|null
+    public final function getRealPath(bool $check = true): string|null
     {
-        return $check ? realpath($this->pathInfo['path']) : $this->pathInfo['path'];
+        return $check ? $this->pathInfo['realpath'] : $this->pathInfo['path'];
     }
 
     /**
      * Get path info.
      *
+     * @param  string|null $component
      * @return string|array|null
      */
-    public final function getPathInfo(string|int $component = null): string|array|null
+    public final function getPathInfo(string $component = null): string|array|null
     {
-        return ($component !== null) ? $this->pathInfo[$component] : $this->pathInfo;
+        return $component ? $this->pathInfo[$component] : $this->pathInfo;
     }
 
     /**
@@ -299,7 +286,7 @@ abstract class AbstractSystem
      * Check whether path has given access mode.
      *
      * @return bool
-     * @throws froq\file\{PathException|FileException|DirectoryException}
+     * @causes froq\file\{PathException|FileException|DirectoryException}
      */
     public final function hasAccess(int|string $mode): bool|null
     {
@@ -310,38 +297,38 @@ abstract class AbstractSystem
         if (is_string($mode)) {
             $ops = array_filter(
                 array_map('strtolower', split('|', $mode)),
-                fn($op) => in_array($op, self::OPS)
+                fn($op) => in_array($op, self::MODE_OPS)
             );
-            $ops || self::throw('Invalid mode `%s` [valids: %a]', [$mode, self::OPS]);
+            $ops || self::throw('Invalid mode `%s` [valids: %a]', [$mode, self::MODE_OPS]);
 
             $mode = 0;
             foreach ($ops as $op) {
-                if ($op == self::OP_ALL) {
-                    $mode |= self::READ | self::WRITE | self::EXECUTE;
+                if ($op == self::MODE_OP_ALL) {
+                    $mode |= self::MODE_READ | self::MODE_WRITE | self::MODE_EXECUTE;
                     break;
                 }
-                if ($op == self::OP_READ) {
-                    $mode |= self::READ;
+                if ($op == self::MODE_OP_READ) {
+                    $mode |= self::MODE_READ;
                 }
-                if ($op == self::OP_WRITE) {
-                    $mode |= self::WRITE;
+                if ($op == self::MODE_OP_WRITE) {
+                    $mode |= self::MODE_WRITE;
                 }
-                if ($op == self::OP_EXECUTE) {
-                    $mode |= self::EXECUTE;
+                if ($op == self::MODE_OP_EXECUTE) {
+                    $mode |= self::MODE_EXECUTE;
                 }
             }
         }
 
-        if ($mode == self::ALL) {
+        if ($mode == self::MODE_ALL) {
             return $this->isReadable() && $this->isWritable() && $this->isExecutable();
         }
-        if (($mode & self::READ) == self::READ && !$this->isReadable()) {
+        if (($mode & self::MODE_READ) == self::MODE_READ && !$this->isReadable()) {
             return false;
         }
-        if (($mode & self::WRITE) == self::WRITE && !$this->isWritable()) {
+        if (($mode & self::MODE_WRITE) == self::MODE_WRITE && !$this->isWritable()) {
             return false;
         }
-        if (($mode & self::EXECUTE) == self::EXECUTE && !$this->isExecutable()) {
+        if (($mode & self::MODE_EXECUTE) == self::MODE_EXECUTE && !$this->isExecutable()) {
             return false;
         }
         return true;
@@ -471,7 +458,7 @@ abstract class AbstractSystem
      *
      * @param  string $class
      * @return iterable|null
-     * @throws froq\file\{PathException|FileException|DirectoryException}
+     * @causes froq\file\{PathException|FileException|DirectoryException}
      */
     public final function getIterator(string $class = 'FilesystemIterator'): iterable|null
     {
@@ -490,7 +477,7 @@ abstract class AbstractSystem
      * @param  string $class
      * @param  bool   $recursive
      * @return iterable|null
-     * @throws froq\file\{PathException|FileException|DirectoryException}
+     * @causes froq\file\{PathException|FileException|DirectoryException}
      */
     public final function getDirectoryIterator(string $class = 'DirectoryIterator', bool $recursive = false): iterable|null
     {
@@ -776,14 +763,23 @@ abstract class AbstractSystem
         return new Directory($this->path);
     }
 
-    /** @aliasOf isDir() */
-    public final function isDirectory() { return $this->isDir(); }
+    /** @alias isDir() */
+    public final function isDirectory()
+    {
+        return $this->isDir();
+    }
 
-    /** @aliasOf toDirectory() */
-    public final function toDir() { return $this->toDirectory(); }
+    /** @alias toDirectory() */
+    public final function toDir()
+    {
+        return $this->toDirectory();
+    }
 
-    /** @aliasOf rename() */
-    public final function move(...$args) { return $this->rename(...$args); }
+    /** @alias rename() */
+    public final function move(...$args)
+    {
+        return $this->rename(...$args);
+    }
 
     /**
      * Normalize given path.
