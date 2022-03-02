@@ -297,7 +297,7 @@ abstract class AbstractSystem
         if (is_string($mode)) {
             $ops = array_filter(
                 array_map('strtolower', split('|', $mode)),
-                fn($op) => in_array($op, self::MODE_OPS)
+                fn($op) => in_array($op, self::MODE_OPS, true)
             );
             $ops || self::throw('Invalid mode `%s` [valids: %a]', [$mode, self::MODE_OPS]);
 

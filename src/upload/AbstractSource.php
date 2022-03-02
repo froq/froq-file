@@ -338,7 +338,7 @@ abstract class AbstractSource implements Stringable
         return (
                 $types == '*' // All.
             || ($types[0] == '~' && preg_test($types, $type))
-            || in_array($type, preg_split('~\s*,\s*~', $types, flags: 1))
+            || in_array($type, preg_split('~\s*,\s*~', $types, flags: 1), true)
         );
     }
 
@@ -356,7 +356,7 @@ abstract class AbstractSource implements Stringable
         return (
                 $extensions == '*' // All.
             || ($extensions[0] == '~' && preg_test($extensions, $extension))
-            || in_array($extension, preg_split('~\s*,\s*~', $extensions, flags: 1))
+            || in_array($extension, preg_split('~\s*,\s*~', $extensions, flags: 1), true)
         );
     }
 

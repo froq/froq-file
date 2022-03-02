@@ -146,7 +146,7 @@ class ImageSource extends AbstractSource
             }
         } else {
             // Handle transparency.
-            if (in_array($type, [IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP], true)) {
+            if (in_array($type, [IMAGETYPE_WEBP, IMAGETYPE_PNG, IMAGETYPE_GIF], true)) {
                 imagealphablending($this->targetImage, false);
                 imagesavealpha($this->targetImage, true);
                 imageantialias($this->targetImage, true);
@@ -237,7 +237,7 @@ class ImageSource extends AbstractSource
             }
         } else {
             // Handle transparency.
-            if (in_array($type, [IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP], true)) {
+            if (in_array($type, [IMAGETYPE_WEBP, IMAGETYPE_PNG, IMAGETYPE_GIF], true)) {
                 imagealphablending($this->targetImage, false);
                 imagesavealpha($this->targetImage, true);
                 imageantialias($this->targetImage, true);
@@ -604,9 +604,9 @@ class ImageSource extends AbstractSource
         } else {
             $image = match ($this->getType()) {
                 IMAGETYPE_JPEG => imagecreatefromjpeg($this->getSource()),
+                IMAGETYPE_WEBP => imagecreatefromwebp($this->getSource()),
                 IMAGETYPE_PNG  => imagecreatefrompng($this->getSource()),
                 IMAGETYPE_GIF  => imagecreatefromgif($this->getSource()),
-                IMAGETYPE_WEBP => imagecreatefromwebp($this->getSource()),
             };
         }
 

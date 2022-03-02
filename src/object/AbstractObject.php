@@ -61,7 +61,7 @@ abstract class AbstractObject implements Sizable, Stringable
                 // For clean ups (mostly for temps).
                 $resourceFile ??= fmeta($resource)['uri'];
             } elseif ($this instanceof ImageObject) {
-                if ($mime && !in_array($mime, static::MIMES)) {
+                if ($mime && !in_array($mime, static::MIMES, true)) {
                     self::throw('Invalid MIME `%s` [valids: %a]', [$mime, static::MIMES]);
                 }
 
@@ -159,7 +159,7 @@ abstract class AbstractObject implements Sizable, Stringable
                 $height = imagesy($this->resource)
             );
 
-            if (in_array($this->mime, ['image/png', 'image/gif', 'image/webp'])) {
+            if (in_array($this->mime, ['image/webp', 'image/png', 'image/gif'], true)) {
                 imagealphablending($copy, false);
                 imagesavealpha($copy, true);
                 imageantialias($copy, true);
