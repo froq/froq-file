@@ -23,6 +23,9 @@ use froq\common\interface\{Arrayable, Objectable};
 class Info extends \SplFileInfo implements Arrayable, Objectable
 {
     /** @var string */
+    public readonly string $path;
+
+    /** @var string */
     public readonly string $pathOrig;
 
     /** @var array|null */
@@ -48,7 +51,14 @@ class Info extends \SplFileInfo implements Arrayable, Objectable
         // This resolves real path as well.
         $this->pathInfo = get_path_info($path);
 
-        parent::__construct($this->pathInfo['path']);
+        // Prevent link resolutions.
+        if (is_link($path)) {
+            $this->path = $path;
+        } else {
+            $this->path = $this->pathInfo['path'];
+        }
+
+        parent::__construct($this->path);
     }
 
     /** @magic */
