@@ -27,7 +27,7 @@ class ImageSource extends AbstractSource
     /** @const array */
     public const SUPPORTED_TYPES = [
         IMAGETYPE_JPEG, IMAGETYPE_WEBP,
-        IMAGETYPE_PNG,  IMAGETYPE_GIF,
+        IMAGETYPE_PNG,  IMAGETYPE_GIF
     ];
 
     /** @var GdImage|Imagick|null */
@@ -606,7 +606,7 @@ class ImageSource extends AbstractSource
                 IMAGETYPE_JPEG => imagecreatefromjpeg($this->getSource()),
                 IMAGETYPE_WEBP => imagecreatefromwebp($this->getSource()),
                 IMAGETYPE_PNG  => imagecreatefrompng($this->getSource()),
-                IMAGETYPE_GIF  => imagecreatefromgif($this->getSource()),
+                IMAGETYPE_GIF  => imagecreatefromgif($this->getSource())
             };
         }
 
@@ -686,7 +686,7 @@ class ImageSource extends AbstractSource
             IMAGETYPE_JPEG => imagejpeg($image, null, $this->options['jpegQuality']),
             IMAGETYPE_WEBP => imagewebp($image, null, $this->options['webpQuality']),
             IMAGETYPE_PNG  => imagepng($image, null, $this->options['pngQuality'], $this->options['pngFilters']),
-            IMAGETYPE_GIF  => imagegif($image),
+            IMAGETYPE_GIF  => imagegif($image)
         }) {
             return ob_get_clean();
         }
@@ -742,7 +742,7 @@ class ImageSource extends AbstractSource
             IMAGETYPE_JPEG => imagejpeg($image, $file, $this->options['jpegQuality']),
             IMAGETYPE_WEBP => imagewebp($image, $file, $this->options['webpQuality']),
             IMAGETYPE_PNG  => imagepng($image, $file, $this->options['pngQuality'], $this->options['pngFilters']),
-            IMAGETYPE_GIF  => imagegif($image, $file),
+            IMAGETYPE_GIF  => imagegif($image, $file)
         }) {
             return $file;
         }
