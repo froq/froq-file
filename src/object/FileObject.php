@@ -22,7 +22,9 @@ use froq\file\File;
 class FileObject extends AbstractObject
 {
     /** @var array */
-    protected static array $optionsDefault = ['mode' => 'r+b'];
+    protected static array $optionsDefault = [
+        'mode' => 'r+b'
+    ];
 
     /**
      * Write some contents to file.
