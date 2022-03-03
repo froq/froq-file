@@ -14,7 +14,7 @@ use froq\common\interface\{Sizable, Stringable};
 /**
  * Abstract Object.
  *
- * Represents an abstract class for working with file/image resources in OOP style.
+ * An abstract class, for working with files/images in OOP style.
  *
  * @package froq\file\object
  * @object  froq\file\object\AbstractObject

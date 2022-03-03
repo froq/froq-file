@@ -12,7 +12,7 @@ use froq\file\File;
 /**
  * File Object.
  *
- * Represents a file class for working with file resources in OOP style.
+ * A class, for working with files in OOP style.
  *
  * @package froq\file\object
  * @object  froq\file\object\FileObject

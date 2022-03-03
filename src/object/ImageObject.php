@@ -13,7 +13,7 @@ use froq\file\File;
 /**
  * Image Object.
  *
- * Represents an image class for working with image resources in OOP style.
+ * A class, for working with images in OOP style.
  *
  * @package froq\file\object
  * @object  froq\file\object\ImageObject
