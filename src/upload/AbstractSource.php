@@ -26,10 +26,6 @@ use froq\util\Util;
  */
 abstract class AbstractSource implements Stringable
 {
-    /**
-     * @see froq\common\trait\ApplyTrait
-     * @see froq\common\trait\OptionTrait
-     */
     use ApplyTrait, OptionTrait;
 
     /** @var string */

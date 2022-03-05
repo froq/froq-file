@@ -23,10 +23,6 @@ use froq\common\interface\{Sizable, Stringable};
  */
 abstract class AbstractObject implements Sizable, Stringable
 {
-    /**
-     * @see froq\common\trait\ApplyTrait
-     * @see froq\common\trait\OptionTrait
-     */
     use ApplyTrait, OptionTrait;
 
     /** @var mixed<resource|GdImage>|null */
