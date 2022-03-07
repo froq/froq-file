@@ -166,7 +166,7 @@ abstract class AbstractSource implements Stringable
             );
         }
 
-        [$size, $name] = array_select($file, ['size', 'name']);
+        [$size, $type, $name] = array_select($file, ['size', 'type', 'name']);
 
         $size    ??= filesize($source);
         $type    ??= Mime::getType($source);
