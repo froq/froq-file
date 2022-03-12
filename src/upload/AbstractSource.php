@@ -395,7 +395,7 @@ abstract class AbstractSource implements Stringable
      * @return string
      * @throws froq\file\upload\{FileSourceException|ImageSourceException}
      */
-    public abstract function save(string $name = null, string $appendix = null): string;
+    abstract public function save(string $name = null, string $appendix = null): string;
 
     /**
      * Move a file with given or generated name, return name.
@@ -405,7 +405,7 @@ abstract class AbstractSource implements Stringable
      * @return string
      * @throws froq\file\upload\{FileSourceException|ImageSourceException}
      */
-    public abstract function move(string $name = null, string $appendix = null): string;
+    abstract public function move(string $name = null, string $appendix = null): string;
 
     /**
      * Clear sources/resources.
@@ -413,5 +413,5 @@ abstract class AbstractSource implements Stringable
      * @param  bool $force
      * @return void
      */
-    public abstract function clear(bool $force = false): void;
+    abstract public function clear(bool $force = false): void;
 }
