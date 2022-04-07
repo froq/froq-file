@@ -23,8 +23,8 @@ class FileError extends Error
      * Codes.
      * @const int
      */
-    public const DIRECTORY            = 1,
-                 NO_FILE_EXISTS       = 2,
-                 NO_ACCESS_PERMISSION = 3,
-                 NO_VALID_PATH        = 4;
+    public final const DIRECTORY            = 1,
+                       NO_FILE_EXISTS       = 2,
+                       NO_ACCESS_PERMISSION = 3,
+                       NO_VALID_PATH        = 4;
 }

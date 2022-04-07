@@ -22,10 +22,10 @@ use GdImage, Imagick, ImagickException;
 class ImageSource extends AbstractSource
 {
     /** @const int */
-    public const QUALITY = -1;
+    public final const QUALITY = -1;
 
     /** @const array */
-    public const SUPPORTED_TYPES = [
+    public final const SUPPORTED_TYPES = [
         IMAGETYPE_JPEG, IMAGETYPE_WEBP,
         IMAGETYPE_PNG,  IMAGETYPE_GIF
     ];

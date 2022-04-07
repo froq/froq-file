@@ -23,23 +23,23 @@ class UploadError extends FileError
      * Codes.
      * @const int
      */
-    public const INTERNAL                     = 1,
-                 NO_VALID_FILE                = 2,
-                 NO_VALID_SOURCE              = 3,
-                 OPTION_EMPTY                 = 4,
-                 OPTION_SIZE_EXCEEDED         = 5,
-                 OPTION_EMPTY_EXTENSION       = 6,
-                 OPTION_NOT_ALLOWED_TYPE      = 7,
-                 OPTION_NOT_ALLOWED_EXTENSION = 8,
-                 OPTION_NOT_ALLOWED_OVERWRITE = 9,
-                 DIRECTORY_EMPTY              = 10,
-                 DIRECTORY_ERROR              = 11;
+    public final const INTERNAL                     = 1,
+                       NO_VALID_FILE                = 2,
+                       NO_VALID_SOURCE              = 3,
+                       OPTION_EMPTY                 = 4,
+                       OPTION_SIZE_EXCEEDED         = 5,
+                       OPTION_EMPTY_EXTENSION       = 6,
+                       OPTION_NOT_ALLOWED_TYPE      = 7,
+                       OPTION_NOT_ALLOWED_EXTENSION = 8,
+                       OPTION_NOT_ALLOWED_OVERWRITE = 9,
+                       DIRECTORY_EMPTY              = 10,
+                       DIRECTORY_ERROR              = 11;
 
     /**
      * Messages.
      * @const array
      */
-    public const MESSAGES = [
+    public final const MESSAGES = [
         1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
         2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
         3 => 'The uploaded file was only partially uploaded',
