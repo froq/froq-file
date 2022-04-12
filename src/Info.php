@@ -11,8 +11,6 @@ use froq\file\system\{Path, File, Directory};
 use froq\common\interface\{Arrayable, Objectable};
 
 /**
- * Info.
- *
  * An extended SplFileInfo class.
  *
  * @package froq\file

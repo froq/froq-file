@@ -10,8 +10,6 @@ namespace froq\file\system;
 use froq\file\object\FileObject;
 
 /**
- * Path.
- *
  * A class for working with path (file/directory) objects.
  *
  * @package froq\file\system

@@ -8,8 +8,6 @@ declare(strict_types=1);
 namespace froq\file\system;
 
 /**
- * Directory Exception.
- *
  * @package froq\file\system
  * @object  froq\file\system\DirectoryException
  * @author  Kerem Güneş

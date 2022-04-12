@@ -8,8 +8,6 @@ declare(strict_types=1);
 namespace froq\file\system;
 
 /**
- * Path Exception.
- *
  * @package froq\file\system
  * @object  froq\file\system\PathException
  * @author  Kerem Güneş

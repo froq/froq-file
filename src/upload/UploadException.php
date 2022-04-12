@@ -7,8 +7,6 @@ declare(strict_types=1);
 
 namespace froq\file\upload;
 
-use froq\file\FileException;
-
 /**
  * Upload Exception.
  *
@@ -17,5 +15,5 @@ use froq\file\FileException;
  * @author  Kerem Güneş
  * @since   4.0, 5.0
  */
-class UploadException extends FileException
+class UploadException extends \froq\file\FileException
 {}

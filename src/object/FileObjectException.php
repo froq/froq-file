@@ -8,8 +8,6 @@ declare(strict_types=1);
 namespace froq\file\object;
 
 /**
- * File Object Exception.
- *
  * @package froq\file\object
  * @object  froq\file\object\FileObjectException
  * @author  Kerem Güneş

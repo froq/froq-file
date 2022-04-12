@@ -8,8 +8,6 @@ declare(strict_types=1);
 namespace froq\file\upload;
 
 /**
- * Image Source Exception.
- *
  * @package froq\file\upload
  * @object  froq\file\upload\ImageSourceException
  * @author  Kerem Güneş

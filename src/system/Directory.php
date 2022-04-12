@@ -8,8 +8,6 @@ declare(strict_types=1);
 namespace froq\file\system;
 
 /**
- * Directory.
- *
  * A class for working with directory objects.
  *
  * @package froq\file\system

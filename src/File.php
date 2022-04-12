@@ -11,8 +11,6 @@ use froq\file\mime\{Mime, MimeException};
 use froq\file\object\{FileObject, FileObjectException};
 
 /**
- * File.
- *
  * A static file utility class.
  *
  * @package froq\file

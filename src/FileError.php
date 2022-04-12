@@ -7,17 +7,13 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\common\Error;
-
 /**
- * File Error.
- *
  * @package froq\file
  * @object  froq\file\FileError
  * @author  Kerem Güneş
  * @since   3.0
  */
-class FileError extends Error
+class FileError extends \froq\common\Error
 {
     /**
      * Codes.

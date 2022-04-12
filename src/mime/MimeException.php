@@ -7,15 +7,11 @@ declare(strict_types=1);
 
 namespace froq\file\mime;
 
-use froq\file\FileException;
-
 /**
- * Mime Exception.
- *
  * @package froq\file\mime
  * @object  froq\file\mime\MimeException
  * @author  Kerem Güneş
  * @since   3.0, 4.0
  */
-class MimeException extends FileException
+class MimeException extends \froq\file\FileException
 {}

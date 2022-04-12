@@ -10,8 +10,6 @@ namespace froq\file\mime;
 use froq\file\{File, FileError};
 
 /**
- * Mime.
- *
  * A static class, able to get files's MIME types and extensions.
  *
  * @package froq\file\mime

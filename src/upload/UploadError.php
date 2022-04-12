@@ -7,17 +7,13 @@ declare(strict_types=1);
 
 namespace froq\file\upload;
 
-use froq\file\FileError;
-
 /**
- * Upload Error.
- *
  * @package froq\file\upload
  * @object  froq\file\upload\UploadError
  * @author  Kerem Güneş
  * @since   4.0, 5.0
  */
-class UploadError extends FileError
+class UploadError extends \froq\file\FileError
 {
     /**
      * Codes.

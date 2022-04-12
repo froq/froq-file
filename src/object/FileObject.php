@@ -10,8 +10,6 @@ namespace froq\file\object;
 use froq\file\File;
 
 /**
- * File Object.
- *
  * A class, for working with files in OOP style.
  *
  * @package froq\file\object

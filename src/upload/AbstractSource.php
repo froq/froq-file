@@ -14,8 +14,6 @@ use froq\common\trait\{ApplyTrait, OptionTrait};
 use froq\util\Util;
 
 /**
- * Abstract Source.
- *
  * An abstract uploaded source entity for working with files/images in OOP style with a few
  * safety options.
  *

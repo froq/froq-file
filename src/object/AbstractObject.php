@@ -8,12 +8,10 @@ declare(strict_types=1);
 namespace froq\file\object;
 
 use froq\file\File;
-use froq\common\trait\{ApplyTrait, OptionTrait};
 use froq\common\interface\{Sizable, Stringable};
+use froq\common\trait\{ApplyTrait, OptionTrait};
 
 /**
- * Abstract Object.
- *
  * An abstract class, for working with files/images in OOP style.
  *
  * @package froq\file\object

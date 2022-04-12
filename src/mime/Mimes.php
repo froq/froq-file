@@ -8,9 +8,7 @@ declare(strict_types=1);
 namespace froq\file\mime;
 
 /**
- * Mimes.
- *
- * An MIME Type registry class with `all()` method.
+ * An MIME type registry class with `all()` method.
  *
  * @package froq\file\mime
  * @object  froq\file\mime\Mimes

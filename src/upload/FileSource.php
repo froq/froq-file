@@ -8,8 +8,6 @@ declare(strict_types=1);
 namespace froq\file\upload;
 
 /**
- * File Source
- *
  * An uploaded file class for working with files in OOP style with a few safety options.
  *
  * @package froq\file\upload

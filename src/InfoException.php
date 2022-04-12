@@ -8,8 +8,6 @@ declare(strict_types=1);
 namespace froq\file;
 
 /**
- * Info Exception.
- *
  * @package froq\file
  * @object  froq\file\InfoException
  * @author  Kerem Güneş

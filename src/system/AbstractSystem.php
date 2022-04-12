@@ -11,8 +11,6 @@ use froq\file\mime\{Mime, MimeException};
 use froq\util\Util;
 
 /**
- * Abstract System.
- *
  * An abstract class for working with file system objects.
  *
  * @package froq\file\system
