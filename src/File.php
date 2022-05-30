@@ -350,6 +350,7 @@ final class File extends \StaticClass
     public static function errorCheck(string $file, FileError &$error = null): bool
     {
         $error = null;
+
         if (str_contains($file, "\0")) {
             $error = new FileError(
                 'No valid path, path contains NULL-bytes',
