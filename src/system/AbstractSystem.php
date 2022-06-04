@@ -795,7 +795,7 @@ abstract class AbstractSystem
      *
      * @return bool
      */
-    public function ok(): bool
+    public function okay(): bool
     {
         return file_exists($this->path);
     }
