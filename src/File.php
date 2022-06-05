@@ -110,11 +110,11 @@ final class File extends \StaticClass
      * @param  string $file
      * @param  int    $mode
      * @param  bool   $temp
-     * @return bool
+     * @return string|null
      * @throws froq\file\FileException
      * @since  6.0
      */
-    public static function make(string $file, int $mode = 0644, bool $temp = false): bool
+    public static function make(string $file, int $mode = 0644, bool $temp = false): string|null
     {
         return @file_create($file, $mode, $temp) ?: throw new FileException('@error');
     }

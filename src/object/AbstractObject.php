@@ -215,13 +215,13 @@ abstract class AbstractObject implements Sizable, Stringable
         $resource = null;
         try {
             if ($this instanceof FileObject) {
-                $resource = fopen($file, ($options['mode'] ?? static::$optionsDefault['mode']));
+                $resource =@ fopen($file, ($options['mode'] ?? static::$optionsDefault['mode']));
             } elseif ($this instanceof ImageObject) {
                 if (File::errorCheck($file, $error)) {
                     throw $error;
                 }
 
-                $resource = imagecreatefromstring(file_get_contents($file));
+                $resource =@ imagecreatefromstring(file_get_contents($file));
             }
         } catch (\Throwable $e) {
             self::throw($e->getMessage(), code: $e->getCode(), cause: $e);
@@ -392,7 +392,7 @@ abstract class AbstractObject implements Sizable, Stringable
         self::ban(__method__);
 
         $file     = tmpnam();
-        $resource = fopen($file, 'w+b') ?: self::throw('Empty resource returned [error: @error]');
+        $resource = @fopen($file, 'w+b') ?: self::throw('Empty resource returned [error: @error]');
 
         return new static($resource, $mime, $options, resourceFile: $file);
     }

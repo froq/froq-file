@@ -330,7 +330,7 @@ class ImageObject extends AbstractObject
             throw new ImageObjectException($error->message, code: $error->code, cause: $error);
         }
 
-        $resource = imagecreatefromstring(file_get_contents($file))
+        $resource =@ imagecreatefromstring(file_get_contents($file))
             ?: throw new ImageObjectException('Cannot create resource [error: @error]');
 
         $mime ??= mime_content_type($file);
@@ -348,7 +348,7 @@ class ImageObject extends AbstractObject
      */
     public static final function fromString(string $string, string $mime = null, array $options = null): static
     {
-        $resource = imagecreatefromstring($string)
+        $resource =@ imagecreatefromstring($string)
             ?: throw new ImageObjectException('Cannot create resource [error: @error]');
 
         $mime ??= getimagesizefromstring($string)['mime'];
