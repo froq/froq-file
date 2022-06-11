@@ -409,7 +409,7 @@ class FileObject extends AbstractObject
     public static final function fromFile(string $file, string $mime = null, array $options = null): static
     {
         if (File::errorCheck($file, $error)) {
-            throw new FileObjectException($error->message, code: $error->code, cause: $error);
+            throw new FileObjectException($error);
         }
 
         $resource =@ fopen($file, ($options['mode'] ?? static::$optionsDefault['mode']))

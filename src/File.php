@@ -149,7 +149,7 @@ final class File extends \StaticClass
         try {
             return FileObject::fromFile($file, $mime, $options);
         } catch (FileObjectException $e) {
-            throw new FileException($e->message, code: $e->code, cause: $e->cause ?? $e);
+            throw new FileException($e);
         }
     }
 
@@ -170,7 +170,7 @@ final class File extends \StaticClass
         try {
             return FileObject::fromTempFile($mime, $options);
         } catch (FileObjectException $e) {
-            throw new FileException($e->message, code: $e->code, cause: $e->cause ?? $e);
+            throw new FileException($e);
         }
     }
 

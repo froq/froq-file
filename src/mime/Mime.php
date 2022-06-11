@@ -32,7 +32,7 @@ final class Mime extends \StaticClass
     {
         if ($errorCheck && File::errorCheck($file, $error)) {
             if ($error->code != FileError::DIRECTORY) {
-                throw new MimeException($error->message, code: $error->code, cause: $error);
+                throw new MimeException($error);
             }
 
             // Return "directory" as type if error is directory error.
