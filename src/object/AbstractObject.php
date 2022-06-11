@@ -29,6 +29,9 @@ abstract class AbstractObject implements Sizable, Stringable
     /** @var ?string */
     protected ?string $resourceFile = null;
 
+    /** @var array */
+    protected static array $resourceFileExclude = [];
+
     /** @var ?string */
     protected ?string $mime = null;
 
@@ -48,6 +51,12 @@ abstract class AbstractObject implements Sizable, Stringable
     {
         if ($resource !== null) {
             if ($this instanceof FileObject) {
+                // When a file path given.
+                if (is_string($resource)) {
+                    $that = FileObject::fromFile($resource, $mime, $options)->keepResourceFile(true);
+                    [$resource, $resourceFile, $that] = [$that->createResourceCopy(), $resource, null];
+                }
+
                 if (!is_stream($resource)) {
                     self::throw('Resource type must be stream, %t given', $resource);
                 }
@@ -59,10 +68,15 @@ abstract class AbstractObject implements Sizable, Stringable
                     self::throw('Invalid MIME `%s` [valids: %a]', [$mime, static::MIMES]);
                 }
 
+                // When a file path given.
+                if (is_string($resource)) {
+                    $that = ImageObject::fromFile($resource, $mime, $options)->keepResourceFile(true);
+                    [$resource, $resourceFile, $that] = [$that->getResource(), $resource, null];
+                }
                 // When a resource given, eg: fopen('path/to/file.jpg', 'rb').
-                if (is_stream($resource)) {
-                    $temp = ImageObject::fromString(freadall($resource));
-                    [$resource, $mime] = [$temp->getResource(), $temp->getMime(), $temp->free()];
+                elseif (is_stream($resource)) {
+                    $that = ImageObject::fromString(freadall($resource), $mime, $options);
+                    [$resource, $mime, $that] = [$that->getResource(), $that->getMime(), null];
                 }
 
                 if (!is_image($resource)) {
@@ -107,14 +121,38 @@ abstract class AbstractObject implements Sizable, Stringable
     }
 
     /**
+     * Keep resource file.
+     *
+     * Note: This method is only for temp files and calling this method
+     * will prevent deleting temp files. So, unlink() can be called for
+     * that purpose. @see free()
+     *
+     * @param  string|bool $file File name or "true" only.
+     * @return self
+     * @since  6.0
+     */
+    public final function keepResourceFile(string|bool $file): self
+    {
+        if ($file === true && $this->resourceFile) {
+            $file = $this->resourceFile;
+        }
+
+        self::$resourceFileExclude[] = $file;
+
+        return $this;
+    }
+
+    /**
      * Set mime type.
      *
      * @param  string $mime
-     * @return void
+     * @return self
      */
-    public final function setMime(string $mime): void
+    public final function setMime(string $mime): self
     {
         $this->mime = $mime;
+
+        return $this;
     }
 
     /**
@@ -294,30 +332,32 @@ abstract class AbstractObject implements Sizable, Stringable
     }
 
     /**
-     * Free resources.
+     * Free resource & remove resource file if it's a temp file and not in
+     * `$resourceFileExclude` list or `$force` is true.
      *
+     * @param  bool $force Discards $resourceFileExclude for temp files.
      * @return bool
      */
-    public final function free(): bool
+    public final function free(bool $force = false): bool
     {
         if (!$this->freed) {
             $this->freed = true;
 
             if ($this->resource && is_stream($this->resource)) {
                 $this->freed = fclose($this->resource);
+                $this->resource = null;
             }
-            if ($this->resourceFile && is_tmpnam($this->resourceFile)) {
+            if ($this->resourceFile && is_tmpnam($this->resourceFile) && (
+                $force || !in_array($this->resourceFile, self::$resourceFileExclude, true)
+            )) {
                 $this->freed = unlink($this->resourceFile);
+                $this->resourceFile = null;
             }
-
-            // Clean up.
-            $this->resource     = null;
-            $this->resourceFile = null;
 
             return $this->freed;
         }
 
-        // Closed before.
+        // Freed before.
         return false;
     }
 
@@ -373,7 +413,7 @@ abstract class AbstractObject implements Sizable, Stringable
         self::ban(__method__);
 
         // Not using 'php://temp', cus used for file_get_contents() stuff.
-        $resource = tmpfile() ?: self::throw('Empty resource returned [error: @error]');
+        $resource =@ tmpfile() ?: self::throw('Empty resource returned [error: @error]');
 
         return new static($resource, $mime, $options, resourceFile: null);
     }
@@ -392,7 +432,7 @@ abstract class AbstractObject implements Sizable, Stringable
         self::ban(__method__);
 
         $file     = tmpnam();
-        $resource = @fopen($file, 'w+b') ?: self::throw('Empty resource returned [error: @error]');
+        $resource =@ fopen($file, 'w+b') ?: self::throw('Empty resource returned [error: @error]');
 
         return new static($resource, $mime, $options, resourceFile: $file);
     }
