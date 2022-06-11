@@ -308,7 +308,7 @@ class ImageObject extends AbstractObject
     public final function size(): int
     {
         $ret = $this->resourceFile ? filesize($this->resourceFile)
-             : ($contents = $this->getContents() ? strlen($contents) : false);
+             : (($contents = $this->getContents()) ? strlen($contents) : false);
 
         return ($ret !== false) ? $ret : -1;
     }
