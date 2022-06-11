@@ -313,7 +313,7 @@ abstract class AbstractObject implements Sizable, Stringable
         }
 
         // Default is 0644.
-        if ($mode && !(touch($file) && chmod($file, $mode))) {
+        if ($mode && !chmod($file, $mode)) {
             self::throw('Cannot touch file [error: @error]');
         }
 
