@@ -139,7 +139,7 @@ final class File extends \StaticClass
      * @param  string      $mode
      * @param  string|null $mime
      * @param  array|null  $options
-     * @return froq\file\FileObject
+     * @return froq\file\object\FileObject
      * @throws froq\file\FileException
      */
     public static function open(string $file, string $mode = 'r+b', string $mime = null, array $options = null): FileObject
@@ -160,7 +160,7 @@ final class File extends \StaticClass
      * @param  string      $mode
      * @param  string|null $mime
      * @param  array|null  $options
-     * @return froq\file\FileObject
+     * @return froq\file\object\FileObject
      * @throws froq\file\FileException
      */
     public static function openTemp(string $mode = 'w+b', string $mime = null, array $options = null): FileObject
