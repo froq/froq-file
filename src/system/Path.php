@@ -90,7 +90,7 @@ class Path extends AbstractSystem
         try {
             return \froq\file\File::getContents($this->path);
         } catch (\froq\file\FileException $e) {
-            throw new PathException($e->message, code: $e->code, cause: $e);
+            throw new PathException($e);
         }
     }
 
@@ -106,7 +106,7 @@ class Path extends AbstractSystem
         try {
             return \froq\file\File::setContents($this->path, $contents, $flags);
         } catch (\froq\file\FileException $e) {
-            throw new PathException($e->message, code: $e->code, cause: $e);
+            throw new PathException($e);
         }
     }
 
@@ -123,7 +123,7 @@ class Path extends AbstractSystem
         try {
             return \froq\file\File::open($this->path, $mode, $mime, $options);
         } catch (\froq\file\FileException $e) {
-            throw new PathException($e->message, code: $e->code, cause: $e->cause);
+            throw new PathException($e);
         }
     }
 
