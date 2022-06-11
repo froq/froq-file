@@ -239,7 +239,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function open(string $file = null, string $mime = null, array $options = null): self
     {
-        self::ban(__method__, 1);
+        self::ban('open');
 
         $file ??= $this->resourceFile;
         if ($file === null || trim($file) === '') {
@@ -281,7 +281,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function close(): bool
     {
-        self::ban(__method__, 1);
+        self::ban('close');
 
         return $this->free();
     }
@@ -393,7 +393,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public static final function fromResource($resource, string $mime = null, array $options = null, string $file = null): static
     {
-        self::ban(__method__);
+        self::ban('fromResource');
 
         $resource ?: self::throw('Empty resource given');
 
@@ -410,7 +410,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public static final function fromTempResource(string $mime = null, array $options = null): static
     {
-        self::ban(__method__);
+        self::ban('fromTempResource');
 
         // Not using 'php://temp', cus used for file_get_contents() stuff.
         $resource =@ tmpfile() ?: self::throw('Empty resource returned [error: @error]');
@@ -429,7 +429,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public static final function fromTempFile(string $mime = null, array $options = null): static
     {
-        self::ban(__method__);
+        self::ban('fromTempFile');
 
         $file     = tmpnam();
         $resource =@ fopen($file, 'w+b') ?: self::throw('Empty resource returned [error: @error]');
@@ -455,14 +455,12 @@ abstract class AbstractObject implements Sizable, Stringable
     }
 
     /**
-     * Ban given method for unrelated objects.
+     * Ban given method for temp-file classes.
      */
-    private static function ban(string $method, int $type = 0): void
+    private static function ban(string $method): void
     {
-        if ($type == 0 && !is_class_of(static::class, FileObject::class)) {
-            self::throw('Method %s() is not available for non %s object(s)', [$method, FileObject::class]);
-        } elseif ($type == 1 && is_class_of(static::class, TempFileObject::class)) {
-            self::throw('Method %s() is not available for %s object(s)', [$method, TempFileObject::class]);
+        if (is_class_of(static::class, TempFileObject::class)) {
+            self::throw('Method %s() is not available for %s classes', [$method, TempFileObject::class]);
         }
     }
 
