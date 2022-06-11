@@ -410,7 +410,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public static final function fromTempResource(string $mime = null, array $options = null): static
     {
-        self::ban('fromTempResource');
+        self::ban('fromTempResource', true);
 
         // Not using 'php://temp', cus used for file_get_contents() stuff.
         $resource =@ tmpfile() ?: self::throw('Empty resource returned [error: @error]');
@@ -429,7 +429,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public static final function fromTempFile(string $mime = null, array $options = null): static
     {
-        self::ban('fromTempFile');
+        self::ban('fromTempFile', true);
 
         $file     = tmpnam();
         $resource =@ fopen($file, 'w+b') ?: self::throw('Empty resource returned [error: @error]');
@@ -457,10 +457,12 @@ abstract class AbstractObject implements Sizable, Stringable
     /**
      * Ban given method for temp-file classes.
      */
-    private static function ban(string $method): void
+    private static function ban(string $method, bool $includeImageClasses = false): void
     {
-        if (is_class_of(static::class, TempFileObject::class)) {
-            self::throw('Method %s() is not available for %s classes', [$method, TempFileObject::class]);
+        if (is_class_of(static::class, TempFileObject::class) || (
+            $includeImageClasses && is_class_of(static::class, ImageObject::class)
+        )) {
+            self::throw('Method %s() is not available for non %s classes', [$method, FileObject::class]);
         }
     }
 
