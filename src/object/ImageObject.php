@@ -161,10 +161,10 @@ class ImageObject extends AbstractObject
         if (($contents = $this->getContents())
             && ($info = getimagesizefromstring($contents))) {
             $info += [
-                'width'      => $info[0], 'height' => $info[1],
-                'type'       => $info[2], 'size'   => strlen($contents),
-                'extension'  => image_type_to_extension($info[2]),
-                'exif'       => null,
+                'width'     => $info[0], 'height' => $info[1],
+                'type'      => $info[2], 'size'   => strlen($contents),
+                'extension' => image_type_to_extension($info[2]),
+                'exif'      => null,
             ];
 
             // For only JPEG (and also PNG? https://stackoverflow.com/q/9542359/362780).
