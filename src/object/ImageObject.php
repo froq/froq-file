@@ -43,10 +43,8 @@ class ImageObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        return new ImageObject(
-            $this->createResourceCopy(),
-            $this->mime, $this->options, $this->resourceFile
-        );
+        return new ImageObject($this->createResourceCopy(),
+            $this->getMime(), $this->getOptions(), $this->getResourceFile());
     }
 
     /**
@@ -206,10 +204,10 @@ class ImageObject extends AbstractObject
 
         $this->resourceCheck();
 
-        if (!isset($this->mime)) {
+        if (!$mime = $this->getMime()) {
             throw new ImageObjectException('No MIME given yet, try after calling setMime()');
-        } elseif (!in_array($this->mime, self::MIMES, true)) {
-            throw new ImageObjectException('Invalid MIME `%s` [valids: %a]', [$this->mime, self::MIMES]);
+        } elseif (!in_array($mime, self::MIMES, true)) {
+            throw new ImageObjectException('Invalid MIME `%s` [valids: %a]', [$mime, self::MIMES]);
         }
 
         ob_start();
@@ -217,7 +215,7 @@ class ImageObject extends AbstractObject
         // Without copy (that resampled copy), PNG, GIF, WEBP will be losing transparency.
         $copy = null;
 
-        match ($this->mime) {
+        match ($mime) {
             self::MIME_JPEG => imagejpeg($this->resource, null, $this->options['jpegQuality']),
             self::MIME_WEBP => $this->options['transparency'] // For some speed (@default=true).
                 ? imagewebp($copy = $this->createResourceCopy(), null, $this->options['webpQuality'])
@@ -239,7 +237,7 @@ class ImageObject extends AbstractObject
      */
     public final function isJpeg(): bool
     {
-        return ($this->mime == self::MIME_JPEG);
+        return ($this->getMime() == self::MIME_JPEG);
     }
 
     /**
@@ -249,7 +247,7 @@ class ImageObject extends AbstractObject
      */
     public final function isPng(): bool
     {
-        return ($this->mime == self::MIME_PNG);
+        return ($this->getMime() == self::MIME_PNG);
     }
 
     /**
@@ -259,7 +257,7 @@ class ImageObject extends AbstractObject
      */
     public final function isGif(): bool
     {
-        return ($this->mime == self::MIME_GIF);
+        return ($this->getMime() == self::MIME_GIF);
     }
 
     /**
@@ -269,7 +267,7 @@ class ImageObject extends AbstractObject
      */
     public final function isWebp(): bool
     {
-        return ($this->mime == self::MIME_WEBP);
+        return ($this->getMime() == self::MIME_WEBP);
     }
 
     /**

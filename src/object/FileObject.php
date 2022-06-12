@@ -33,10 +33,8 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        return new FileObject(
-            $this->createResourceCopy(),
-            $this->mime, $this->options, $this->resourceFile
-        );
+        return new FileObject($this->createResourceCopy(),
+            $this->getMime(), $this->getOptions(), $this->getResourceFile());
     }
 
     /**
