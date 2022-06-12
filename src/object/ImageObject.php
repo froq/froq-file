@@ -35,16 +35,6 @@ class ImageObject extends AbstractObject
     ];
 
     /**
-     * Get mimes.
-     *
-     * @return array
-     */
-    public final function getMimes(): array
-    {
-        return self::MIMES;
-    }
-
-    /**
      * Get a copy of image object as a new ImageObject.
      *
      * @return froq\file\ImageObject

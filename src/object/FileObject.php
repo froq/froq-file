@@ -25,6 +25,21 @@ class FileObject extends AbstractObject
     ];
 
     /**
+     * Get a copy of file object as a new FileObject.
+     *
+     * @return froq\file\object\FileObject
+     */
+    public final function copy(): FileObject
+    {
+        $this->resourceCheck();
+
+        return new FileObject(
+            $this->createResourceCopy(),
+            $this->mime, $this->options, $this->resourceFile
+        );
+    }
+
+    /**
      * Write some contents to file.
      *
      * @param  string $contents
@@ -93,7 +108,7 @@ class FileObject extends AbstractObject
 
         $ret = fgets($this->resource, $length);
 
-        return ($ret !== false) ? $ret : null;
+        return ($ret !== false) ? chop($ret) : null;
     }
 
     /**
@@ -142,22 +157,7 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        return freset($this->resource, '');
-    }
-
-    /**
-     * Get a copy of file object as a new FileObject.
-     *
-     * @return froq\file\object\FileObject
-     */
-    public final function copy(): FileObject
-    {
-        $this->resourceCheck();
-
-        return new FileObject(
-            $this->createResourceCopy(),
-            $this->mime, $this->options, $this->resourceFile
-        );
+        return freset($this->resource, '') === 0;
     }
 
     /**
@@ -345,7 +345,7 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        return !fseek($this->resource, $where, $whence);
+        return fseek($this->resource, $where, $whence) === 0;
     }
 
     /**
