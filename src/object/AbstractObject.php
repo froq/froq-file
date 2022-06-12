@@ -294,7 +294,7 @@ abstract class AbstractObject implements Sizable, Stringable
         $resource = null;
         try {
             if ($this instanceof FileObject) {
-                $resource =@ fopen($file, ($options['mode'] ?? static::$optionsDefault['mode']));
+                $resource =@ fopen($file, $options['mode'] ?? static::$optionsDefault['mode']);
             } elseif ($this instanceof ImageObject) {
                 $resource =@ imagecreatefromstring(File::getContents($file));
             }

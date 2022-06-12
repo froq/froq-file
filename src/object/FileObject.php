@@ -409,7 +409,7 @@ class FileObject extends AbstractObject
     public static final function fromFile(string $file, string $mime = null, array $options = null): FileObject
     {
         if (File::errorCheck($file, $error)) {
-            $skip = false;
+            $skip = false; // Create mode check for abset files.
             if ($error->getCode() == FileError::NO_FILE_EXISTS) {
                 $mode = strval($options['mode'] ?? static::$optionsDefault['mode']);
                 $skip = strpbrk($mode, 'waxc') !== false;
@@ -418,12 +418,12 @@ class FileObject extends AbstractObject
             $skip || throw new FileObjectException($error);
         }
 
-        $resource =@ fopen($file, ($options['mode'] ?? static::$optionsDefault['mode']))
+        $resource =@ fopen($file, $options['mode'] ?? static::$optionsDefault['mode'])
             ?: throw new FileObjectException('Cannot create resource [error: @error]');
 
         $mime ??= mime_content_type($file);
 
-        return new FileObject($resource, $mime, $options);
+        return new FileObject($resource, $mime, $options, $file);
     }
 
     /**
@@ -431,7 +431,7 @@ class FileObject extends AbstractObject
      */
     public static final function fromString(string $string, string $mime = null, array $options = null): FileObject
     {
-        $resource =@ fopen('php://temp', ($options['mode'] ?? static::$optionsDefault['mode']))
+        $resource =@ fopen('php://temp', $options['mode'] ?? static::$optionsDefault['mode'])
             ?: throw new FileObjectException('Cannot create resource [error: @error]');
 
         fwrite($resource, $string);
