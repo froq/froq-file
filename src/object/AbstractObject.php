@@ -57,8 +57,10 @@ abstract class AbstractObject implements Sizable, Stringable
             if ($this instanceof FileObject) {
                 // When a file path given.
                 if (is_string($resource)) {
+                    static $that; // Closed resource workaround.
                     $that = FileObject::fromFile($resource, $mime, $options)->keepResourceFile(true);
-                    [$resource, $resourceFile, $that] = [$that->createResourceCopy(), $resource, null];
+                    [$resource, $resourceFile] = [$that->getResource(), $that->getResourceFile()];
+                    unset($that);
                 }
 
                 if (!is_stream($resource)) {
