@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
-use froq\file\File;
+use froq\file\{File, FileError};
 
 /**
  * A class, for working with files in OOP style.
@@ -408,7 +408,13 @@ class FileObject extends AbstractObject
     public static final function fromFile(string $file, string $mime = null, array $options = null): FileObject
     {
         if (File::errorCheck($file, $error)) {
-            throw new FileObjectException($error);
+            $skip = false;
+            if ($error->getCode() == FileError::NO_FILE_EXISTS) {
+                $mode = strval($options['mode'] ?? static::$optionsDefault['mode']);
+                $skip = strpbrk($mode, 'waxc') !== false;
+            }
+
+            $skip || throw new FileObjectException($error);
         }
 
         $resource =@ fopen($file, ($options['mode'] ?? static::$optionsDefault['mode']))
