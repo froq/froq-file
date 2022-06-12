@@ -156,20 +156,22 @@ final class File extends \StaticClass
     /**
      * Open a temp file as FileObject.
      *
-     * @param  string      $file
+     * @param  string      $prefix
      * @param  string      $mode
      * @param  string|null $mime
      * @param  array|null  $options
      * @return froq\file\object\FileObject
      * @throws froq\file\FileException
      */
-    public static function openTemp(string $mode = 'w+b', string $mime = null, array $options = null): FileObject
+    public static function openTemp(string $prefix = '', string $mode = 'w+b', string $mime = null, array $options = null): FileObject
     {
         $options['mode'] = $mode;
 
         try {
-            return FileObject::fromFile(tmpnam(), $mime, $options);
+            $file = file_create($prefix, temp: true);
+            return FileObject::fromFile($file, $mime, $options);
         } catch (FileObjectException $e) {
+            file_remove($file);
             throw new FileException($e);
         }
     }
