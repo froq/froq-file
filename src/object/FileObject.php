@@ -57,14 +57,13 @@ class FileObject extends AbstractObject
     /**
      * Read all contents from file.
      *
-     * @param  int $from
      * @return string|null
      */
-    public final function readAll(int $from = 0): string|null
+    public final function readAll(): string|null
     {
         $this->resourceCheck();
 
-        $ret = freadall($this->resource, $from);
+        $ret = freadall($this->resource);
 
         return ($ret !== null) ? $ret : null;
     }
