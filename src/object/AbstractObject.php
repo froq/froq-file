@@ -391,8 +391,9 @@ abstract class AbstractObject implements Sizable, Stringable
 
             if ($this->resource && is_stream($this->resource)) {
                 $this->freed = fclose($this->resource);
-                $this->resource = null;
             }
+            $this->resource = null;
+
             if ($this->resourceFile && is_tmpnam($this->resourceFile) && (
                 $force || !in_array($this->resourceFile, self::$resourceFileExclude, true)
             )) {
