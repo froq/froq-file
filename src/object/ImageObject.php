@@ -80,8 +80,8 @@ class ImageObject extends AbstractObject
     public final function resize(int $width, int $height, array $options = null): self
     {
         $temp = $this->resourceFile
-              ? FileObject::fromResource(fopen($this->resourceFile, 'rb'))
-              : FileObject::fromTempResource()->setContents($this->getContents());
+              ? FileObject::fromFile($this->resourceFile)
+              : FileObject::fromString($this->getContents());
 
         array_extract(
             array_merge($this->options, (array) $options),
@@ -115,8 +115,8 @@ class ImageObject extends AbstractObject
     public final function crop(int $width, int $height = null, array $options = null): self
     {
         $temp = $this->resourceFile
-              ? FileObject::fromResource(fopen($this->resourceFile, 'rb'))
-              : FileObject::fromTempResource()->setContents($this->getContents());
+              ? FileObject::fromFile($this->resourceFile)
+              : FileObject::fromString($this->getContents());
 
         array_extract(
             array_merge($this->options, (array) $options),
@@ -324,7 +324,7 @@ class ImageObject extends AbstractObject
     /**
      * @inheritDoc froq\file\object\AbstractObject
      */
-    public static final function fromFile(string $file, string $mime = null, array $options = null): static
+    public static final function fromFile(string $file, string $mime = null, array $options = null): ImageObject
     {
         if (File::errorCheck($file, $error)) {
             throw new ImageObjectException($error);
@@ -335,7 +335,7 @@ class ImageObject extends AbstractObject
 
         $mime ??= mime_content_type($file);
 
-        $that = new static($resource, $mime, $options);
+        $that = new ImageObject($resource, $mime, $options);
 
         // To speed up resize(), crop(), getContents() etc.
         $that->resourceFile = $file;
@@ -346,14 +346,14 @@ class ImageObject extends AbstractObject
     /**
      * @inheritDoc froq\file\object\AbstractObject
      */
-    public static final function fromString(string $string, string $mime = null, array $options = null): static
+    public static final function fromString(string $string, string $mime = null, array $options = null): ImageObject
     {
         $resource =@ imagecreatefromstring($string)
             ?: throw new ImageObjectException('Cannot create resource [error: @error]');
 
         $mime ??= getimagesizefromstring($string)['mime'];
 
-        $that = new static($resource, $mime, $options);
+        $that = new ImageObject($resource, $mime, $options);
 
         // To speed up resize(), crop(), getContents() etc.
         $that->resourceFile = tmpnam()

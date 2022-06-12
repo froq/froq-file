@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace froq\file\object;
 
 use froq\file\File;
+use froq\file\mime\Mime;
 use froq\common\interface\{Sizable, Stringable};
 use froq\common\trait\{ApplyTrait, OptionTrait};
 
@@ -34,6 +35,9 @@ abstract class AbstractObject implements Sizable, Stringable
 
     /** @var ?string */
     protected ?string $mime = null;
+
+    /** @var ?string */
+    protected ?string $extension = null;
 
     /** @var ?bool */
     protected ?bool $freed = null;
@@ -143,7 +147,7 @@ abstract class AbstractObject implements Sizable, Stringable
     }
 
     /**
-     * Set mime type.
+     * Set mime.
      *
      * @param  string $mime
      * @return self
@@ -156,13 +160,45 @@ abstract class AbstractObject implements Sizable, Stringable
     }
 
     /**
-     * Get mime type.
+     * Get mime.
      *
      * @return string|null
      */
     public final function getMime(): string|null
     {
-        return $this->mime;
+        return match (true) {
+            !!$this->mime => $this->mime,
+            !!$this->resourceFile => Mime::getType($this->resourceFile, false),
+            default => null
+        };
+    }
+
+    /**
+     * Set extension.
+     *
+     * @param  string $extension
+     * @return self
+     */
+    public final function setExtension(string $extension): self
+    {
+        $this->extension = $extension;
+
+        return $this;
+    }
+
+    /**
+     * Get extension.
+     *
+     * @return string|null
+     */
+    public final function getExtension(): string|null
+    {
+        return match (true) {
+            !!$this->extension => $this->extension,
+            !!$this->mime => Mime::getExtensionByType($this->mime),
+            !!$this->resourceFile => Mime::getExtension($this->resourceFile),
+            default => null
+        };
     }
 
     /**
@@ -235,11 +271,14 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null $mime
      * @param  array|null  $options
      * @return self
+     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
      * @since  5.0
      */
     public final function open(string $file = null, string $mime = null, array $options = null): self
     {
-        self::ban('open');
+        if ($this instanceof TempFileObject) {
+            self::throw('Method open() is not available for %s classes', TempFileObject::class);
+        }
 
         $file ??= $this->resourceFile;
         if ($file === null || trim($file) === '') {
@@ -255,11 +294,7 @@ abstract class AbstractObject implements Sizable, Stringable
             if ($this instanceof FileObject) {
                 $resource =@ fopen($file, ($options['mode'] ?? static::$optionsDefault['mode']));
             } elseif ($this instanceof ImageObject) {
-                if (File::errorCheck($file, $error)) {
-                    throw $error;
-                }
-
-                $resource =@ imagecreatefromstring(file_get_contents($file));
+                $resource =@ imagecreatefromstring(File::getContents($file));
             }
         } catch (\Throwable $e) {
             self::throw($e->getMessage(), code: $e->getCode(), cause: $e);
@@ -277,11 +312,14 @@ abstract class AbstractObject implements Sizable, Stringable
      * Clean up resource & resource file.
      *
      * @return bool
+     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
      * @since  5.0
      */
     public final function close(): bool
     {
-        self::ban('close');
+        if ($this instanceof TempFileObject) {
+            self::throw('Method close() is not available for %s classes', TempFileObject::class);
+        }
 
         return $this->free();
     }
@@ -308,13 +346,19 @@ abstract class AbstractObject implements Sizable, Stringable
         // Make a file name with time-prefixed UUID if none given.
         $file = chop($directory, '/') .'/'. ($name ?: uuid(timed: true));
 
+        // Add extension if none given by names.
+        if (!$name || !str_contains($name, '.')) {
+            $extension = $this->getExtension();
+            $extension && $file .= '.'. $extension;
+        }
+
         if (file_put_contents($file, $this->toString()) === false) {
-            self::throw('Cannot write file [error: @error]');
+            self::throw('Cannot write to file [error: @error]');
         }
 
         // Default is 0644.
         if ($mode && !chmod($file, $mode)) {
-            self::throw('Cannot touch file [error: @error]');
+            self::throw('Cannot change mode of file [error: @error]');
         }
 
         return $file;
@@ -382,62 +426,6 @@ abstract class AbstractObject implements Sizable, Stringable
     }
 
     /**
-     * Create a file/image object from resource.
-     *
-     * @param  resource    $resource
-     * @param  string|null $mime
-     * @param  array|null  $options
-     * @param  string|null $file @internal
-     * @return static
-     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
-     */
-    public static final function fromResource($resource, string $mime = null, array $options = null, string $file = null): static
-    {
-        self::ban('fromResource');
-
-        $resource ?: self::throw('Empty resource given');
-
-        return new static($resource, $mime, $options, resourceFile: $file);
-    }
-
-    /**
-     * Create a file object from temporary resource.
-     *
-     * @param  string|null $mime
-     * @param  array|null  $options
-     * @return static
-     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
-     */
-    public static final function fromTempResource(string $mime = null, array $options = null): static
-    {
-        self::ban('fromTempResource', true);
-
-        // Not using 'php://temp', cus used for file_get_contents() stuff.
-        $resource =@ tmpfile() ?: self::throw('Empty resource returned [error: @error]');
-
-        return new static($resource, $mime, $options, resourceFile: null);
-    }
-
-    /**
-     * Create a file object from a temporary file.
-     *
-     * @param  string|null $file
-     * @param  string|null $mime
-     * @param  array|null  $options
-     * @return static
-     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
-     */
-    public static final function fromTempFile(string $mime = null, array $options = null): static
-    {
-        self::ban('fromTempFile', true);
-
-        $file     = tmpnam();
-        $resource =@ fopen($file, 'w+b') ?: self::throw('Empty resource returned [error: @error]');
-
-        return new static($resource, $mime, $options, resourceFile: $file);
-    }
-
-    /**
      * Check resource validity.
      *
      * @return void
@@ -451,18 +439,6 @@ abstract class AbstractObject implements Sizable, Stringable
         if (!$this->isValid()) {
             self::throw('No resource to process with, not valid [resource: %s]',
                 get_type($this->resource));
-        }
-    }
-
-    /**
-     * Ban given method for temp-file classes.
-     */
-    private static function ban(string $method, bool $includeImageClasses = false): void
-    {
-        if (is_class_of(static::class, TempFileObject::class) || (
-            $includeImageClasses && is_class_of(static::class, ImageObject::class)
-        )) {
-            self::throw('Method %s() is not available for non %s classes', [$method, FileObject::class]);
         }
     }
 
@@ -489,7 +465,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * @return static
      * @throws froq\file\object\{FileObjectException|ImageObjectException}
      */
-    abstract public static function fromFile(string $file, string $mime = null, array $options = null): static;
+    abstract public static function fromFile(string $file, string $mime = null, array $options = null): FileObject|ImageObject;
 
     /**
      * Create a file/image object from string.
@@ -500,5 +476,5 @@ abstract class AbstractObject implements Sizable, Stringable
      * @return static
      * @throws froq\file\object\{FileObjectException|ImageObjectException}
      */
-    abstract public static function fromString(string $string, string $mime = null, array $options = null): static;
+    abstract public static function fromString(string $string, string $mime = null, array $options = null): FileObject|ImageObject;
 }

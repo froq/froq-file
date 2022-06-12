@@ -168,7 +168,7 @@ final class File extends \StaticClass
         $options['mode'] = $mode;
 
         try {
-            return FileObject::fromTempFile($mime, $options);
+            return FileObject::fromFile(tmpnam(), $mime, $options);
         } catch (FileObjectException $e) {
             throw new FileException($e);
         }
