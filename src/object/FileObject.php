@@ -163,14 +163,15 @@ class FileObject extends AbstractObject
     /**
      * Lock file.
      *
-     * @param  bool $block
+     * @param  int  $operation
+     * @param  int &$wouldBlock
      * @return bool
      */
-    public final function lock(bool $block = true): bool
+    public final function lock(int $operation, int &$wouldBlock = null): bool
     {
         $this->resourceCheck();
 
-        return flock($this->resource, ($block ? LOCK_EX : LOCK_EX | LOCK_NB));
+        return flock($this->resource, $operation, $wouldBlock);
     }
 
     /**
