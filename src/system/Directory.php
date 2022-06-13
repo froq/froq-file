@@ -41,7 +41,7 @@ class Directory extends AbstractSystem
     }
 
     /** @override */
-    public function okay(): bool
+    public final function okay(): bool
     {
         return is_dir($this->path);
     }
