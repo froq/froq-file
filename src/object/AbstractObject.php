@@ -57,9 +57,10 @@ abstract class AbstractObject implements Sizable, Stringable
             if ($this instanceof FileObject) {
                 // When a file path given.
                 if (is_string($resource)) {
-                    static $that; // Closed resource workaround.
+                    static $that; // Closed resource error workaround.
                     $that = FileObject::fromFile($resource, $mime, $options)->keepResourceFile(true);
-                    [$resource, $resourceFile] = [$that->getResource(), $that->getResourceFile()];
+                    [$resource, $resourceFile, $mime] = [
+                        $that->getResource(), $that->getResourceFile(), $that->getMime()];
                     unset($that);
                 }
 
@@ -70,14 +71,11 @@ abstract class AbstractObject implements Sizable, Stringable
                 // For clean ups (mostly for temps).
                 $resourceFile ??= fmeta($resource)['uri'];
             } elseif ($this instanceof ImageObject) {
-                if ($mime && !in_array($mime, static::MIMES, true)) {
-                    self::throw('Invalid MIME `%s` [valids: %a]', [$mime, static::MIMES]);
-                }
-
                 // When a file path given.
                 if (is_string($resource)) {
                     $that = ImageObject::fromFile($resource, $mime, $options)->keepResourceFile(true);
-                    [$resource, $resourceFile, $that] = [$that->getResource(), $resource, null];
+                    [$resource, $resourceFile, $mime, $that] = [
+                        $that->getResource(), $that->getResourceFile(), $that->getMime(), null];
                 }
                 // When a resource given, eg: fopen('path/to/file.jpg', 'rb').
                 elseif (is_stream($resource)) {
@@ -143,7 +141,7 @@ abstract class AbstractObject implements Sizable, Stringable
             $file = $this->resourceFile;
         }
 
-        self::$resourceFileExclude[] = $file;
+        $file && self::$resourceFileExclude[] = $file;
 
         return $this;
     }
@@ -156,7 +154,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function setMime(string $mime): self
     {
-        $this->mime = $mime;
+        $this->mime = strtolower($mime);
 
         return $this;
     }
@@ -183,7 +181,7 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function setExtension(string $extension): self
     {
-        $this->extension = $extension;
+        $this->extension = strtolower(trim($extension, '.'));
 
         return $this;
     }

@@ -78,7 +78,7 @@ class ImageObject extends AbstractObject
         );
 
         $image = (new ImageSource)->prepare(
-            ['type' => $this->mime, 'file' => $temp->path(), 'directory' => tmp()],
+            ['type' => $this->getMime(), 'file' => $temp->path(), 'directory' => tmp()],
             ['clear' => false, 'clearSource' => false, 'useImagick' => true,
              'jpegQuality' => $jpegQuality, 'webpQuality' => $webpQuality,
              'pngQuality'  => $pngQuality,  'pngFilters'  => $pngFilters]
@@ -113,7 +113,7 @@ class ImageObject extends AbstractObject
         );
 
         $image = (new ImageSource)->prepare(
-            ['type' => $this->mime, 'file' => $temp->path(), 'directory' => tmp()],
+            ['type' => $this->getMime(), 'file' => $temp->path(), 'directory' => tmp()],
             ['clear' => false, 'clearSource' => false, 'useImagick' => true,
              'jpegQuality' => $jpegQuality, 'webpQuality' => $webpQuality,
              'pngQuality'  => $pngQuality,  'pngFilters'  => $pngFilters]
