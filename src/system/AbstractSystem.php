@@ -678,7 +678,7 @@ abstract class AbstractSystem
      * @param  bool   $symlink
      * @return bool
      */
-    public final function makeLink(string $link, bool $symlink = false): bool
+    public final function makeLink(string $link, bool $symlink = true): bool
     {
         return $symlink ? symlink($this->path, $link) : link($this->path, $link);
     }
@@ -686,11 +686,12 @@ abstract class AbstractSystem
     /**
      * Remove a link.
      *
+     * @param  string|null $link
      * @return bool
      */
-    public final function removeLink(): bool
+    public final function removeLink(string $link = null): bool
     {
-        return is_link($this->path) && unlink($this->path);
+        return ($link ??= $this->path) && is_link($link) && unlink($link);
     }
 
     /**
