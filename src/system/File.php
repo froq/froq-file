@@ -72,6 +72,24 @@ class File extends AbstractSystem
     }
 
     /**
+     * Open a file as `FileObject`.
+     *
+     * @param  string      $mode
+     * @param  string|null $mime
+     * @param  array|null  $options
+     * @return froq\file\object\FileObject
+     * @throws froq\file\system\FileException
+     */
+    public final function open(string $mode = 'r+b', string $mime = null, array $options = null): FileObject
+    {
+        try {
+            return \froq\file\File::open($this->path, $mode, $mime, $options);
+        } catch (\froq\file\FileException $e) {
+            throw new FileException($e);
+        }
+    }
+
+    /**
      * Get contents of a file.
      *
      * @return string
@@ -98,24 +116,6 @@ class File extends AbstractSystem
     {
         try {
             return \froq\file\File::setContents($this->path, $contents, $flags);
-        } catch (\froq\file\FileException $e) {
-            throw new FileException($e);
-        }
-    }
-
-    /**
-     * Open a file as `FileObject`.
-     *
-     * @param  string      $mode
-     * @param  string|null $mime
-     * @param  array|null  $options
-     * @return froq\file\object\FileObject
-     * @throws froq\file\system\FileException
-     */
-    public final function open(string $mode = 'r+b', string $mime = null, array $options = null): FileObject
-    {
-        try {
-            return \froq\file\File::open($this->path, $mode, $mime, $options);
         } catch (\froq\file\FileException $e) {
             throw new FileException($e);
         }
