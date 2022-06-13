@@ -227,7 +227,7 @@ abstract class AbstractObject implements Sizable, Stringable
                 $height = imagesy($this->resource)
             );
 
-            if (in_array($this->mime, ['image/webp', 'image/png', 'image/gif'], true)) {
+            if (in_array($this->getMime(), ['image/webp', 'image/png', 'image/gif'], true)) {
                 imagealphablending($copy, false);
                 imagesavealpha($copy, true);
                 imageantialias($copy, true);
