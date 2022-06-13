@@ -182,4 +182,30 @@ class Path extends AbstractSystem
     {
         return $this->removeDirectory();
     }
+
+    /**
+     * Create a File instance with self path.
+     *
+     * @return froq\file\system\File
+     */
+    public final function toFile(): File
+    {
+        return new File($this->path);
+    }
+
+    /**
+     * Create a Directory instance with self path.
+     *
+     * @return froq\file\system\Directory
+     */
+    public final function toDirectory(): Directory
+    {
+        return new Directory($this->path);
+    }
+
+    /** @alias toDirectory() */
+    public final function toDir()
+    {
+        return $this->toDirectory();
+    }
 }

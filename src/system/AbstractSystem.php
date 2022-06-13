@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace froq\file\system;
 
-use froq\file\mime\{Mime, MimeException};
 use froq\util\Util;
 
 /**
@@ -745,46 +744,10 @@ abstract class AbstractSystem
         return $ret;
     }
 
-    /**
-     * Create a Path instance with self path.
-     *
-     * @return froq\file\system\Path
-     */
-    public final function toPath(): Path
-    {
-        return new Path($this->path);
-    }
-
-    /**
-     * Create a File instance with self path.
-     *
-     * @return froq\file\system\File
-     */
-    public final function toFile(): File
-    {
-        return new File($this->path);
-    }
-
-    /**
-     * Create a Directory instance with self path.
-     *
-     * @return froq\file\system\Directory
-     */
-    public final function toDirectory(): Directory
-    {
-        return new Directory($this->path);
-    }
-
     /** @alias isDir() */
     public final function isDirectory()
     {
         return $this->isDir();
-    }
-
-    /** @alias toDirectory() */
-    public final function toDir()
-    {
-        return $this->toDirectory();
     }
 
     /** @alias rename() */
