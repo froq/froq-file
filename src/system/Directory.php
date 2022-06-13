@@ -70,7 +70,7 @@ class Directory extends AbstractSystem
      */
     public final function getDirs(): array
     {
-        return array_filter($this->glob('*'), 'is_dir');
+        return array_filter($this->glob('/*'), 'is_dir');
     }
 
     /**
@@ -80,7 +80,7 @@ class Directory extends AbstractSystem
      */
     public final function getFiles(): array
     {
-        return array_filter($this->glob('*'), 'is_file');
+        return array_filter($this->glob('/*'), 'is_file');
     }
 
     /**
