@@ -626,21 +626,21 @@ abstract class AbstractSystem
     /**
      * Make a file/directory.
      *
-     * @param  int  $mode
-     * @param  bool $recursive For dirs only.
+     * @param  int|null $mode
+     * @param  bool     $recursive For dirs only.
      * @return bool
      */
-    public final function make(int $mode = 0644, bool $recursive = false): bool
+    public final function make(int $mode = null, bool $recursive = true): bool
     {
         if ($this instanceof File) {
-            return mkfile($this->path, $mode);
+            return mkfile($this->path, $mode ?? 0644);
         } elseif ($this instanceof Directory) {
-            return mkdir($this->path, $mode, $recursive);
+            return mkdir($this->path, $mode ?? 0755, $recursive);
         } elseif ($this instanceof Path) {
             if ($this->type == Path::TYPE_FILE) {
-                return mkfile($this->path, $mode);
+                return mkfile($this->path, $mode ?? 0644);
             } elseif ($this->type == Path::TYPE_DIRECTORY) {
-                return mkdir($this->path, $mode, $recursive);
+                return mkdir($this->path, $mode ?? 0755, $recursive);
             }
         }
 
