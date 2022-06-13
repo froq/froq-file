@@ -44,7 +44,7 @@ abstract class AbstractSystem
      * Constructor.
      *
      * @param  string $path
-     * @causes froq\file\{PathException|FileException|DirectoryException}
+     * @causes froq\file\system\{PathException|FileException|DirectoryException}
      */
     public function __construct(string $path)
     {
@@ -273,6 +273,7 @@ abstract class AbstractSystem
     /**
      * Check whether path is available for given operation(s).
      *
+     * @param  string $op
      * @return bool
      */
     public final function isAvailableFor(string $op): bool
@@ -283,8 +284,9 @@ abstract class AbstractSystem
     /**
      * Check whether path has given access mode.
      *
+     * @param  string $op
      * @return bool
-     * @causes froq\file\{PathException|FileException|DirectoryException}
+     * @causes froq\file\system\{PathException|FileException|DirectoryException}
      */
     public final function hasAccess(int|string $mode): bool|null
     {
@@ -456,7 +458,7 @@ abstract class AbstractSystem
      *
      * @param  string $class
      * @return iterable|null
-     * @causes froq\file\{PathException|FileException|DirectoryException}
+     * @causes froq\file\system\{PathException|FileException|DirectoryException}
      */
     public final function getIterator(string $class = 'FilesystemIterator'): iterable|null
     {
@@ -475,7 +477,7 @@ abstract class AbstractSystem
      * @param  string $class
      * @param  bool   $recursive
      * @return iterable|null
-     * @causes froq\file\{PathException|FileException|DirectoryException}
+     * @causes froq\file\system\{PathException|FileException|DirectoryException}
      */
     public final function getDirectoryIterator(string $class = 'DirectoryIterator', bool $recursive = false): iterable|null
     {

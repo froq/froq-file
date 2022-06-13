@@ -49,7 +49,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null                  $mime
      * @param  array|null                   $options
      * @param  string|null                  $resourceFile @internal
-     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
+     * @causes froq\file\object\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     public function __construct(mixed $resource = null, string $mime = null, array $options = null, string $resourceFile = null)
     {
@@ -271,7 +271,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null $mime
      * @param  array|null  $options
      * @return self
-     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
+     * @causes froq\file\object\{TempFileObjectException|FileObjectException|ImageObjectException}
      * @since  5.0
      */
     public final function open(string $file = null, string $mime = null, array $options = null): self
@@ -312,7 +312,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * Clean up resource & resource file.
      *
      * @return bool
-     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
+     * @causes froq\file\object\{TempFileObjectException|FileObjectException|ImageObjectException}
      * @since  5.0
      */
     public final function close(): bool
@@ -331,7 +331,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null $name
      * @param  int|null    $mode
      * @return string
-     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
+     * @causes froq\file\object\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     public final function save(string $directory, string $name = null, int $mode = null): string
     {
@@ -430,7 +430,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * Check resource validity.
      *
      * @return void
-     * @causes froq\file\{TempFileObjectException|FileObjectException|ImageObjectException}
+     * @causes froq\file\object\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     protected final function resourceCheck(): void
     {

@@ -122,6 +122,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable
     /**
      * Check whether a file is available for given operation(s).
      *
+     * @param  string $op
      * @return bool
      */
     public final function isAvailableFor(string $op): bool
