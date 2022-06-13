@@ -90,6 +90,7 @@ class File extends AbstractSystem
      * Set contents of a file.
      *
      * @param  string $contents
+     * @param  int    $flags
      * @return bool
      * @throws froq\file\system\FileException
      */
@@ -103,7 +104,7 @@ class File extends AbstractSystem
     }
 
     /**
-     * Open a file as FileObject.
+     * Open a file as `FileObject`.
      *
      * @param  string      $mode
      * @param  string|null $mime

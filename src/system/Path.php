@@ -70,49 +70,17 @@ class Path extends AbstractSystem
             return false;
         }
 
-        if ($this->isDir()){
-            return $this->toDir()->empty($sure);
-        } elseif ($this->isFile()) {
+        if ($this->isFile()){
             return $this->toFile()->empty($sure);
+        } elseif ($this->isDirectory()) {
+            return $this->toDirectory()->empty($sure);
         }
 
         return false;
     }
 
     /**
-     * Get contents of a file.
-     *
-     * @return string
-     * @throws froq\file\system\PathException
-     */
-    public final function getFileContents(): string
-    {
-        try {
-            return \froq\file\File::getContents($this->path);
-        } catch (\froq\file\FileException $e) {
-            throw new PathException($e);
-        }
-    }
-
-    /**
-     * Set contents of a file.
-     *
-     * @param  string $contents
-     * @param  int    $flags
-     * @return bool
-     * @throws froq\file\system\PathException
-     */
-    public final function setFileContents(string $contents, int $flags = 0): bool
-    {
-        try {
-            return \froq\file\File::setContents($this->path, $contents, $flags);
-        } catch (\froq\file\FileException $e) {
-            throw new PathException($e);
-        }
-    }
-
-    /**
-     * Open a file as FileObject.
+     * Open a file as `FileObject`.
      *
      * @param  string      $mode
      * @param  string|null $mime
@@ -121,11 +89,7 @@ class Path extends AbstractSystem
      */
     public final function openFile(string $mode = 'r+b', string $mime = null, array $options = null): FileObject
     {
-        try {
-            return \froq\file\File::open($this->path, $mode, $mime, $options);
-        } catch (\froq\file\FileException $e) {
-            throw new PathException($e);
-        }
+        return $this->toFile()->open($mode, $mime, $options);
     }
 
     /**
@@ -171,18 +135,6 @@ class Path extends AbstractSystem
         return rmdir($this->path);
     }
 
-    /** @alias makeDirectory() */
-    public final function makeDir(...$args)
-    {
-        return $this->makeDirectory(...$args);
-    }
-
-    /** @alias removeDirectory() */
-    public final function removeDir()
-    {
-        return $this->removeDirectory();
-    }
-
     /**
      * Create a File instance with self path.
      *
@@ -201,6 +153,18 @@ class Path extends AbstractSystem
     public final function toDirectory(): Directory
     {
         return new Directory($this->path);
+    }
+
+    /** @alias makeDirectory() */
+    public final function makeDir(...$args)
+    {
+        return $this->makeDirectory(...$args);
+    }
+
+    /** @alias removeDirectory() */
+    public final function removeDir()
+    {
+        return $this->removeDirectory();
     }
 
     /** @alias toDirectory() */
