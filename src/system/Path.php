@@ -49,7 +49,7 @@ class Path extends AbstractSystem
             // Validate given type.
             if (!in_array($type, self::TYPES, true)) {
                 throw new PathException('Invalid type `%s` [valids: %a]', [$type, self::TYPES]);
-            } elseif ($type != $realType) {
+            } elseif ($type != $realType && $realType) {
                 throw new PathException('Unmatched types `%s != %s`', [$type, $realType]);
             }
             $this->type = $type;
