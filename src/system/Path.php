@@ -98,6 +98,7 @@ class Path extends AbstractSystem
      * Set contents of a file.
      *
      * @param  string $contents
+     * @param  int    $flags
      * @return bool
      * @throws froq\file\system\PathException
      */
@@ -116,7 +117,7 @@ class Path extends AbstractSystem
      * @param  string      $mode
      * @param  string|null $mime
      * @param  array|null  $options
-     * @return froq\file\FileObject
+     * @return froq\file\object\FileObject
      */
     public final function openFile(string $mode = 'r+b', string $mime = null, array $options = null): FileObject
     {

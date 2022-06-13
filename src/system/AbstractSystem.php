@@ -705,6 +705,17 @@ abstract class AbstractSystem
     }
 
     /**
+     * Copy a file.
+     *
+     * @param  string $newPath
+     * @return bool
+     */
+    public final function copy(string $newPath): bool
+    {
+        return file_exists($this->path) && copy($this->path, $newPath);
+    }
+
+    /**
      * Rename a path.
      *
      * @param  string $newPath
