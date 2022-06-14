@@ -323,12 +323,9 @@ class ImageObject extends AbstractObject
 
         $mime ??= mime_content_type($file);
 
-        $that = new ImageObject($resource, $mime, $options);
+        $resourceFile = $file; // To speed up resize(), crop(), getContents() etc.
 
-        // To speed up resize(), crop(), getContents() etc.
-        $that->resourceFile = $file;
-
-        return $that;
+        return new ImageObject($resource, $mime, $options, $resourceFile);
     }
 
     /**
@@ -341,14 +338,10 @@ class ImageObject extends AbstractObject
 
         $mime ??= getimagesizefromstring($string)['mime'];
 
-        $that = new ImageObject($resource, $mime, $options);
+        $resourceFile = tmpnam(); // To speed up resize(), crop(), getContents() etc.
 
-        // To speed up resize(), crop(), getContents() etc.
-        $that->resourceFile = tmpnam()
-            ?: throw new ImageObjectException('Cannot create resource file [error: @error]');
+        file_put_contents($resourceFile, $string);
 
-        file_put_contents($that->resourceFile, $string);
-
-        return $that;
+        return new ImageObject($resource, $mime, $options, $resourceFile);
     }
 }
