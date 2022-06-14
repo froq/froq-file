@@ -37,7 +37,7 @@ abstract class AbstractSource implements Stringable
 
     /** @var array */
     protected static array $optionsDefault = [
-        'hash'              => null,  // Available commands: 'rand', 'file' or 'name' (default=none).
+        'hash'              => null,  // Available commands: 'rand' or 'name' (default=none).
         'hashLength'        => null,  // Available lengths: 8, 16, 32 or 40 (default=32).
         'maxFileSize'       => null,  // In binary mode: for 2 megabytes 2048, 2048k or 2m.
         'allowedTypes'      => '*',   // All '*' allowed or 'image/jpeg,image/png' etc.
@@ -168,11 +168,16 @@ abstract class AbstractSource implements Stringable
             );
         }
 
-        [$size, $type, $name] = array_select($file, ['size', 'type', 'name']);
+        [$size, $type, $name, $extension] = array_select($file, ['size', 'type', 'name', 'extension']);
 
-        $size    ??= filesize($source);
-        $type    ??= Mime::getType($source);
-        $extension = Mime::getExtension($source) ?: Mime::getExtensionByType($type);
+        if ($name && ($pos = strrpos($name, '.'))) {
+            $extension ??= substr($name, $pos + 1);
+            $name = substr($name, 0, $pos);
+        }
+
+        $size      ??= filesize($source);
+        $type      ??= Mime::getType($source);
+        $extension ??= Mime::getExtension($source) ?: Mime::getExtensionByType($type);
 
         if (!$this->isAllowedType($type)) {
             self::throw(
@@ -209,8 +214,8 @@ abstract class AbstractSource implements Stringable
             );
         }
 
-        // Set target name as random UUID default when no name given.
-        $name = $this->prepareName((string) $name) ?: uuid(timed: true);
+        // Set target name to UUID as default if none given.
+        $name = $name ? $this->prepareName($name) : uuid(timed: true);
 
         $this->source     = $source;
         $this->sourceInfo = [
@@ -233,42 +238,40 @@ abstract class AbstractSource implements Stringable
     public final function prepareName(string $name, string $appendix = null): string
     {
         $name = trim($name);
-        if ($name == '') {
-            return '';
-        }
 
-        // Some security & standard stuff.
-        $name = preg_replace('~[^\w\-]~', '-', $name);
-        if (strlen($name) > 255) {
-            $name = substr($name, 0, 255);
-        }
+        if ($name != '') {
+            // Some security & standard stuff.
+            $name = preg_replace('~[^\w\-]~', '-', $name);
+            if (strlen($name) > 255) {
+                $name = substr($name, 0, 255);
+            }
 
-        // Hash name if option set.
-        $hash = $this->options['hash'];
-        if ($hash !== null) {
-            static $hashAlgos = [8 => 'fnv1a32', 16 => 'fnv1a64', 32 => 'md5', 40 => 'sha1'],
-                   $hashLengthDefault = 32;
+            // Hash name if option set.
+            $hash = $this->options['hash'];
+            if ($hash) {
+                static $hashAlgos = [8 => 'fnv1a32', 16 => 'fnv1a64', 32 => 'md5', 40 => 'sha1'],
+                       $hashLengthDefault = 32;
 
-            $hashAlgo = $hashAlgos[$this->options['hashLength'] ?? $hashLengthDefault] ?? null;
-            $hashAlgo || self::throw(
-                'Invalid `hashLength` option `%s` [valids: 8,16,32,40]',
-                $this->options['hashLength']
-            );
+                $hashAlgo = $hashAlgos[$this->options['hashLength'] ?? $hashLengthDefault] ?? null;
+                $hashAlgo || self::throw(
+                    'Invalid `hashLength` option `%s` [valids: 8,16,32,40]',
+                    $this->options['hashLength']
+                );
 
-            $name = match ($hash) {
-                'rand'  => hash($hashAlgo, uuid(timed: true)),
-                'file'  => hash_file($hashAlgo, $this->source),
-                'name'  => hash($hashAlgo, $name),
-                default => self::throw(
-                    'Invalid `hash` option `%s` [valids: rand,file,name]', $hash
-                ),
-            };
+                $name = match ($hash) {
+                    'rand'  => hash($hashAlgo, uuid()),
+                    'name'  => hash($hashAlgo, $name),
+                    default => self::throw(
+                        'Invalid `hash` option `%s` [valids: rand,name]', $hash
+                    ),
+                };
 
-            $name || self::throw('Cannot hash file name [error: @error]');
+                $name || self::throw('Cannot hash file name [error: @error]');
+            }
         }
 
         // Appendix like 'crop' (ie: abc123-crop.jpg).
-        if ($appendix !== null) {
+        if ($appendix != '') {
             $name .= '-' . preg_replace('~[^\w\-]~', '', $appendix);
         }
 
@@ -289,33 +292,32 @@ abstract class AbstractSource implements Stringable
     {
         $sourceInfo = $this->getSourceInfo();
 
-        // Check name & extension when given with save() or move().
-        if ($name !== null) {
-            if (str_contains($name, '.')) {
-                $extension = file_extension($name);
-                if ($extension !== null) {
-                    if (!$this->isAllowedExtension($extension)) {
-                        self::throw(
-                            'Extension `%s` not allowed via options, allowed extensions: %s',
-                            [$extension, $this->options['allowedExtensions']],
-                            code: UploadError::OPTION_NOT_ALLOWED_EXTENSION
-                        );
-                    }
+        $name = ($name != '') ? $name : $sourceInfo['name'];
 
-                    // Drop extension duplication.
-                    if (str_ends_with($name, '.' . $extension)) {
-                        $name = substr($name, 0, -(strlen($extension) + 1));
-                    }
+        // Check name & extension when given with save() or move().
+        if (str_contains($name, '.')) {
+            $extension = file_extension($name);
+            if ($extension != '') {
+                if (!$this->isAllowedExtension($extension)) {
+                    self::throw(
+                        'Extension `%s` not allowed via options, allowed extensions: %s',
+                        [$extension, $this->options['allowedExtensions']],
+                        code: UploadError::OPTION_NOT_ALLOWED_EXTENSION
+                    );
+                }
+
+                // Drop extension duplication.
+                if (str_ends_with($name, '.' . $extension)) {
+                    $name = substr($name, 0, -(strlen($extension) + 1));
                 }
             }
-
-            $name = $this->prepareName($name, $appendix);
         }
 
-        $target = $this->options['directory'] . '/' . ($name ?: $sourceInfo['name']);
+        // Make full-path.
+        $target = $this->options['directory'] . '/' . $this->prepareName($name, $appendix);
 
         // Add extension.
-        if (($extension ??= $sourceInfo['extension']) !== null) {
+        if (($extension ??= $sourceInfo['extension']) != '') {
             $target .= '.' . $extension;
         }
 
@@ -372,7 +374,7 @@ abstract class AbstractSource implements Stringable
     {
         if (!$this->options['overwrite'] && file_exists($target)) {
             self::throw(
-                'Cannot overwrite existing file `%s`', $target,
+                'Cannot overwrite on existing file `%s`', $target,
                 code: UploadError::OPTION_NOT_ALLOWED_OVERWRITE
             );
         }
