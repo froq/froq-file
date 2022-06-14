@@ -29,10 +29,10 @@ class ImageSource extends AbstractSource
     ];
 
     /** @var GdImage|Imagick|null */
-    protected GdImage|Imagick|null $sourceImage;
+    protected GdImage|Imagick|null $sourceImage = null;
 
     /** @var GdImage|Imagick|null */
-    protected GdImage|Imagick|null $targetImage;
+    protected GdImage|Imagick|null $targetImage = null;
 
     /** @var array */
     protected array $info;
@@ -347,7 +347,7 @@ class ImageSource extends AbstractSource
         if ($appendNewDimensions) {
             $appendix = ($appendix === null)
                 ? vsprintf('%dx%d', $this->getNewDimensions())
-                : vsprintf('%dx%d-%s', array_merge($this->getNewDimensions(), [$appendix]));
+                : vsprintf('%dx%d-%s', [...$this->getNewDimensions(), $appendix]);
         }
 
         $target = $this->prepareTarget($name, $appendix);
@@ -471,7 +471,7 @@ class ImageSource extends AbstractSource
      */
     public final function getSourceImage(): GdImage|Imagick|null
     {
-        return $this->sourceImage ?? null;
+        return $this->sourceImage;
     }
 
     /**
@@ -481,7 +481,7 @@ class ImageSource extends AbstractSource
      */
     public final function getTargetImage(): GdImage|Imagick|null
     {
-        return $this->targetImage ?? null;
+        return $this->targetImage;
     }
 
     /**
@@ -614,9 +614,9 @@ class ImageSource extends AbstractSource
     protected final function createTargetImage(array $dimensions, Imagick $sourceImage = null): GdImage|Imagick
     {
         if ($this->usesImagick()) {
-            if (isset($this->targetImage)) {
+            if ($this->targetImage) {
                 return $this->targetImage;
-            } elseif (isset($this->sourceImage)) {
+            } elseif ($this->sourceImage) {
                 return $this->sourceImage->getImage();
             } elseif ($sourceImage) {
                 return $sourceImage->getImage();
