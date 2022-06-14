@@ -79,7 +79,7 @@ class ImageObject extends AbstractObject
 
         $image = (new ImageSource)->prepare(
             ['type' => $this->getMime(), 'file' => $temp->path(), 'directory' => tmp()],
-            ['clear' => false, 'clearSource' => false, 'useImagick' => true,
+            ['clear' => false, 'clearSource' => false, 'tryImagick' => true,
              'jpegQuality' => $jpegQuality, 'webpQuality' => $webpQuality,
              'pngQuality'  => $pngQuality,  'pngFilters'  => $pngFilters]
         )->resize($width, $height, $options);
@@ -114,7 +114,7 @@ class ImageObject extends AbstractObject
 
         $image = (new ImageSource)->prepare(
             ['type' => $this->getMime(), 'file' => $temp->path(), 'directory' => tmp()],
-            ['clear' => false, 'clearSource' => false, 'useImagick' => true,
+            ['clear' => false, 'clearSource' => false, 'tryImagick' => true,
              'jpegQuality' => $jpegQuality, 'webpQuality' => $webpQuality,
              'pngQuality'  => $pngQuality,  'pngFilters'  => $pngFilters]
         )->crop($width, $height, $options);

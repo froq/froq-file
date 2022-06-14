@@ -44,28 +44,20 @@ class ImageSource extends AbstractSource
     protected static array $optionsDefault = [
         'jpegQuality' => -1,    'webpQuality'   => -1,
         'pngQuality'  => -1,    'pngFilters'    => -1,
-        'stripImage'  => false, 'stripImageIcc' => false,
-        'useImagick'  => false,
+        'tryImagick'  => false, // Try using Imagick if exists.
+        'useImagick'  => false, // Direct command to use Imagick (causes error if not exists).
+        'stripImage'  => false, 'stripImageIcc' => false, // Valid for only Imagick.
     ];
 
     /** @var bool */
     protected bool $resized = false;
 
-    /** @var bool */
-    protected bool $useImagick = false;
-
     /**
-     * Constructor.
-     *
-     * @param array|null $options
+     * @override
      */
     public function __construct(array $options = null)
     {
-        $this->setOptions($options, self::$optionsDefault);
-
-        $this->useImagick = (bool) $this->options['useImagick'];
-
-        parent::__construct($this->options);
+        parent::__construct(array_options($options, self::$optionsDefault));
     }
 
     /**
@@ -132,10 +124,10 @@ class ImageSource extends AbstractSource
 
         $this->sourceImage = $this->createSourceImage();
         $this->targetImage = $this->createTargetImage([$newWidth, $newHeight],
-            $this->usingImagick() ? $this->sourceImage : null
+            $this->usesImagick() ? $this->sourceImage : null
         );
 
-        if ($this->usingImagick()) {
+        if ($this->usesImagick()) {
             try {
                 $imagick = $this->targetImage;
                 $imagick->scaleImage($newWidth, $newHeight);
@@ -223,9 +215,9 @@ class ImageSource extends AbstractSource
         $y = (int) (($options['y'] ?? 0) ?? ($origHeight - $cropHeight) / $div);
 
         $this->sourceImage = $this->createSourceImage();
-        $this->targetImage = $this->createTargetImage([$width, $height], $this->usingImagick() ? $this->sourceImage : null);
+        $this->targetImage = $this->createTargetImage([$width, $height], $this->usesImagick() ? $this->sourceImage : null);
 
-        if ($this->usingImagick()) {
+        if ($this->usesImagick()) {
             try {
                 $imagick = $this->targetImage;
                 $imagick->cropImage($width, $height, $x, $y);
@@ -324,7 +316,7 @@ class ImageSource extends AbstractSource
     {
         $this->fillInfo();
 
-        if ($this->usingImagick()) {
+        if ($this->usesImagick()) {
             $this->sourceImage = $this->createSourceImage();
             $this->targetImage = $this->createTargetImage([], $this->sourceImage);
 
@@ -396,9 +388,9 @@ class ImageSource extends AbstractSource
 
         // Free sources.
         if ($this->options['clear']) {
-            if ($this->usingImagick()) {
-                $this->sourceImage && $this->sourceImage->clear();
-                $this->targetImage && $this->targetImage->clear();
+            if ($this->usesImagick()) {
+                $this->sourceImage?->clear();
+                $this->targetImage?->clear();
             }
 
             $this->sourceImage = $this->targetImage = null;
@@ -534,25 +526,25 @@ class ImageSource extends AbstractSource
     }
 
     /**
-     * Check GD state.
+     * Check whether uses GD.
      *
      * @return bool
      * @since  5.0
      */
-    public final function usingGd(): bool
+    public final function usesGd(): bool
     {
-        return !$this->useImagick;
+        return !$this->usesImagick();
     }
 
     /**
-     * Check Imagick state.
+     * Check whether uses Imagick.
      *
      * @return bool
      * @since  5.0
      */
-    public final function usingImagick(): bool
+    public final function usesImagick(): bool
     {
-        return $this->useImagick;
+        return $this->options['useImagick'] || ($this->options['tryImagick'] && class_exists('Imagick'));
     }
 
     /**
@@ -585,7 +577,7 @@ class ImageSource extends AbstractSource
      */
     protected final function createSourceImage(): GdImage|Imagick
     {
-        if ($this->usingImagick()) {
+        if ($this->usesImagick()) {
             if ($this->resized) {
                 return $this->sourceImage;
             }
@@ -621,12 +613,12 @@ class ImageSource extends AbstractSource
      */
     protected final function createTargetImage(array $dimensions, Imagick $sourceImage = null): GdImage|Imagick
     {
-        if ($this->usingImagick()) {
+        if ($this->usesImagick()) {
             if (isset($this->targetImage)) {
                 return $this->targetImage;
             } elseif (isset($this->sourceImage)) {
                 return $this->sourceImage->getImage();
-            } elseif ($sourceImage != null) {
+            } elseif ($sourceImage) {
                 return $sourceImage->getImage();
             }
 
@@ -679,7 +671,6 @@ class ImageSource extends AbstractSource
         }
 
         ob_start();
-
         if (match ($type) {
             IMAGETYPE_JPEG => imagejpeg($image, null, $this->options['jpegQuality']),
             IMAGETYPE_WEBP => imagewebp($image, null, $this->options['webpQuality']),

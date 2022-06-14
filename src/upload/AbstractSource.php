@@ -55,7 +55,7 @@ abstract class AbstractSource implements Stringable
      */
     public function __construct(array $options = null)
     {
-        $this->setOptions($options, self::$optionsDefault);
+        $this->setOptions(array_options($options, self::$optionsDefault));
     }
 
     /**
@@ -121,13 +121,7 @@ abstract class AbstractSource implements Stringable
     public final function prepare(array $file, array $options = null): self
     {
         // Add deferred options.
-        if ($options) {
-            $this->options = array_replace($this->options, $options);
-            // For ImageSource only.
-            if ($this->options['useImagick'] && $this instanceof ImageSource) {
-                $this->useImagick = true;
-            }
-        }
+        $this->options = array_options($options, $this->options);
 
         [$error, $source, $directory] = [
             $file['error']     ?? null,
