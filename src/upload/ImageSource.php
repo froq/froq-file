@@ -323,6 +323,8 @@ class ImageSource extends AbstractSource
             $this->targetImage = $this->createTargetImage([], $this->sourceImage);
 
             $this->targetImage->rotateImage($background ?? '', $degree);
+
+            [$width, $height] = [$this->targetImage->getImageWidth(), $this->targetImage->getImageHeight()];
         } else {
             $this->resample();
 
@@ -331,7 +333,12 @@ class ImageSource extends AbstractSource
 
             $this->targetImage = imagerotate($this->targetImage, $degree, $background ?? 0)
                 ?: throw new ImageSourceException('Failed rotating target image [error: @error]');
+
+            [$width, $height] = [imagesx($this->targetImage), imagesy($this->targetImage)];
         }
+
+        // Store new dimensions.
+        $this->newDimensions = [$width, $height];
 
         // Tick for using resized image.
         $this->resized = true;
@@ -344,10 +351,10 @@ class ImageSource extends AbstractSource
      */
     public final function save(string $name = null, string $appendix = null, bool $appendNewDimensions = false): string
     {
-        if ($appendNewDimensions) {
+        if ($appendNewDimensions && ($newDimensions = $this->getNewDimensions())) {
             $appendix = ($appendix === null)
-                ? vsprintf('%dx%d', $this->getNewDimensions())
-                : vsprintf('%dx%d-%s', [...$this->getNewDimensions(), $appendix]);
+                ? vsprintf('%dx%d', $newDimensions)
+                : vsprintf('%dx%d-%s', [...$newDimensions, $appendix]);
         }
 
         $target = $this->prepareTarget($name, $appendix);
