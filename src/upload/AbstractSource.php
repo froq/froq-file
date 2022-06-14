@@ -228,7 +228,7 @@ abstract class AbstractSource implements Stringable
         }
 
         // Some security & standard stuff.
-        $name = preg_replace('~[^\w\-]~i', '-', $name);
+        $name = preg_replace('~[^\w\-]~', '-', $name);
         if (strlen($name) > 255) {
             $name = substr($name, 0, 255);
         }
@@ -259,7 +259,7 @@ abstract class AbstractSource implements Stringable
 
         // Appendix like 'crop' (ie: abc123-crop.jpg).
         if ($appendix !== null) {
-            $name .= '-'. preg_replace('~[^\w\-]~i', '', $appendix);
+            $name .= '-'. preg_replace('~[^\w\-]~', '', $appendix);
         }
 
         $name = trim($name, '-');
