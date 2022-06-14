@@ -14,13 +14,13 @@ use froq\common\trait\{ApplyTrait, OptionTrait};
 use froq\util\Util;
 
 /**
- * An abstract uploaded source entity for working with files/images in OOP style with a few
- * safety options.
+ * Base upload class.
  *
  * @package froq\file\upload
  * @object  froq\file\upload\AbstractSource
  * @author  Kerem Güneş
  * @since   4.0, 5.0
+ * @internal
  */
 abstract class AbstractSource implements Stringable
 {

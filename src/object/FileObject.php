@@ -10,7 +10,7 @@ namespace froq\file\object;
 use froq\file\{File, FileError};
 
 /**
- * A class, for working with files in OOP style.
+ * A file class, for working with files in OOP style.
  *
  * @package froq\file\object
  * @object  froq\file\object\FileObject

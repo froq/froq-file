@@ -10,12 +10,13 @@ namespace froq\file\system;
 use froq\util\Util;
 
 /**
- * An abstract class for working with file system objects.
+ * Base system class.
  *
  * @package froq\file\system
  * @object  froq\file\system\AbstractSystem
  * @author  Kerem Güneş
  * @since   6.0
+ * @internal
  */
 abstract class AbstractSystem
 {

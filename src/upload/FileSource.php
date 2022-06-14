@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace froq\file\upload;
 
 /**
- * An uploaded file class for working with files in OOP style with a few safety options.
+ * An file class for working with files in OOP style.
  *
  * @package froq\file\upload
  * @object  froq\file\upload\FileSource

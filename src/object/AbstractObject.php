@@ -13,12 +13,13 @@ use froq\common\interface\{Sizable, Stringable};
 use froq\common\trait\{ApplyTrait, OptionTrait};
 
 /**
- * An abstract class, for working with files/images in OOP style.
+ * Base object class.
  *
  * @package froq\file\object
  * @object  froq\file\object\AbstractObject
  * @author  Kerem Güneş
  * @since   4.0, 5.0
+ * @internal
  */
 abstract class AbstractObject implements Sizable, Stringable
 {

@@ -10,7 +10,7 @@ namespace froq\file\upload;
 use GdImage, Imagick, ImagickException;
 
 /**
- * An uploaded image class for working images in OOP style with a few safety options.
+ * An image class for working/manipulating images in OOP style.
  *
  * @package froq\file\upload
  * @object  froq\file\upload\ImageSource

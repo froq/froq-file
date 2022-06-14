@@ -11,7 +11,7 @@ use froq\file\File;
 use froq\file\upload\ImageSource;
 
 /**
- * A class, for working with images in OOP style.
+ * An image class, for working with images in OOP style.
  *
  * @package froq\file\object
  * @object  froq\file\object\ImageObject
