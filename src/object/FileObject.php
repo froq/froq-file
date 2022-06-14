@@ -429,13 +429,13 @@ class FileObject extends AbstractObject
      */
     public static final function fromString(string $string, string $mime = null, array $options = null): FileObject
     {
-        $resource =@ fopen('php://temp', $options['mode'] ?? static::$optionsDefault['mode'])
+        $resource =@ fopen($file = tmpnam(), $options['mode'] ?? static::$optionsDefault['mode'])
             ?: throw new FileObjectException('Cannot create resource [error: @error]');
 
         fwrite($resource, $string);
 
         $mime ??= mime_content_type($resource);
 
-        return new FileObject($resource, $mime, $options);
+        return new FileObject($resource, $mime, $options, $file);
     }
 }
