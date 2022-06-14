@@ -269,7 +269,7 @@ abstract class AbstractSource implements Stringable
 
         // Appendix like 'crop' (ie: abc123-crop.jpg).
         if ($appendix !== null) {
-            $name .= '-'. preg_replace('~[^\w\-]~', '', $appendix);
+            $name .= '-' . preg_replace('~[^\w\-]~', '', $appendix);
         }
 
         $name = trim($name, '-');
@@ -303,18 +303,20 @@ abstract class AbstractSource implements Stringable
                     }
 
                     // Drop extension duplication.
-                    $name = substr($name, 0, -(strlen($extension) + 1));
+                    if (str_ends_with($name, '.' . $extension)) {
+                        $name = substr($name, 0, -(strlen($extension) + 1));
+                    }
                 }
             }
 
             $name = $this->prepareName($name, $appendix);
         }
 
-        $target = $this->options['directory'] .'/'. ($name ?: $sourceInfo['name']);
+        $target = $this->options['directory'] . '/' . ($name ?: $sourceInfo['name']);
 
         // Add extension.
         if (($extension ??= $sourceInfo['extension']) !== null) {
-            $target = $target .'.'. $extension;
+            $target .= '.' . $extension;
         }
 
         $this->target = $target;
