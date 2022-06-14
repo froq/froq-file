@@ -550,7 +550,7 @@ class ImageSource extends AbstractSource
     }
 
     /**
-     * Get Base64 contents.
+     * Get contents Base64 encoded.
      *
      * @return string
      * @since  4.0
@@ -561,12 +561,12 @@ class ImageSource extends AbstractSource
     }
 
     /**
-     * Get Base64 URL.
+     * Get contents Data URL.
      *
      * @return string
      * @since  4.0
      */
-    public final function toBase64Url(): string
+    public final function toDataUrl(): string
     {
         return 'data:' . $this->getMime() . ';base64,' . $this->toBase64();
     }
