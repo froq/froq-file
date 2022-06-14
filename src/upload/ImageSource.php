@@ -61,7 +61,7 @@ class ImageSource extends AbstractSource
     }
 
     /**
-     * Resample an image.
+     * Resample.
      *
      * @return self
      */
@@ -71,7 +71,7 @@ class ImageSource extends AbstractSource
     }
 
     /**
-     * Resize an image.
+     * Resize.
      *
      * @param  int        $width
      * @param  int        $height
@@ -155,14 +155,14 @@ class ImageSource extends AbstractSource
         // Store new dimensions.
         $this->newDimensions = [$newWidth, $newHeight];
 
-        // Tick for using resized image & chaining (eg: $up->resize(100, 150)->crop(75, 75)).
+        // Tick for using resized image & chaining (eg: $im->resize(100, 150)->crop(75, 75)).
         $this->resized = true;
 
         return $this;
     }
 
     /**
-     * Resize an image as thumbnail.
+     * Resize as thumbnail.
      *
      * @param  int      $width
      * @param  int|null $height
@@ -174,7 +174,7 @@ class ImageSource extends AbstractSource
     }
 
     /**
-     * Crop an image.
+     * Crop.
      *
      * @param  int        $width
      * @param  int|null   $height
@@ -215,7 +215,9 @@ class ImageSource extends AbstractSource
         $y = (int) (($options['y'] ?? 0) ?? ($origHeight - $cropHeight) / $div);
 
         $this->sourceImage = $this->createSourceImage();
-        $this->targetImage = $this->createTargetImage([$width, $height], $this->usesImagick() ? $this->sourceImage : null);
+        $this->targetImage = $this->createTargetImage([$width, $height],
+            $this->usesImagick() ? $this->sourceImage : null
+        );
 
         if ($this->usesImagick()) {
             try {
@@ -245,11 +247,14 @@ class ImageSource extends AbstractSource
         // Store new dimensions.
         $this->newDimensions = [$width, $height];
 
+        // Tick for using resized image.
+        $this->resized = true;
+
         return $this;
     }
 
     /**
-     * Crop an image as thumbnail.
+     * Crop as thumbnail.
      *
      * @param  int      $width
      * @param  int|null $height
@@ -283,14 +288,11 @@ class ImageSource extends AbstractSource
             );
         }
 
-        // Tick for using resized image.
-        $this->resized = true;
-
         return $this->resize($width, $height);
     }
 
     /**
-     * Chop an image.
+     * Chop.
      *
      * @param  int $width
      * @param  int $height
@@ -305,7 +307,7 @@ class ImageSource extends AbstractSource
     }
 
     /**
-     * Rotate an image.
+     * Rotate.
      *
      * @param  int|float       $degree
      * @param  int|string|null $background
@@ -581,12 +583,10 @@ class ImageSource extends AbstractSource
             if ($this->resized) {
                 return $this->sourceImage;
             }
-
             return new Imagick($this->getSource());
         }
 
         if ($this->resized) {
-            // Use resized image as source.
             $image = imagecreatefromstring($this->toString());
 
             // Clear old stuff.
@@ -607,7 +607,7 @@ class ImageSource extends AbstractSource
      * Create target image.
      *
      * @param  array        $dimensions
-     * @param  Imagick|null $sourceImage
+     * @param  Imagick|null $sourceImage @internal
      * @return GdImage|Imagick
      * @throws froq\file\upload\ImageSourceException
      */
@@ -625,7 +625,6 @@ class ImageSource extends AbstractSource
             throw new ImageSourceException('Cannot create target image, no source image exists');
         }
 
-        // Discard source image.
         $image = imagecreatetruecolor(...$dimensions);
 
         return $image ?: throw new ImageSourceException('Failed creating target image [error: @error]');
@@ -639,10 +638,9 @@ class ImageSource extends AbstractSource
      */
     protected final function output(): string
     {
-        $image = $this->getTargetImage();
-        $image || throw new ImageSourceException(
-            'No target image created yet, call one of these methods first: '.
-            'resample(), resize(), resizeThumbnail(), crop(), cropThumbnail() or rotate()'
+        $image = $this->getTargetImage() ?: throw new ImageSourceException(
+            'No target image created yet, call one of these methods first: resample(), '.
+            'resize(), resizeThumbnail(), crop(), cropThumbnail(), chop(), rotate()'
         );
 
         $type = $this->getType();
@@ -692,14 +690,12 @@ class ImageSource extends AbstractSource
      */
     protected final function outputTo(string $file): string
     {
-        $file = trim($file);
-        $file || throw new ImageSourceException('Empty target file');
-
-        $image = $this->getTargetImage();
-        $image || throw new ImageSourceException(
-            'No target image created yet, call one of these methods first: '.
-            'resample(), resize(), resizeThumbnail(), crop(), cropThumbnail() or rotate()'
+        $image = $this->getTargetImage() ?: throw new ImageSourceException(
+            'No target image created yet, call one of these methods first: resample(), '.
+            'resize(), resizeThumbnail(), crop(), cropThumbnail(), chop(), rotate()'
         );
+
+        $file = trim($file) ?: throw new ImageSourceException('Empty target file');
 
         $type = $this->getType();
 
