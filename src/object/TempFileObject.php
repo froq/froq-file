@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace froq\file\object;
 
 /**
+ * A class, for working with temp files in OOP style.
+ *
  * @package froq\file\object
  * @object  froq\file\object\TempFileObject
  * @author  Kerem Güneş
