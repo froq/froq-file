@@ -101,7 +101,17 @@ abstract class AbstractSource implements Stringable
     }
 
     /**
-     * Get mime type.
+     * Get source file size.
+     *
+     * @return int
+     */
+    public final function getSize(): int
+    {
+        return $this->getSourceInfo()['size'];
+    }
+
+    /**
+     * Get source file mime type.
      *
      * @return string
      */
@@ -217,14 +227,14 @@ abstract class AbstractSource implements Stringable
      *
      * @param  string      $name
      * @param  string|null $appendix
-     * @return string|null
+     * @return string
      * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      */
-    public final function prepareName(string $name, string $appendix = null): string|null
+    public final function prepareName(string $name, string $appendix = null): string
     {
         $name = trim($name);
         if ($name == '') {
-            return null;
+            return '';
         }
 
         // Some security & standard stuff.
