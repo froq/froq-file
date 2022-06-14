@@ -53,8 +53,7 @@ final class File extends \StaticClass
     public static function isFile(string $path): bool|null
     {
         // Errors happen in strict mode, else warning only.
-        try { return is_file($path); }
-            catch (\Error) { return null; }
+        try { return is_file($path); } catch (\Error) { return null; }
     }
 
     /**
@@ -66,8 +65,7 @@ final class File extends \StaticClass
     public static function isDirectory(string $path): bool|null
     {
         // Errors happen in strict mode, else warning only.
-        try { return is_dir($path); }
-            catch (\Error) { return null; }
+        try { return is_dir($path); } catch (\Error) { return null; }
     }
 
     /**
