@@ -385,7 +385,7 @@ final class File extends \StaticClass
                     'Given path is a directory [path: %s]',
                     $file, FileError::DIRECTORY
                 );
-            } // else ok.
+            }
         } else {
             $error ??= error_message() ?? 'Unknown error';
 
