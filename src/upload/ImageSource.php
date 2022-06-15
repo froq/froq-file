@@ -149,7 +149,6 @@ class ImageSource extends AbstractSource
                 $this->targetImage, $this->sourceImage,
                 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight
             ) || throw new ImageSourceException('Failed resampling target image [error: @error]');
-
         }
 
         // Store new dimensions.
@@ -316,8 +315,6 @@ class ImageSource extends AbstractSource
      */
     public final function rotate(int|float $degree, int|string $background = null): self
     {
-        $this->fillInfo();
-
         if ($this->usesImagick()) {
             $this->sourceImage = $this->createSourceImage();
             $this->targetImage = $this->createTargetImage([], $this->sourceImage);
@@ -448,15 +445,14 @@ class ImageSource extends AbstractSource
      */
     public final function fillInfo(): void
     {
-        $info = null;
-
-        if ($this->resized) { // Use resized image as source.
+        // Use resized image as source.
+        if ($this->resized) {
             $info = getimagesizefromstring($this->toString());
         } elseif (empty($this->info)) {
             $info = getimagesize($this->getSource());
         }
 
-        $info = $info ?: ($this->info ?? null);
+        $info ??= $this->info ?? null;
 
         if (!$info) {
             throw new ImageSourceException('Failed getting source info [error: @error]');
@@ -508,9 +504,7 @@ class ImageSource extends AbstractSource
      */
     public final function getDimensions(): array
     {
-        $info = $this->getInfo();
-
-        return [$info['width'], $info['height']];
+        return array_slice($this->getInfo(), 0, 2);
     }
 
     /**
