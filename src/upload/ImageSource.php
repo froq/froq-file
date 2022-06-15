@@ -121,9 +121,7 @@ class ImageSource extends AbstractSource
         // if ($newHeight < $newWidth) $newHeight += 1;
 
         $this->sourceImage = $this->createSourceImage();
-        $this->targetImage = $this->createTargetImage([$newWidth, $newHeight],
-            $this->usesImagick() ? $this->sourceImage : null
-        );
+        $this->targetImage = $this->createTargetImage([$newWidth, $newHeight]);
 
         if ($this->usesImagick()) {
             try {
@@ -210,9 +208,7 @@ class ImageSource extends AbstractSource
         $y = (int) (($options['y'] ?? 0) ?? ($origHeight - $cropHeight) / $div);
 
         $this->sourceImage = $this->createSourceImage();
-        $this->targetImage = $this->createTargetImage([$width, $height],
-            $this->usesImagick() ? $this->sourceImage : null
-        );
+        $this->targetImage = $this->createTargetImage([$width, $height]);
 
         if ($this->usesImagick()) {
             try {
@@ -313,7 +309,7 @@ class ImageSource extends AbstractSource
             $this->getInfo(); // Ensure info filled for outputs.
 
             $this->sourceImage = $this->createSourceImage();
-            $this->targetImage = $this->createTargetImage([], $this->sourceImage);
+            $this->targetImage = $this->createTargetImage();
 
             $this->targetImage->rotateImage($background ?? '', $degree);
 
@@ -587,20 +583,17 @@ class ImageSource extends AbstractSource
     /**
      * Create target image.
      *
-     * @param  array        $dimensions
-     * @param  Imagick|null $sourceImage @internal
+     * @param  array|null $dimensions
      * @return GdImage|Imagick
      * @throws froq\file\upload\ImageSourceException
      */
-    protected final function createTargetImage(array $dimensions, Imagick $sourceImage = null): GdImage|Imagick
+    protected final function createTargetImage(array $dimensions = null): GdImage|Imagick
     {
         if ($this->usesImagick()) {
             if ($this->targetImage) {
                 return $this->targetImage;
             } elseif ($this->sourceImage) {
                 return $this->sourceImage->getImage();
-            } elseif ($sourceImage) {
-                return $sourceImage->getImage();
             }
 
             throw new ImageSourceException('Cannot create target image, no source image exists');
