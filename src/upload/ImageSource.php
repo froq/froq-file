@@ -42,11 +42,13 @@ class ImageSource extends AbstractSource
 
     /** @var array */
     protected static array $optionsDefault = [
-        'jpegQuality' => -1,    'webpQuality'   => -1,
-        'pngQuality'  => -1,    'pngFilters'    => -1,
-        'tryImagick'  => false, // Try using Imagick if exists.
-        'useImagick'  => false, // Direct command to use Imagick (causes error if not exists).
-        'stripImage'  => false, 'stripImageIcc' => false, // Valid for only Imagick.
+        'jpegQuality'   => -1, 'webpQuality' => -1, // All default.
+        'pngQuality'    => -1, 'pngFilters'  => -1, // All default.
+        'tryImagick'    => false,  // Try using Imagick if exists.
+        'useImagick'    => false,  // Direct command to use Imagick (causes error if not exists).
+        'stripImage'    => false,  // Valid for only Imagick.
+        'stripImageIcc' => false,  // Valid for only Imagick.
+        'background'    => 'none', // Availables: 'none' for transparency, 'black', 'white'.
     ];
 
     /** @var bool */
@@ -130,15 +132,25 @@ class ImageSource extends AbstractSource
                 throw new ImageSourceException($e);
             }
         } else {
-            // Handle transparency.
-            if (in_array($type, [IMAGETYPE_WEBP, IMAGETYPE_PNG, IMAGETYPE_GIF], true)) {
+            $background = null;
+
+            if ($this->options['background'] == 'none'
+                && in_array($type, [IMAGETYPE_WEBP, IMAGETYPE_PNG, IMAGETYPE_GIF], true)) {
+                // Transparent.
+                $background = imagecolorallocatealpha($this->targetImage, 255, 255, 255, 127);
                 imagealphablending($this->targetImage, false);
                 imagesavealpha($this->targetImage, true);
                 imageantialias($this->targetImage, true);
-                imagefill($this->targetImage, 0, 0, imagecolorallocatealpha(
-                    $this->targetImage, 255, 255, 255, 127 // Transparent.
-                ));
+            } else {
+                // Black & white.
+                $background = match ($this->options['background']) {
+                    'black' => imagecolorallocate($this->targetImage, 0, 0, 0),
+                    'white' => imagecolorallocate($this->targetImage, 255, 255, 255),
+                    default => $this->options['background'] != 'none' ? $this->options['background'] : null
+                };
             }
+
+            $background && imagefill($this->targetImage, 0, 0, $background);
 
             imagecopyresampled(
                 $this->targetImage, $this->sourceImage,
@@ -217,15 +229,25 @@ class ImageSource extends AbstractSource
                 throw new ImageSourceException($e);
             }
         } else {
-            // Handle transparency.
-            if (in_array($type, [IMAGETYPE_WEBP, IMAGETYPE_PNG, IMAGETYPE_GIF], true)) {
+            $background = null;
+
+            if ($this->options['background'] == 'none'
+                && in_array($type, [IMAGETYPE_WEBP, IMAGETYPE_PNG, IMAGETYPE_GIF], true)) {
+                // Transparent.
+                $background = imagecolorallocatealpha($this->targetImage, 255, 255, 255, 127);
                 imagealphablending($this->targetImage, false);
                 imagesavealpha($this->targetImage, true);
                 imageantialias($this->targetImage, true);
-                imagefill($this->targetImage, 0, 0, imagecolorallocatealpha(
-                    $this->targetImage, 255, 255, 255, 127 // Transparent.
-                ));
+            } else {
+                // Black & white.
+                $background = match ($this->options['background']) {
+                    'black' => imagecolorallocate($this->targetImage, 0, 0, 0),
+                    'white' => imagecolorallocate($this->targetImage, 255, 255, 255),
+                    default => $this->options['background'] != 'none' ? $this->options['background'] : null
+                };
             }
+
+            $background && imagefill($this->targetImage, 0, 0, $background);
 
             imagecopyresampled(
                 $this->targetImage, $this->sourceImage,
@@ -296,15 +318,18 @@ class ImageSource extends AbstractSource
     /**
      * Rotate.
      *
-     * @param  int|float  $degree
-     * @param  int|string $background
+     * @param  int|float       $degree
+     * @param  int|string|null $background
      * @return self
      * @since  5.0
      */
-    public final function rotate(int|float $degree, int|string $background = 'none'): self
+    public final function rotate(int|float $degree, int|string $background = null): self
     {
-        // Also fill info & source/target images.
+        // Also fill info & source/target.
         $this->resized || $this->resample();
+
+        // Use background option if none given.
+        $background ??= $this->options['background'];
 
         if ($this->targetImage instanceof Imagick) {
             try {
@@ -324,7 +349,7 @@ class ImageSource extends AbstractSource
                 'black' => imagecolorallocate($this->targetImage, 0, 0, 0),
                 'white' => imagecolorallocate($this->targetImage, 255, 255, 255),
                 default => (
-                    // Make default background as transparent.
+                    // Make default as transparent.
                     $background != 'none' ? $background
                         : imagecolorallocatealpha($this->targetImage, 255, 255, 255, 127)
             )};
