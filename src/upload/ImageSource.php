@@ -310,6 +310,8 @@ class ImageSource extends AbstractSource
     public final function rotate(int|float $degree, int|string $background = null): self
     {
         if ($this->usesImagick()) {
+            $this->getInfo(); // Ensure info filled for outputs.
+
             $this->sourceImage = $this->createSourceImage();
             $this->targetImage = $this->createTargetImage([], $this->sourceImage);
 
@@ -571,7 +573,7 @@ class ImageSource extends AbstractSource
             // Clear old stuff.
             $this->sourceImage = $this->targetImage = null;
         } else {
-            $image = match ($this->getType()) {
+            $image = match ($this->info['type']) {
                 IMAGETYPE_JPEG => imagecreatefromjpeg($this->getSource()),
                 IMAGETYPE_WEBP => imagecreatefromwebp($this->getSource()),
                 IMAGETYPE_PNG  => imagecreatefrompng($this->getSource()),
