@@ -87,8 +87,6 @@ class ImageSource extends AbstractSource
             throw new ImageSourceException('Either width or height must be greater than 0');
         }
 
-        $this->fillInfo();
-
         // @defaults=false,true
         $adjust     = (bool) ($options['adjust'] ?? false);
         $proportion = (bool) ($options['proportion'] ?? true);
@@ -189,8 +187,6 @@ class ImageSource extends AbstractSource
             throw new ImageSourceException('Either width or height must be greater than 0');
         }
 
-        $this->fillInfo();
-
         // @default=false
         $proportion = (bool) ($options['proportion'] ?? false);
 
@@ -267,8 +263,6 @@ class ImageSource extends AbstractSource
         } elseif ($width == 0 && $height == 0) {
             throw new ImageSourceException('Either width or height must be greater than 0');
         }
-
-        $this->fillInfo();
 
         [$origWidth, $origHeight] = $this->getInfo();
 
@@ -422,28 +416,12 @@ class ImageSource extends AbstractSource
     }
 
     /**
-     * Get image info.
-     *
-     * @return array
-     * @throws froq\file\upload\ImageSourceException
-     */
-    public final function getInfo(): array
-    {
-        if (!empty($this->info)) {
-            return $this->info;
-        }
-
-        throw new ImageSourceException('No info filled yet, try after calling fillInfo()');
-    }
-
-    /**
-     * Fill image info.
+     * Get filling info.
      *
      * @return void
      * @throws froq\file\upload\ImageSourceException
-     * @internal
      */
-    public final function fillInfo(): void
+    public final function getInfo(): array
     {
         // Use resized image as source.
         if ($this->resized) {
@@ -464,7 +442,7 @@ class ImageSource extends AbstractSource
         // Add suggestive names.
         $info += ['type' => $info[2], 'width' => $info[0], 'height' => $info[1]];
 
-        $this->info = $info;
+        return ($this->info = $info);
     }
 
     /**
