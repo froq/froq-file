@@ -334,6 +334,8 @@ class ImageSource extends AbstractSource
         if ($this->targetImage instanceof Imagick) {
             try {
                 $this->targetImage->rotateImage($background, $degree);
+                // Rotate is not enough, merge must be called here too.
+                $this->targetImage = $this->targetImage->mergeImageLayers(0);
             } catch (ImagickException $e) {
                 throw new ImageSourceException($e);
             }
