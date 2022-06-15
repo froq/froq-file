@@ -639,12 +639,12 @@ class ImageSource extends AbstractSource
      */
     protected final function output(): string
     {
-        $image = $this->getTargetImage() ?: throw new ImageSourceException(
+        $image = $this->targetImage ?: throw new ImageSourceException(
             'No target image created yet, call one of these methods first: resample(), '.
             'resize(), resizeThumbnail(), crop(), cropThumbnail(), chop(), rotate()'
         );
 
-        $type = $this->getType();
+        $type = $this->info['type'];
 
         if ($image instanceof Imagick) {
             $quality = (int) ($this->options['jpegQuality'] ?? $this->options['webpQuality']);
@@ -691,14 +691,14 @@ class ImageSource extends AbstractSource
      */
     protected final function outputTo(string $file): string
     {
-        $image = $this->getTargetImage() ?: throw new ImageSourceException(
+        $image = $this->targetImage ?: throw new ImageSourceException(
             'No target image created yet, call one of these methods first: resample(), '.
             'resize(), resizeThumbnail(), crop(), cropThumbnail(), chop(), rotate()'
         );
 
         $file = trim($file) ?: throw new ImageSourceException('Empty target file');
 
-        $type = $this->getType();
+        $type = $this->info['type'];
 
         if ($image instanceof Imagick) {
             $quality = (int) ($this->options['jpegQuality'] ?? $this->options['webpQuality']);
