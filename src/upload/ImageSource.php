@@ -296,33 +296,40 @@ class ImageSource extends AbstractSource
     /**
      * Rotate.
      *
-     * @param  int|float       $degree
-     * @param  int|string|null $background
+     * @param  int|float  $degree
+     * @param  int|string $background
      * @return self
      * @since  5.0
      */
-    public final function rotate(int|float $degree, int|string $background = null): self
+    public final function rotate(int|float $degree, int|string $background = 'none'): self
     {
-        if ($this->usesImagick()) {
-            $this->getInfo(); // Ensure info filled for outputs.
+        // Also fill info & source/target images.
+        $this->resized || $this->resample();
 
-            $this->sourceImage = $this->createSourceImage();
-            $this->targetImage = $this->createTargetImage();
-
+        if ($this->targetImage instanceof Imagick) {
             try {
-                $this->targetImage->rotateImage($background ?? '', $degree);
+                $this->targetImage->rotateImage($background, $degree);
             } catch (ImagickException $e) {
                 throw new ImageSourceException($e);
             }
 
-            [$width, $height] = [$this->targetImage->getImageWidth(), $this->targetImage->getImageHeight()];
+            [$width, $height] = [$this->targetImage->getImageWidth(),
+                                 $this->targetImage->getImageHeight()];
         } else {
-            $this->resample();
-
             // Fix GD "counter clockwise" stuff.
             $degree = -$degree;
 
-            $this->targetImage = imagerotate($this->targetImage, $degree, $background ?? 0)
+            // Handle background color.
+            $background = match ($background) {
+                'black' => imagecolorallocate($this->targetImage, 0, 0, 0),
+                'white' => imagecolorallocate($this->targetImage, 255, 255, 255),
+                default => (
+                    // Make default background as transparent.
+                    $background != 'none' ? $background
+                        : imagecolorallocatealpha($this->targetImage, 255, 255, 255, 127)
+            )};
+
+            $this->targetImage = imagerotate($this->targetImage, $degree, $background)
                 ?: throw new ImageSourceException('Failed rotating target image [error: @error]');
 
             [$width, $height] = [imagesx($this->targetImage), imagesy($this->targetImage)];
