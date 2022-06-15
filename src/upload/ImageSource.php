@@ -123,10 +123,9 @@ class ImageSource extends AbstractSource
         $this->sourceImage = $this->createSourceImage();
         $this->targetImage = $this->createTargetImage([$newWidth, $newHeight]);
 
-        if ($this->usesImagick()) {
+        if ($this->targetImage instanceof Imagick) {
             try {
-                $imagick = $this->targetImage;
-                $imagick->scaleImage($newWidth, $newHeight);
+                $this->targetImage->scaleImage($newWidth, $newHeight);
             } catch (ImagickException $e) {
                 throw new ImageSourceException($e);
             }
@@ -210,11 +209,10 @@ class ImageSource extends AbstractSource
         $this->sourceImage = $this->createSourceImage();
         $this->targetImage = $this->createTargetImage([$width, $height]);
 
-        if ($this->usesImagick()) {
+        if ($this->targetImage instanceof Imagick) {
             try {
-                $imagick = $this->targetImage;
-                $imagick->cropImage($width, $height, $x, $y);
-                $imagick->setImagePage(0, 0, 0, 0);
+                $this->targetImage->cropImage($width, $height, $x, $y);
+                $this->targetImage->setImagePage(0, 0, 0, 0);
             } catch (ImagickException $e) {
                 throw new ImageSourceException($e);
             }
@@ -311,7 +309,11 @@ class ImageSource extends AbstractSource
             $this->sourceImage = $this->createSourceImage();
             $this->targetImage = $this->createTargetImage();
 
-            $this->targetImage->rotateImage($background ?? '', $degree);
+            try {
+                $this->targetImage->rotateImage($background ?? '', $degree);
+            } catch (ImagickException $e) {
+                throw new ImageSourceException($e);
+            }
 
             [$width, $height] = [$this->targetImage->getImageWidth(), $this->targetImage->getImageHeight()];
         } else {
