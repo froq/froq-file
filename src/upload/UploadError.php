@@ -54,6 +54,6 @@ class UploadError extends \froq\file\FileError
      */
     public static final function getErrorMessage(int $errorCode): string
     {
-        return self::MESSAGES[$error] ?? 'Unknown error';
+        return self::MESSAGES[$errorCode] ?? 'Unknown error';
     }
 }
