@@ -37,11 +37,12 @@ final class File extends \StaticClass
      * Get file extension.
      *
      * @param  string $file
+     * @param  bool   $withDot
      * @return string|null
      */
-    public static function getExtension(string $file): string|null
+    public static function getExtension(string $file, bool $withDot = false): string|null
     {
-        return Mime::getExtension($file);
+        return file_extension($file, $withDot);
     }
 
     /**
