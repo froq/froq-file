@@ -39,9 +39,9 @@ abstract class AbstractSource implements Stringable
     protected static array $optionsDefault = [
         'hash'              => null,  // Available commands: 'rand' or 'name' (default=none).
         'hashLength'        => null,  // Available lengths: 8, 16, 32 or 40 (default=32).
-        'maxFileSize'       => null,  // In binary mode: for 2 megabytes 2048, 2048k or 2m.
         'allowedMimes'      => '*',   // All '*' allowed or 'image/jpeg,image/png' etc.
         'allowedExtensions' => '*',   // All '*' allowed or 'jpg,jpeg' etc.
+        'maxFileSize'       => null,  // In binary mode: for 2 megabytes 2048, 2048k or 2m.
         'clear'             => true,  // To free resources after saving/moving file etc.
         'clearSource'       => false, // To delete sources after saving/moving files etc.
         'overwrite'         => false, // To prevent existing file overwrite.
