@@ -473,7 +473,7 @@ class ImageSource extends AbstractSource
             throw new ImageSourceException('Failed getting source info [error: @error]');
         }
         if (!isset($info[2]) || !in_array($info[2], self::SUPPORTED_TYPES, true)) {
-            throw new ImageSourceException('Invalid image type [valids: JPEG,PNG,GIF,WEBP]');
+            throw new ImageSourceException('Invalid image type [valids: JPEG,WEBP,PNG,GIF]');
         }
 
         // Add suggestive names.
