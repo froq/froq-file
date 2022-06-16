@@ -763,7 +763,7 @@ abstract class AbstractSystem
      * @param  string $path
      * @return string
      */
-    public final static function normalizePath(string $path): string
+    public static final function normalizePath(string $path): string
     {
         return get_real_path($path, check: false);
     }
