@@ -204,21 +204,21 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
      */
     public final function offsetExists(mixed $key): bool
     {
-        return $this->pathInfo[$key] !== null;
+        return array_key_exists($key, $this->pathInfo);
     }
     /**
      * @inheritDoc ArrayAccess
      */
     public final function offsetGet(mixed $key): mixed
     {
-        return $this->pathInfo[$key];
+        return $this->pathInfo[$key] ?? null;
     }
 
     /**
      * @inheritDoc ArrayAccess
      * @throws     ReadonlyError
      */
-    public final function offsetSet(mixed $index, mixed $_): never
+    public final function offsetSet(mixed $key, mixed $_): never
     {
         throw new \ReadonlyError($this);
     }
@@ -227,7 +227,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
      * @inheritDoc ArrayAccess
      * @throws     ReadonlyError
      */
-    public final function offsetUnset(mixed $index): never
+    public final function offsetUnset(mixed $key): never
     {
         throw new \ReadonlyError($this);
     }
