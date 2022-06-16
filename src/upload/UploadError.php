@@ -44,4 +44,16 @@ class UploadError extends \froq\file\FileError
         7 => 'Failed to write file to disk',
         8 => 'A PHP extension stopped the file upload'
     ];
+
+    /**
+     * Get error message.
+     *
+     * @param  int $errorCode
+     * @return string
+     * @since  6.0
+     */
+    public static final function getErrorMessage(int $errorCode): string
+    {
+        return self::MESSAGES[$error] ?? 'Unknown error';
+    }
 }
