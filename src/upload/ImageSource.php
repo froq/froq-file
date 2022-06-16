@@ -374,15 +374,16 @@ class ImageSource extends AbstractSource
     /**
      * @inheritDoc froq\file\upload\AbstractSource
      */
-    public final function save(string $path = null, string $appendix = null, bool $appendNewDimensions = false): string
+    public final function save(string $path = null, string $appendix = null, bool $appendDimensions = false): string
     {
-        if ($appendNewDimensions && ($newDimensions = $this->getNewDimensions())) {
-            $appendix = ($appendix === null)
-                ? vsprintf('%dx%d', $newDimensions)
-                : vsprintf('%dx%d-%s', [...$newDimensions, $appendix]);
+        if ($appendDimensions) {
+            $dimensions = $this->getNewDimensions() ?: $this->getDimensions();
+            $appendix = ($appendix == '')
+                ? vsprintf('%dx%d', $dimensions)
+                : vsprintf('%dx%d-%s', [...$dimensions, $appendix]);
         }
 
-        // Should resample as least.
+        // Resample as least for output.
         $this->resized || $this->resample();
 
         $target = $this->prepareTarget($path, $appendix);
@@ -399,8 +400,15 @@ class ImageSource extends AbstractSource
     /**
      * @inheritDoc froq\file\upload\AbstractSource
      */
-    public final function move(string $path = null, string $appendix = null): string
+    public final function move(string $path = null, string $appendix = null, bool $appendDimensions = false): string
     {
+        if ($appendDimensions) {
+            $dimensions = $this->getNewDimensions() ?: $this->getDimensions();
+            $appendix = ($appendix == '')
+                ? vsprintf('%dx%d', $dimensions)
+                : vsprintf('%dx%d-%s', [...$dimensions, $appendix]);
+        }
+
         $source = $this->getSource();
         $target = $this->prepareTarget($path, $appendix);
 
