@@ -22,13 +22,10 @@ class Image
 {
     use OptionTrait;
 
-    /** Source file. */
-    private string $file;
-
     /** Source file info. */
     private array $fileInfo = [];
 
-    /** Source object. */
+    /** Source manipulator object. */
     public readonly ImageSource $source;
 
     /**
@@ -39,7 +36,7 @@ class Image
      */
     public function __construct(string $file = null,  array $options = null)
     {
-        $file && $this->file = $file;
+        $file && $this->setFile($file);
 
         $this->setOptions($options);
     }
@@ -52,7 +49,7 @@ class Image
      */
     public function setFile(string $file): self
     {
-        $this->file = $file;
+        $this->fileInfo['file'] = $file;
 
         return $this;
     }
@@ -64,7 +61,7 @@ class Image
      */
     public function getFile(): string|null
     {
-        return $this->file ?? null;
+        return $this->fileInfo['file'] ?? null;
     }
 
     /**
@@ -75,7 +72,7 @@ class Image
      */
     public function setFileInfo(array $fileInfo): self
     {
-        $this->fileInfo = $fileInfo;
+        $this->fileInfo = [...$this->fileInfo, ...$fileInfo];
 
         return $this;
     }
@@ -167,13 +164,20 @@ class Image
      */
     public function source(): ImageSource
     {
-        if (empty($this->file)) {
+        if (empty($this->fileInfo['file'])) {
             throw new ImageException('No source file given yet');
+        }
+        if (empty($this->fileInfo['directory'])) {
+            throw new ImageException('No target directory given yet');
         }
 
         if (empty($this->source)) {
-            $this->source = new ImageSource();
-            $this->source->prepare(['file' => $this->file] + $this->fileInfo, $this->options);
+            try {
+                $this->source = new ImageSource();
+                $this->source->prepare($this->fileInfo, $this->options);
+            } catch (ImageSourceException $e) {
+                throw new ImageException($e);
+            }
         }
 
         return $this->source;
