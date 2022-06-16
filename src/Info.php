@@ -18,7 +18,7 @@ use froq\common\interface\{Arrayable, Objectable};
  * @author  Kerem Güneş
  * @since   6.0
  */
-class Info extends \SplFileInfo implements Arrayable, Objectable
+class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
 {
     /** @var string */
     public readonly string $path;
@@ -166,10 +166,10 @@ class Info extends \SplFileInfo implements Arrayable, Objectable
         return $this->toDir();
     }
 
-    /** @alias SplFileInfo.isDir() */
+    /** @alias SplFileInfo::isDir() */
     public final function isDirectory()
     {
-        return parent::isDir();
+        return $this->isDir();
     }
 
     /**
@@ -194,8 +194,41 @@ class Info extends \SplFileInfo implements Arrayable, Objectable
      * @param  string $path
      * @return string
      */
-    public final static function normalizePath(string $path): string
+    public static final function normalizePath(string $path): string
     {
         return get_real_path($path, check: false);
+    }
+
+    /**
+     * @inheritDoc ArrayAccess
+     */
+    public final function offsetExists(mixed $key): bool
+    {
+        return $this->pathInfo[$key] !== null;
+    }
+    /**
+     * @inheritDoc ArrayAccess
+     */
+    public final function offsetGet(mixed $key): mixed
+    {
+        return $this->pathInfo[$key];
+    }
+
+    /**
+     * @inheritDoc ArrayAccess
+     * @throws     ReadonlyError
+     */
+    public final function offsetSet(mixed $index, mixed $_): never
+    {
+        throw new \ReadonlyError($this);
+    }
+
+    /**
+     * @inheritDoc ArrayAccess
+     * @throws     ReadonlyError
+     */
+    public final function offsetUnset(mixed $index): never
+    {
+        throw new \ReadonlyError($this);
     }
 }
