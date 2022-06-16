@@ -181,8 +181,8 @@ abstract class AbstractSource implements Stringable
         [$size, $mime, $name, $extension] = array_select($file, ['size', 'mime', 'name', 'extension']);
 
         // Separate name & extension.
-        if ($name && str_contains((string) $name, '.')) {
-            [$name, $extension] = [file_name($name), file_extension($name)];
+        if ($name && preg_match('~(.+)\.(\w+)$~', $name, $match)) {
+            [$name, $extension] = array_slice($match, 1);
         }
 
         $size      ??= filesize($source);
