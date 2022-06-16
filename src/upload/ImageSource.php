@@ -374,7 +374,7 @@ class ImageSource extends AbstractSource
     /**
      * @inheritDoc froq\file\upload\AbstractSource
      */
-    public final function save(string $name = null, string $appendix = null, bool $appendNewDimensions = false): string
+    public final function save(string $path = null, string $appendix = null, bool $appendNewDimensions = false): string
     {
         if ($appendNewDimensions && ($newDimensions = $this->getNewDimensions())) {
             $appendix = ($appendix === null)
@@ -382,7 +382,10 @@ class ImageSource extends AbstractSource
                 : vsprintf('%dx%d-%s', [...$newDimensions, $appendix]);
         }
 
-        $target = $this->prepareTarget($name, $appendix);
+        // Should resample as least.
+        $this->resized || $this->resample();
+
+        $target = $this->prepareTarget($path, $appendix);
 
         $this->overwriteCheck($target);
 
@@ -396,10 +399,10 @@ class ImageSource extends AbstractSource
     /**
      * @inheritDoc froq\file\upload\AbstractSource
      */
-    public final function move(string $name = null, string $appendix = null): string
+    public final function move(string $path = null, string $appendix = null): string
     {
         $source = $this->getSource();
-        $target = $this->prepareTarget($name, $appendix);
+        $target = $this->prepareTarget($path, $appendix);
 
         $this->overwriteCheck($target);
 

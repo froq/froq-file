@@ -172,9 +172,6 @@ class Image
         if (empty($this->fileInfo['file'])) {
             throw new ImageException('No source file given yet');
         }
-        if (empty($this->fileInfo['directory'])) {
-            throw new ImageException('No target directory given yet');
-        }
 
         if (empty($this->source)) {
             try {

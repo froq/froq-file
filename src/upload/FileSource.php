@@ -20,10 +20,10 @@ class FileSource extends AbstractSource
     /**
      * @inheritDoc froq\file\upload\AbstractSource
      */
-    public final function save(string $name = null, string $appendix = null): string
+    public final function save(string $path = null, string $appendix = null): string
     {
         $source = $this->getSource();
-        $target = $this->prepareTarget($name, $appendix);
+        $target = $this->prepareTarget($path, $appendix);
 
         $this->overwriteCheck($target);
 
@@ -37,10 +37,10 @@ class FileSource extends AbstractSource
     /**
      * @inheritDoc froq\file\upload\AbstractSource
      */
-    public final function move(string $name = null, string $appendix = null): string
+    public final function move(string $path = null, string $appendix = null): string
     {
         $source = $this->getSource();
-        $target = $this->prepareTarget($name, $appendix);
+        $target = $this->prepareTarget($path, $appendix);
 
         $this->overwriteCheck($target);
 
