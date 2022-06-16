@@ -399,8 +399,8 @@ final class File extends \StaticClass
                     'No access permission [file: %s]',
                     $file, FileError::NO_ACCESS_PERMISSION
                 );
-            } elseif (stripos($error, 'valid path') || stripos($error, 'null bytes')) {
-                $path  = strtr(substr($file, 0, 255), ["\0" => "\\0"]) . '...';
+            } elseif (stripos($error, 'valid path')) {
+                $path  = substr($file, 0, 255) . '...';
                 $error = new FileError(
                     'No valid path [path: %s]',
                     $path, FileError::NO_VALID_PATH
