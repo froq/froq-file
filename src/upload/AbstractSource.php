@@ -157,14 +157,10 @@ abstract class AbstractSource implements Stringable
         );
 
         // Validate file existence and give a proper error.
-        if (!$source) {
-            if (File::errorCheck($source, $error)) {
-                self::throw($error->message, code: $error->code, cause: $error);
-            }
-
+        if (File::errorCheck($source, $error)) {
             self::throw(
-                'No source file exists such `%s`', $source,
-                code: UploadError::NO_VALID_SOURCE
+                'No valid source given such `%s`', $source,
+                code: UploadError::NO_VALID_SOURCE, cause: $error
             );
         }
 
