@@ -36,7 +36,12 @@ class Image
      */
     public function __construct(string $file = null,  array $options = null)
     {
-        $file && $this->setFile($file);
+        if (isset($file)) {
+            $this->setFile($file);
+        }
+        if (isset($options['directory'])) {
+            $this->setDirectory($options['directory']);
+        }
 
         $this->setOptions($options);
     }
