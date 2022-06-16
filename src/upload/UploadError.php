@@ -25,7 +25,7 @@ class UploadError extends \froq\file\FileError
                        OPTION_EMPTY                 = 4,
                        OPTION_SIZE_EXCEEDED         = 5,
                        OPTION_EMPTY_EXTENSION       = 6,
-                       OPTION_NOT_ALLOWED_TYPE      = 7,
+                       OPTION_NOT_ALLOWED_MIME      = 7,
                        OPTION_NOT_ALLOWED_EXTENSION = 8,
                        OPTION_NOT_ALLOWED_OVERWRITE = 9,
                        DIRECTORY_EMPTY              = 10,

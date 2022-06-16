@@ -40,7 +40,7 @@ abstract class AbstractSource implements Stringable
         'hash'              => null,  // Available commands: 'rand' or 'name' (default=none).
         'hashLength'        => null,  // Available lengths: 8, 16, 32 or 40 (default=32).
         'maxFileSize'       => null,  // In binary mode: for 2 megabytes 2048, 2048k or 2m.
-        'allowedTypes'      => '*',   // All '*' allowed or 'image/jpeg,image/png' etc.
+        'allowedMimes'      => '*',   // All '*' allowed or 'image/jpeg,image/png' etc.
         'allowedExtensions' => '*',   // All '*' allowed or 'jpg,jpeg' etc.
         'clear'             => true,  // To free resources after saving/moving file etc.
         'clearSource'       => false, // To delete sources after saving/moving files etc.
@@ -111,13 +111,13 @@ abstract class AbstractSource implements Stringable
     }
 
     /**
-     * Get source file mime type.
+     * Get source file mime.
      *
      * @return string
      */
     public final function getMime(): string
     {
-        return $this->getSourceInfo()['type'];
+        return $this->getSourceInfo()['mime'];
     }
 
     /**
@@ -178,7 +178,7 @@ abstract class AbstractSource implements Stringable
             );
         }
 
-        [$size, $type, $name, $extension] = array_select($file, ['size', 'type', 'name', 'extension']);
+        [$size, $mime, $name, $extension] = array_select($file, ['size', 'mime', 'name', 'extension']);
 
         // Separate name & extension.
         if ($name && str_contains((string) $name, '.')) {
@@ -186,14 +186,14 @@ abstract class AbstractSource implements Stringable
         }
 
         $size      ??= filesize($source);
-        $type      ??= Mime::getType($source, false);
-        $extension ??= File::getExtension($source) ?: Mime::getExtensionByType($type);
+        $mime      ??= Mime::getType($source, false);
+        $extension ??= File::getExtension($source) ?: Mime::getExtensionByType($mime);
 
-        if (!$this->isAllowedType($type)) {
+        if (!$this->isAllowedMime($mime)) {
             self::throw(
-                'Type `%s` not allowed by options, allowed types: %s',
-                [$type, $options['allowedTypes']],
-                code: UploadError::OPTION_NOT_ALLOWED_TYPE
+                'Mime `%s` not allowed by options, allowed mimes: %s',
+                [$mime, $options['allowedMimes']],
+                code: UploadError::OPTION_NOT_ALLOWED_MIME
             );
         }
         if (!$this->isAllowedExtension($extension)) {
@@ -219,7 +219,7 @@ abstract class AbstractSource implements Stringable
 
         $this->source     = $source;
         $this->sourceInfo = [
-            'type' => $type, 'size'      => $size,
+            'mime' => $mime, 'size'      => $size,
             'name' => $name, 'extension' => $extension
         ];
 
@@ -343,20 +343,20 @@ abstract class AbstractSource implements Stringable
     }
 
     /**
-     * Check whether a type allowed.
+     * Check whether a mime allowed.
      *
-     * @param  string $type
+     * @param  string $mime
      * @return bool
      * @since  5.0
      */
-    public final function isAllowedType(string $type): bool
+    public final function isAllowedMime(string $mime): bool
     {
-        $types = (string) $this->options['allowedTypes'];
+        $mimes = (string) $this->options['allowedMimes'];
 
         return (
-                $types == '*' // All.
-            || ($types[0] == '~' && preg_test($types, $type))
-            || in_array($type, preg_split('~\s*,\s*~', $types, flags: 1), true)
+                $mimes == '*' // All.
+            || ($mimes[0] == '~' && preg_test($mimes, $mime)) // RegExp.
+            || in_array($mime, preg_split('~\s*,\s*~', $mimes, flags: 1), true)
         );
     }
 
@@ -373,7 +373,7 @@ abstract class AbstractSource implements Stringable
 
         return (
                 $extensions == '*' // All.
-            || ($extensions[0] == '~' && preg_test($extensions, $extension))
+            || ($extensions[0] == '~' && preg_test($extensions, $extension)) // RegExp.
             || in_array($extension, preg_split('~\s*,\s*~', $extensions, flags: 1), true)
         );
     }
