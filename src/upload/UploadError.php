@@ -36,6 +36,7 @@ class UploadError extends \froq\file\FileError
      * @const array
      */
     public final const MESSAGES = [
+        0 => '',
         1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
         2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
         3 => 'The uploaded file was only partially uploaded',
@@ -46,14 +47,14 @@ class UploadError extends \froq\file\FileError
     ];
 
     /**
-     * Get error message.
+     * Convert given code to message.
      *
-     * @param  int $errorCode
+     * @param  int $code
      * @return string
      * @since  6.0
      */
-    public static final function getErrorMessage(int $errorCode): string
+    public static final function toMessage(int $code): string
     {
-        return self::MESSAGES[$errorCode] ?? 'Unknown error';
+        return self::MESSAGES[$code] ?? 'Unknown error';
     }
 }
