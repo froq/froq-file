@@ -202,13 +202,12 @@ abstract class AbstractSource implements Stringable
             }
         }
 
-        if (!dirmake($directory)) {
-            self::throw(
-                'Cannot make directory [directory: %S, error: %s]',
-                [$directory, '@error'],
-                code: UploadError::DIRECTORY_ERROR
-            );
-        }
+        // Ensure directory existence or create.
+        dirmake($directory) || self::throw(
+            'Cannot make directory [directory: %S, error: %s]',
+            [$directory, '@error'],
+            code: UploadError::DIRECTORY_ERROR
+        );
 
         // Set target name to UUID as default if none given.
         $name = $name ? $this->prepareName($name) : uuid(timed: true);
