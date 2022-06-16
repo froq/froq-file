@@ -503,16 +503,6 @@ class ImageSource extends AbstractSource
     }
 
     /**
-     * Get type.
-     *
-     * @return int
-     */
-    public final function getType(): int
-    {
-        return $this->getInfo()['type'];
-    }
-
-    /**
      * Get dimensions.
      *
      * @return array
