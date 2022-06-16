@@ -187,7 +187,7 @@ abstract class AbstractSource implements Stringable
 
         $size      ??= filesize($source);
         $type      ??= Mime::getType($source, false);
-        $extension ??= Mime::getExtension($source) ?: Mime::getExtensionByType($type);
+        $extension ??= File::getExtension($source) ?: Mime::getExtensionByType($type);
 
         if (!$this->isAllowedType($type)) {
             self::throw(

@@ -63,23 +63,11 @@ final class Mime extends \StaticClass
         }
 
         // Try by extension.
-        if (!$type && ($extension = self::getExtension($file))) {
+        if (!$type && ($extension = File::getExtension($file))) {
             $type = self::getTypeByExtension($extension);
         }
 
         return $type;
-    }
-
-    /**
-     * Get a file extension.
-     *
-     * @param  string $file
-     * @return string|null
-     * @since  3.0
-     */
-    public static function getExtension(string $file): string|null
-    {
-        return file_extension($file, false);
     }
 
     /**

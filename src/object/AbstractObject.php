@@ -7,8 +7,7 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
-use froq\file\File;
-use froq\file\mime\Mime;
+use froq\file\{File, mime\Mime};
 use froq\common\interface\{Sizable, Stringable};
 use froq\common\trait\{ApplyTrait, OptionTrait};
 
@@ -197,7 +196,7 @@ abstract class AbstractObject implements Sizable, Stringable
         return match (true) {
             !!$this->extension => $this->extension,
             !!$this->mime => Mime::getExtensionByType($this->mime),
-            !!$this->resourceFile => Mime::getExtension($this->resourceFile),
+            !!$this->resourceFile => File::getExtension($this->resourceFile),
             default => null
         };
     }

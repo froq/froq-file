@@ -7,8 +7,7 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
-use froq\file\File;
-use froq\file\upload\ImageSource;
+use froq\file\{File, upload\ImageSource};
 
 /**
  * An image class, for working with images in OOP style.
