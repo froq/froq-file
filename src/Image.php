@@ -34,7 +34,7 @@ class Image
      * @param string|null $file
      * @param array|null  $options
      */
-    public function __construct(string $file = null,  array $options = null)
+    public function __construct(string $file = null, array $options = null)
     {
         if (isset($file)) {
             $this->setFile($file);
