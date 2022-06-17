@@ -143,13 +143,16 @@ abstract class AbstractSource implements Stringable
     /**
      * Prepare a file for move/save etc.
      *
-     * @param  array      $file
-     * @param  array|null $options
+     * @param  array|string $file
+     * @param  array|null   $options
      * @return self
      * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      */
-    public final function prepare(array $file, array $options = null): self
+    public final function prepare(array|string $file, array $options = null): self
     {
+        // Only file path given.
+        is_string($file) && $file = ['file' => $file];
+
         // Add deferred options.
         $options = array_options($options, $this->options);
 
