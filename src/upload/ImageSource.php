@@ -205,18 +205,18 @@ class ImageSource extends AbstractSource
         $height = $height ?: $width;
 
         if ($proportion !== false) {
-            $div        = 4;
+            $divisor    = 4;
             $factor     = max($width, $height);
             $cropWidth  = (int) (0.5 * $factor);
             $cropHeight = (int) (0.5 * $factor);
         } else {
-            $div        = 2;
+            $divisor    = 2;
             $cropWidth  = $width;
             $cropHeight = $height;
         }
 
-        $x = (int) (($options['x'] ?? null) ?? ($origWidth - $cropWidth) / $div);
-        $y = (int) (($options['y'] ?? null) ?? ($origHeight - $cropHeight) / $div);
+        $x = (int) (($options['x'] ?? null) ?? ($origWidth - $cropWidth) / $divisor);
+        $y = (int) (($options['y'] ?? null) ?? ($origHeight - $cropHeight) / $divisor);
 
         $this->sourceImage = $this->createSourceImage();
         $this->targetImage = $this->createTargetImage([$width, $height]);
