@@ -409,12 +409,15 @@ class ImageSource extends AbstractSource
                 : vsprintf('%dx%d-%s', [...$dimensions, $appendix]);
         }
 
-        $source = $this->getSource();
+        // Resample as least for output.
+        $this->resized || $this->resample();
+
         $target = $this->prepareTarget($path, $appendix);
 
         $this->overwriteCheck($target);
 
-        if (rename($source, $target)) {
+        if ($this->outputTo($target)) {
+            unlink($this->getSource());
             return $target;
         }
 
