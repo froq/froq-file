@@ -192,14 +192,14 @@ abstract class AbstractSource implements Stringable
         $mime      ??= Mime::getType($source, false);
         $extension ??= File::getExtension($source) ?: Mime::getExtensionByType($mime);
 
-        if (!$this->isAllowedMime($mime)) {
+        if (!$this->isAllowedMime((string) $mime)) {
             self::throw(
                 'Mime `%s` not allowed by options, allowed mimes: %s',
                 [$mime, $options['allowedMimes']],
                 code: UploadError::OPTION_NOT_ALLOWED_MIME
             );
         }
-        if (!$this->isAllowedExtension($extension)) {
+        if (!$this->isAllowedExtension((string) $extension)) {
             self::throw(
                 'Extension `%s` not allowed by options, allowed extensions: %s',
                 [$extension, $options['allowedExtensions']],
@@ -330,7 +330,7 @@ abstract class AbstractSource implements Stringable
         }
 
         $extension = $extension ?: $sourceInfo['extension'];
-        if (!$this->isAllowedExtension($extension)) {
+        if (!$this->isAllowedExtension((string) $extension)) {
             self::throw(
                 'Extension `%s` not allowed by options, allowed extensions: %s',
                 [$extension, $this->options['allowedExtensions']],
