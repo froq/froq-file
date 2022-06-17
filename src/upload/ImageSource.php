@@ -215,8 +215,8 @@ class ImageSource extends AbstractSource
             $cropHeight = $height;
         }
 
-        $x = (int) (($options['x'] ?? 0) ?? ($origWidth - $cropWidth) / $div);
-        $y = (int) (($options['y'] ?? 0) ?? ($origHeight - $cropHeight) / $div);
+        $x = (int) (($options['x'] ?? null) ?? ($origWidth - $cropWidth) / $div);
+        $y = (int) (($options['y'] ?? null) ?? ($origHeight - $cropHeight) / $div);
 
         $this->sourceImage = $this->createSourceImage();
         $this->targetImage = $this->createTargetImage([$width, $height]);
