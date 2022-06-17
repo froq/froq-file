@@ -163,10 +163,10 @@ abstract class AbstractSource implements Stringable
         ];
 
         // Errors come with $_FILES global.
-        $error && self::throw(
-            $message = UploadError::toMessage($error),
-            code: UploadError::INTERNAL, cause: new UploadError($message, code: $error)
-        );
+        if ($error && ($message = UploadError::toMessage($error))) {
+            $error = new UploadError($message, code: $error);
+            self::throw($message, code: UploadError::INTERNAL, cause: $error);
+        }
 
         // Validate file's real path & existence.
         if (!$source = get_real_path($source, true)) {
