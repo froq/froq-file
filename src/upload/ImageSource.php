@@ -471,26 +471,24 @@ class ImageSource extends AbstractSource
      */
     public final function getInfo(): array
     {
-        // Use resized image as source.
-        if ($this->resized) {
-            $info = getimagesizefromstring($this->toString());
-        } elseif (empty($this->info)) {
-            $info = getimagesize($this->getSource());
+        if (empty($this->info)) {
+            $this->info = getimagesize($this->getSource());
+        } elseif ($this->resized) {
+            // Update using resized image as info source.
+            $this->info = getimagesizefromstring($this->toString());
         }
 
-        $info ??= $this->info ?? null;
-
-        if (!$info) {
+        if (empty($this->info)) {
             throw new ImageSourceException('Failed getting source info [error: @error]');
         }
-        if (!isset($info[2]) || !in_array($info[2], self::SUPPORTED_TYPES, true)) {
+        if (empty($this->info[2]) || !in_array($this->info[2], self::SUPPORTED_TYPES, true)) {
             throw new ImageSourceException('Invalid image type [valids: JPEG,WEBP,PNG,GIF]');
         }
 
         // Add suggestive names.
-        $info += ['type' => $info[2], 'width' => $info[0], 'height' => $info[1]];
+        $this->info += ['type' => $this->info[2], 'width' => $this->info[0], 'height' => $this->info[1]];
 
-        return ($this->info = $info);
+        return $this->info;
     }
 
     /**
