@@ -119,7 +119,7 @@ class Finder
      */
     public function find(string $pattern, int $flags = 0): \RegexIterator
     {
-        $root = $this->prepareRoot();
+        $root = $this->prepareRoot(true);
 
         try {
             /** @var RegexIterator<SplFileInfo> */
@@ -146,7 +146,7 @@ class Finder
      */
     public function findAll(string $pattern, int $flags = 0): \RegexIterator
     {
-        $root = $this->prepareRoot();
+        $root = $this->prepareRoot(true);
 
         try {
             /** @var RegexIterator<SplFileInfo> */
@@ -221,12 +221,14 @@ class Finder
     }
 
     /**
-     * Prepare root and check whether root is a valid/present path if given.
+     * Prepare root and check whether root is a valid/present path if given or check
+     * options is true.
      *
+     * @param  bool $check
      * @return string
      * @throws froq\file\FinderException
      */
-    public function prepareRoot(): string
+    public function prepareRoot(bool $check = false): string
     {
         $root = (string) $this->getRoot();
 
@@ -236,7 +238,9 @@ class Finder
                 throw new FinderException('Root directory not exists: %q', $root);
             }
 
-            $root = $path;
+            $root = chop($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        } elseif ($check) {
+            throw new FinderException('Root is empty yet, call %s::setRoot()', $this::class);
         }
 
         return $root;
