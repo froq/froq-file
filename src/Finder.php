@@ -240,7 +240,7 @@ class Finder
 
             $root = chop($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
         } elseif ($check) {
-            throw new FinderException('Root is empty yet, call %s::setRoot()', $this::class);
+            throw new FinderException('Root is empty yet, call setRoot()');
         }
 
         return $root;
