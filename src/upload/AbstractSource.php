@@ -218,7 +218,7 @@ abstract class AbstractSource implements Stringable
         }
 
         // Set target name to UUID as default if none given.
-        $name = $name ? $this->prepareName($name) : uuid(timed: true);
+        $name = $name ? $this->prepareName($name) : uuid(with: 'time');
 
         $this->source     = $source;
         $this->sourceInfo = [
