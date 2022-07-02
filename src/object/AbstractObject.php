@@ -344,7 +344,7 @@ abstract class AbstractObject implements Sizable, Stringable
         }
 
         // Make a file name with time-prefixed UUID if none given.
-        $file = chop($directory, '/') .'/'. ($name ?: uuid(with: 'time'));
+        $file = chop($directory, '/') .'/'. ($name ?: uuid(true));
 
         // Add extension if none given by names.
         if (!$name || !str_contains($name, '.')) {
