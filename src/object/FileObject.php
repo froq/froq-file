@@ -407,7 +407,7 @@ class FileObject extends AbstractObject
     public static final function fromFile(string $file, string $mime = null, array $options = null): FileObject
     {
         if (File::errorCheck($file, $error)) {
-            $skip = false; // Create mode check for abset files.
+            $skip = false; // Create mode check for absent files.
             if ($error->getCode() == FileError::NO_FILE_EXISTS) {
                 $mode = strval($options['mode'] ?? static::$optionsDefault['mode']);
                 $skip = strpbrk($mode, 'waxc') !== false;
