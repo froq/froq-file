@@ -211,16 +211,6 @@ class Finder
     }
 
     /**
-     * Check whether root was set and not absent.
-     *
-     * @return bool
-     */
-    public function checkRoot(): bool
-    {
-        return ($root = $this->getRoot()) && is_dir($root);
-    }
-
-    /**
      * Prepare root and check whether root is a valid/present path if given or check
      * options is true.
      *
@@ -228,7 +218,7 @@ class Finder
      * @return string
      * @throws froq\file\FinderException
      */
-    public function prepareRoot(bool $check = false): string
+    protected function prepareRoot(bool $check = false): string
     {
         $root = (string) $this->getRoot();
 
