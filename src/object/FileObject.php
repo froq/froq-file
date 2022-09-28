@@ -7,23 +7,35 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
-use froq\file\object\{AbstractObject, ObjectException};
-use froq\file\File;
+use froq\file\{File, FileError};
 
 /**
- * File Object.
- *
- * Represents a file object entity which aims to work with file resources in OOP style.
+ * A file class, for working with files in OOP style.
  *
  * @package froq\file\object
  * @object  froq\file\object\FileObject
  * @author  Kerem Güneş
- * @since   4.0, 5.0 Moved to object directory.
+ * @since   4.0, 5.0
  */
 class FileObject extends AbstractObject
 {
     /** @var array */
-    protected static array $optionsDefault = ['mode' => 'r+b'];
+    protected static array $optionsDefault = [
+        'mode' => 'r+b'
+    ];
+
+    /**
+     * Get a copy of file object as a new FileObject.
+     *
+     * @return froq\file\object\FileObject
+     */
+    public final function copy(): FileObject
+    {
+        $this->resourceCheck();
+
+        return new FileObject($this->createResourceCopy(),
+            $this->getMime(), $this->getOptions(), $this->getResourceFile());
+    }
 
     /**
      * Write some contents to file.
@@ -52,20 +64,19 @@ class FileObject extends AbstractObject
 
         $ret = fread($this->resource, $length);
 
-        return ($ret !== false && $ret !== '') ? $ret : null;
+        return ($ret !== false) ? $ret : null;
     }
 
     /**
      * Read all contents from file.
      *
-     * @param  int $from
      * @return string|null
      */
-    public final function readAll(int $from = 0): string|null
+    public final function readAll(): string|null
     {
         $this->resourceCheck();
 
-        $ret = freadall($this->resource, $from);
+        $ret = freadall($this->resource);
 
         return ($ret !== null) ? $ret : null;
     }
@@ -95,7 +106,7 @@ class FileObject extends AbstractObject
 
         $ret = fgets($this->resource, $length);
 
-        return ($ret !== false) ? $ret : null;
+        return ($ret !== false) ? chop($ret) : null;
     }
 
     /**
@@ -144,32 +155,21 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        return freset($this->resource, '');
-    }
-
-    /**
-     * Get a copy of file object as a new FileObject.
-     *
-     * @return froq\file\object\FileObject
-     */
-    public final function copy(): FileObject
-    {
-        $this->resourceCheck();
-
-        return new FileObject($this->createResourceCopy(), $this->mime);
+        return freset($this->resource, '') === 0;
     }
 
     /**
      * Lock file.
      *
-     * @param  bool $block
+     * @param  int  $operation
+     * @param  int &$wouldBlock
      * @return bool
      */
-    public final function lock(bool $block = true): bool
+    public final function lock(int $operation, int &$wouldBlock = null): bool
     {
         $this->resourceCheck();
 
-        return flock($this->resource, ($block ? LOCK_EX : LOCK_EX | LOCK_NB));
+        return flock($this->resource, $operation, $wouldBlock);
     }
 
     /**
@@ -240,7 +240,8 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        [$stat, $meta] = [fstat($fp), fmeta($fp)];
+        $stat = fstat($this->resource);
+        $meta = fmeta($this->resource);
 
         return ($stat && $meta) ? $stat + ['meta' => $meta] : null;
     }
@@ -343,7 +344,7 @@ class FileObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        return !fseek($this->resource, $where, $whence);
+        return fseek($this->resource, $where, $whence) === 0;
     }
 
     /**
@@ -367,7 +368,7 @@ class FileObject extends AbstractObject
      */
     public final function isEnded(): bool
     {
-        return ($this->resource && feof($this->resource));
+        return (!$this->resource || feof($this->resource));
     }
 
     /**
@@ -403,32 +404,38 @@ class FileObject extends AbstractObject
     /**
      * @inheritDoc froq\file\object\AbstractObject
      */
-    public static final function fromFile(string $file, string $mime = null, array $options = null): static
+    public static final function fromFile(string $file, string $mime = null, array $options = null): FileObject
     {
         if (File::errorCheck($file, $error)) {
-            throw new ObjectException($error->getMessage(), null, $error->getCode());
+            $skip = false; // Create mode check for absent files.
+            if ($error->getCode() == FileError::NO_FILE_EXISTS) {
+                $mode = strval($options['mode'] ?? static::$optionsDefault['mode']);
+                $skip = strpbrk($mode, 'waxc') !== false;
+            }
+
+            $skip || throw new FileObjectException($error);
         }
 
-        $resource = fopen($file, ($options['mode'] ?? self::$optionsDefault['mode']));
-        $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
+        $resource =@ fopen($file, $options['mode'] ?? static::$optionsDefault['mode'])
+            ?: throw new FileObjectException('Cannot create resource [error: @error]');
 
         $mime ??= mime_content_type($file);
 
-        return new static($resource, $mime, $options);
+        return new FileObject($resource, $mime, $options, $file);
     }
 
     /**
      * @inheritDoc froq\file\object\AbstractObject
      */
-    public static final function fromString(string $string, string $mime = null, array $options = null): static
+    public static final function fromString(string $string, string $mime = null, array $options = null): FileObject
     {
-        $resource = fopen('php://temp', ($options['mode'] ?? self::$optionsDefault['mode']));
-        $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
+        $resource =@ fopen($file = tmpnam(), $options['mode'] ?? static::$optionsDefault['mode'])
+            ?: throw new FileObjectException('Cannot create resource [error: @error]');
 
         fwrite($resource, $string);
 
         $mime ??= mime_content_type($resource);
 
-        return new static($resource, $mime, $options);
+        return new FileObject($resource, $mime, $options, $file);
     }
 }

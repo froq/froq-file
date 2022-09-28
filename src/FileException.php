@@ -7,15 +7,11 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\common\Exception;
-
 /**
- * File Exception.
- *
  * @package froq\file
  * @object  froq\file\FileException
  * @author  Kerem Güneş
  * @since   1.0
  */
-class FileException extends Exception
+class FileException extends \froq\common\Exception
 {}

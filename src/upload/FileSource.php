@@ -7,27 +7,23 @@ declare(strict_types=1);
 
 namespace froq\file\upload;
 
-use froq\file\upload\{AbstractSource, UploadException};
-
 /**
- * File Source
- *
- * Represents an uploaded file entity which aims to with files in OOP style with a few safety options.
+ * An file class for working with files in OOP style.
  *
  * @package froq\file\upload
  * @object  froq\file\upload\FileSource
  * @author  Kerem Güneş
- * @since   3.0, 5.0 Moved to upload directory, derived from FileUploader.
+ * @since   3.0, 5.0
  */
 class FileSource extends AbstractSource
 {
     /**
      * @inheritDoc froq\file\upload\AbstractSource
      */
-    public final function save(string $name = null, string $appendix = null): string
+    public final function save(string $path = null, string $appendix = null): string
     {
         $source = $this->getSource();
-        $target = $this->prepareTarget($name, $appendix);
+        $target = $this->prepareTarget($path, $appendix);
 
         $this->overwriteCheck($target);
 
@@ -35,16 +31,16 @@ class FileSource extends AbstractSource
             return $target;
         }
 
-        throw new UploadException('Failed saving file [error: %s]', '@error');
+        throw new FileSourceException('Failed saving file [error: @error]');
     }
 
     /**
      * @inheritDoc froq\file\upload\AbstractSource
      */
-    public final function move(string $name = null, string $appendix = null): string
+    public final function move(string $path = null, string $appendix = null): string
     {
         $source = $this->getSource();
-        $target = $this->prepareTarget($name, $appendix);
+        $target = $this->prepareTarget($path, $appendix);
 
         $this->overwriteCheck($target);
 
@@ -52,7 +48,7 @@ class FileSource extends AbstractSource
             return $target;
         }
 
-        throw new UploadException('Failed moving file [error: %s]', '@error');
+        throw new FileSourceException('Failed moving file [error: @error]');
     }
 
     /**

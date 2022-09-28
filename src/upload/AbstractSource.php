@@ -7,31 +7,23 @@ declare(strict_types=1);
 
 namespace froq\file\upload;
 
-use froq\file\upload\{UploadError, UploadException, ImageSource};
+use froq\file\File;
 use froq\file\mime\{Mime, MimeException};
-use froq\file\{File, Util as FileUtil};
-use froq\common\trait\{ApplyTrait, OptionTrait};
 use froq\common\interface\Stringable;
-use Throwable;
+use froq\common\trait\{ApplyTrait, OptionTrait};
+use froq\util\Util;
 
 /**
- * Abstract Source.
- *
- * Represents an abstract uploaded source entity which aims to work files/images in OOP style with a few
- * safety options.
+ * Base upload class.
  *
  * @package froq\file\upload
  * @object  froq\file\upload\AbstractSource
  * @author  Kerem Güneş
- * @since   4.0, 5.0 Moved to upload directory, derived from AbstractUploader.
+ * @since   4.0, 5.0
+ * @internal
  */
 abstract class AbstractSource implements Stringable
 {
-    /**
-     * @see froq\common\trait\ApplyTrait
-     * @see froq\common\trait\OptionTrait
-     * @since 5.0
-     */
     use ApplyTrait, OptionTrait;
 
     /** @var string */
@@ -45,15 +37,15 @@ abstract class AbstractSource implements Stringable
 
     /** @var array */
     protected static array $optionsDefault = [
-        'hash'              => null,  // Available commands: 'rand', 'file' or 'name' (default=none).
-        'hashLength'        => null,  // 8, 16, 32 or 40 (default=32).
+        'hash'              => null,  // Available commands: 'rand' or 'name' (default=none).
+        'hashLength'        => null,  // Available lengths: 8, 16, 32 or 40 (default=32).
+        'allowedMimes'      => '*',   // All '*' allowed or 'image/jpeg,image/png' etc.
+        'allowedExtensions' => '*',   // All '*' allowed or 'jpg,jpeg' etc.
         'maxFileSize'       => null,  // In binary mode: for 2 megabytes 2048, 2048k or 2m.
-        'allowedTypes'      => '*',   // "*" means all allowed or 'image/jpeg,image/png' etc.
-        'allowedExtensions' => '*',   // "*" means all allowed or 'jpg,jpeg' etc.
         'clear'             => true,  // To free resources after saving/moving file etc.
         'clearSource'       => false, // To delete sources after saving/moving files etc.
         'overwrite'         => false, // To prevent existing file overwrite.
-        'directory'         => null,  // Will be set via $file or $options input.
+        'directory'         => null,  // Will be set by $file or $options input.
     ];
 
     /**
@@ -63,7 +55,7 @@ abstract class AbstractSource implements Stringable
      */
     public function __construct(array $options = null)
     {
-        $this->setOptions($options, self::$optionsDefault);
+        $this->setOptions(array_options($options, self::$optionsDefault));
     }
 
     /**
@@ -71,173 +63,171 @@ abstract class AbstractSource implements Stringable
      */
     public function __destruct()
     {
-        try {
-            $this->clear();
-        } catch (Throwable) {}
+        try { $this->clear(); } catch (\Throwable) {}
     }
 
     /**
      * Get source file.
      *
      * @return string
-     * @throws froq\file\upload\UploadException
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      */
     public final function getSource(): string
     {
-        if (isset($this->source)) {
-            return $this->source;
-        }
-
-        throw new UploadException('No source ready yet, call prepare() first');
+        return $this->source ?? self::throw('No source yet, call prepare()');
     }
 
     /**
      * Get source info.
      *
      * @return array
-     * @throws froq\file\upload\UploadException
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      */
     public final function getSourceInfo(): array
     {
-        if (isset($this->sourceInfo)) {
-            return $this->sourceInfo;
-        }
-
-        throw new UploadException('No source info ready yet, call prepare() first');
+        return $this->sourceInfo ?? self::throw('No source info yet, call prepare()');
     }
 
     /**
      * Get target file.
      *
      * @return string
-     * @throws froq\file\upload\UploadException
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      * @since  5.0
      */
     public final function getTarget(): string
     {
-        if (isset($this->target)) {
-            return $this->target;
-        }
-
-        throw new UploadException('No target ready yet, call save() or move() first');
+        return $this->target ?? self::throw('No target yet, call save() or move()');
     }
 
     /**
-     * Get mime type.
+     * Get source file size.
+     *
+     * @return int
+     */
+    public final function getSize(): int
+    {
+        return $this->getSourceInfo()['size'];
+    }
+
+    /**
+     * Get source file mime.
      *
      * @return string
      */
     public final function getMime(): string
     {
-        return $this->getSourceInfo()['type'];
+        return $this->getSourceInfo()['mime'];
+    }
+
+    /**
+     * Get given or generated source file name.
+     *
+     * @return string
+     */
+    public final function getName(): string
+    {
+        return $this->getSourceInfo()['name'];
+    }
+
+    /**
+     * Get given or detected source file extension.
+     *
+     * @return string
+     */
+    public final function getExtension(): string
+    {
+        return $this->getSourceInfo()['extension'] ?? '';
     }
 
     /**
      * Prepare a file for move/save etc.
      *
-     * @param  array      $file
-     * @param  array|null $options
+     * @param  array|string $file
+     * @param  array|null   $options
      * @return self
-     * @throws froq\file\upload\UploadException
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      */
-    public final function prepare(array $file, array $options = null): self
+    public final function prepare(array|string $file, array $options = null): self
     {
-        // Add deferred options.
-        if ($options != null) {
-            $this->options = array_merge($this->options, $options);
+        // Only file path given.
+        is_string($file) && $file = ['file' => $file];
 
-            if ($this->options['useImagick'] && $this instanceof ImageSource) {
-                $this->useImagick = true;
-            }
-        }
+        // Add deferred options.
+        $options = array_options($options, $this->options);
 
         [$error, $source, $directory] = [
             $file['error']     ?? null,
-            $file['file']      ?? $file['tmp_name']           ?? null,
-            $file['directory'] ?? $this->options['directory'] ?? null,
+            $file['file']      ?? $file['tmp_name']     ?? '',
+            $file['directory'] ?? $options['directory'] ?? null,
         ];
 
-        $error && throw new UploadException(
-            UploadError::MESSAGES[$error] ?? 'Unknown error',
-            null, UploadError::INTERNAL
-        );
+        // Errors come with $_FILES global.
+        if ($error && ($message = UploadError::toMessage($error))) {
+            $error = new UploadError($message, code: $error);
+            self::throw($message, code: UploadError::INTERNAL, cause: $error);
+        }
 
-        $source = trim((string) $source);
-        $source || throw new UploadException(
-            'No source given, `file` or `tmp_name` field must not be empty',
-            null, UploadError::NO_VALID_FILE
-        );
-
-        $directory = trim((string) $directory);
-        $directory || throw new UploadException(
-            'No directory given, `directory` field or option must not be empty',
-            null, UploadError::DIRECTORY_EMPTY
-        );
-
-        // Validate file existence and give a proper error.
-        if (!realpath($source)) {
-            if (File::errorCheck($source, $error)) {
-                throw new UploadException($error);
-            }
-
-            throw new UploadException(
-                'No source file exists such `%s`',
-                $source, UploadError::NO_VALID_SOURCE
+        // Validate file's real path & existence.
+        if (!$source = get_real_path($source, true)) {
+            self::throw(
+                'No source given, `file` or `tmp_name` field cannot be empty',
+                code: UploadError::NO_VALID_FILE
+            );
+        } elseif (File::errorCheck($source, $error)) {
+            self::throw(
+                'No valid source given such `%s`', $source,
+                code: UploadError::NO_VALID_SOURCE, cause: $error
             );
         }
 
-        [$size, $name] = array_select($file, ['size', 'name']);
+        [$size, $mime, $name, $extension] = array_select($file, ['size', 'mime', 'name', 'extension']);
 
-        $size    ??= filesize($source);
-        $type    ??= Mime::getType($source);
-        $extension = Mime::getExtension($source) ?: Mime::getExtensionByType($type);
-
-        if (!$this->isAllowedType($type)) {
-            throw new UploadException(
-                'Type `%s` not allowed via options, allowed types: %s',
-                [$type, $this->options['allowedTypes']],
-                UploadError::OPTION_NOT_ALLOWED_TYPE
-            );
+        // Separate name & extension.
+        if ($name && preg_match('~(.+)\.(\w+)$~', $name, $match)) {
+            [$name, $extension] = array_slice($match, 1);
         }
 
-        if ($extension && !$this->isAllowedExtension($extension)) {
-            throw new UploadException(
-                'Extension `%s` not allowed via options, allowed extensions: %s',
-                [$extension, $this->options['allowedExtensions']],
-                UploadError::OPTION_NOT_ALLOWED_EXTENSION
+        $size      ??= filesize($source);
+        $mime      ??= Mime::getType($source, false);
+        $extension ??= File::getExtension($source) ?: Mime::getExtensionByType($mime);
+
+        if (!$this->isAllowedMime((string) $mime)) {
+            self::throw(
+                'Mime `%s` not allowed by options, allowed mimes: %s',
+                [$mime, $options['allowedMimes']],
+                code: UploadError::OPTION_NOT_ALLOWED_MIME
             );
         }
-
-        if ($this->options['maxFileSize']) {
-            $maxFileSize = FileUtil::convertBytes((string) $this->options['maxFileSize']);
-            if ($maxFileSize != -1 && $size > $maxFileSize) {
-                throw new UploadException(
+        if (!$this->isAllowedExtension((string) $extension)) {
+            self::throw(
+                'Extension `%s` not allowed by options, allowed extensions: %s',
+                [$extension, $options['allowedExtensions']],
+                code: UploadError::OPTION_NOT_ALLOWED_EXTENSION
+            );
+        }
+        if ($options['maxFileSize']) {
+            $maxFileSize = Util::convertBytes((string) $options['maxFileSize']);
+            if ($maxFileSize > -1 && $size > $maxFileSize) {
+                self::throw(
                     'File size exceeded, `maxFileSize` option: %s (%s bytes)',
-                    [$this->options['maxFileSize'], $maxFileSize],
-                    UploadError::OPTION_SIZE_EXCEEDED
+                    [$options['maxFileSize'], $maxFileSize],
+                    code: UploadError::OPTION_SIZE_EXCEEDED
                 );
             }
         }
 
-        // Special directive for directory for using system tempory directory.
-        $directory = ($directory != '@tmp') ? $directory : tmp();
-
-        if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
-            throw new UploadException(
-                'Cannot make directory [error: %s]',
-                '@error', UploadError::DIRECTORY_ERROR
-            );
-        }
-
-        // Set target name as random UUID default when no name given.
-        $name = $this->prepareName((string) $name) ?: uuid(timed: true);
+        // Set target name to UUID as default if none given.
+        $name = $name ? $this->prepareName($name) : uuid(true);
 
         $this->source     = $source;
         $this->sourceInfo = [
-            'type' => $type, 'size'      => $size,
+            'mime' => $mime, 'size'      => $size,
             'name' => $name, 'extension' => $extension
         ];
-        $this->options    = ['directory' => $directory] + $this->options; // Reset.
+
+        // Reset options.
+        $this->setOptions(['directory' => $directory] + $options);
 
         return $this;
     }
@@ -247,117 +237,129 @@ abstract class AbstractSource implements Stringable
      *
      * @param  string      $name
      * @param  string|null $appendix
-     * @return string|null
-     * @throws froq\file\upload\UploadException
+     * @return string
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      */
-    public final function prepareName(string $name, string $appendix = null): string|null
+    public final function prepareName(string $name, string $appendix = null): string
     {
         $name = trim($name);
-        if ($name == '') {
-            return null;
-        }
 
-        // Some security & standard stuff.
-        $name = preg_replace('~[^\w\-]~i', '-', $name);
-        if (strlen($name) > 255) {
-            $name = substr($name, 0, 255);
-        }
+        if ($name != '') {
+            // Some security & standardization stuff.
+            $name = preg_replace('~[^\w\-]~', '-', $name);
+            if (strlen($name) > 255) {
+                $name = substr($name, 0, 255);
+            }
 
-        // Hash name if option set.
-        $hash = $this->options['hash'];
-        if ($hash !== null) {
-            static $hashAlgos = [8 => 'fnv1a32', 16 => 'fnv1a64', 32 => 'md5', 40 => 'sha1'],
-                   $hashLengthDefault = 32;
+            // Hash name if option set.
+            if ($hash = $this->options['hash']) {
+                static $hashAlgos = [8 => 'fnv1a32', 16 => 'fnv1a64', 32 => 'md5', 40 => 'sha1'],
+                       $hashLengthDefault = 32;
 
-            $hashAlgo = $hashAlgos[$this->options['hashLength'] ?? $hashLengthDefault] ?? null;
-            $hashAlgo || throw new UploadException(
-                'Invalid `hashLength` option `%s`, valids are: 8, 16, 32, 40',
-                $this->options['hashLength']
-            );
+                $hashAlgo = $hashAlgos[$this->options['hashLength'] ?? $hashLengthDefault] ?? null;
+                $hashAlgo || self::throw(
+                    'Invalid `hashLength` option `%s` [valids: 8,16,32,40]',
+                    $this->options['hashLength']
+                );
 
-            $name = match ($hash) {
-                'rand'  => hash($hashAlgo, uuid(timed: true)),
-                'file'  => hash_file($hashAlgo, $this->source),
-                'name'  => hash($hashAlgo, $name),
-                default => throw new UploadException(
-                    'Invalid `hash` option `%s`, valids are: rand, file, name', $hash
-                ),
-            };
+                $name = match ($hash) {
+                    'rand'  => hash($hashAlgo, uuid()),
+                    'name'  => hash($hashAlgo, $name),
+                    default => self::throw(
+                        'Invalid `hash` option `%s` [valids: rand,name]', $hash
+                    ),
+                };
 
-            $name || throw new UploadException('Cannot hash file name [error: %s]', '@error');
+                $name || self::throw('Cannot hash file name [error: @error]');
+            }
         }
 
         // Appendix like 'crop' (ie: abc123-crop.jpg).
-        if ($appendix !== null) {
-            $name .= '-'. preg_replace('~[^\w\-]~i', '', $appendix);
+        if ($appendix != '') {
+            $name .= '-' . preg_replace('~[^\w\-]~', '', $appendix);
         }
 
-        $name = trim($name, '-');
-
-        return $name;
+        return trim($name, '-');
     }
 
     /**
      * Prepare target file path with/without given name & name appendix.
      *
-     * @param  string|null $name
+     * @param  string|null $path
      * @param  string|null $appendix
      * @return string
-     * @throws froq\file\upload\UploadException
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      */
-    public final function prepareTarget(string $name = null, string $appendix = null): string
+    public final function prepareTarget(string $path = null, string $appendix = null): string
     {
         $sourceInfo = $this->getSourceInfo();
+        $pathInfo   = get_path_info($path ?: $sourceInfo['name']);
+
+        $name       = $pathInfo['filename'] ?: $sourceInfo['name'];
+        $extension  = $pathInfo['extension'] ?: $sourceInfo['extension'];
+        $directory  = $this->options['directory'] ?? null;
+
+        // Separate directory & name from path if contains directory.
+        if (!$directory && str_contains((string) $path, DIRECTORY_SEPARATOR)) {
+            ['basename' => $name, 'dirname' => $directory] = $pathInfo;
+        }
+
+        // Check / create directory.
+        if (!$directory) {
+            self::throw(
+                'No directory given, `directory` field or option cannot be empty',
+                code: UploadError::DIRECTORY_EMPTY
+            );
+        } elseif (!dirmake($directory)) {
+            self::throw(
+                'Cannot make directory [directory: %S, error: %s]',
+                [$directory, '@error'],
+                code: UploadError::DIRECTORY_ERROR
+            );
+        }
 
         // Check name & extension when given with save() or move().
-        if ($name !== null) {
-            if (str_contains($name, '.')) {
-                $extension = file_extension($name);
-                if ($extension !== null) {
-                    if (!$this->isAllowedExtension($extension)) {
-                        throw new UploadException(
-                            'Extension `%s` not allowed via options, allowed extensions: %s',
-                            [$extension, $this->options['allowedExtensions']],
-                            UploadError::OPTION_NOT_ALLOWED_EXTENSION
-                        );
-                    }
+        if (str_contains($name, '.')) {
+            $extension = $pathInfo['extension'];
+            $extensionWithDot = '.' . $extension;
 
-                    // Drop extension duplication.
-                    $name = substr($name, 0, -(strlen($extension) + 1));
-                }
+            // Drop extension duplication.
+            if (str_ends_with($name, $extensionWithDot)) {
+                $name = substr($name, 0, -strlen($extensionWithDot));
             }
-
-            $name = $this->prepareName($name, $appendix);
         }
 
-        $target = $this->options['directory'] .'/'. ($name ?: $sourceInfo['name']);
-
-        // Add extension.
-        if (($extension ??= $sourceInfo['extension']) !== null) {
-            $target = $target .'.'. $extension;
+        $extension = $extension ?: $sourceInfo['extension'];
+        if (!$this->isAllowedExtension((string) $extension)) {
+            self::throw(
+                'Extension `%s` not allowed by options, allowed extensions: %s',
+                [$extension, $this->options['allowedExtensions']],
+                code: UploadError::OPTION_NOT_ALLOWED_EXTENSION
+            );
         }
 
-        // Store.
-        $this->target = $target;
+        // Make full-path.
+        $this->target = $directory . '/' . $this->prepareName($name, $appendix)
+                      . ($extension ? '.' . $extension : '');
 
-        return $target;
+        return $this->target;
     }
 
     /**
-     * Check whether a type allowed.
+     * Check whether a mime allowed.
      *
-     * @param  string $type
+     * @param  string $mime
      * @return bool
      * @since  5.0
      */
-    public final function isAllowedType(string $type): bool
+    public final function isAllowedMime(string $mime): bool
     {
-        $types = (string) $this->options['allowedTypes'];
+        $mimes = (string) $this->options['allowedMimes'];
 
         return (
-                $types === '*'
-            || ($types[0] == '~' && preg_match($types, $type))
-            || in_array($type, preg_split('~\s*,\s*~', $types, flags: 1))
+                $mimes == '*' // All.
+            || ($mimes[0] == '~' && preg_test($mimes, $mime)) // RegExp.
+            || in_array($mime, preg_split('~\s*,\s*~', $mimes, flags: 1), true)
         );
     }
 
@@ -373,9 +375,9 @@ abstract class AbstractSource implements Stringable
         $extensions = (string) $this->options['allowedExtensions'];
 
         return (
-                $extensions === '*'
-            || ($extensions[0] == '~' && preg_match($extensions, $extension))
-            || in_array($extension, preg_split('~\s*,\s*~', $extensions, flags: 1))
+                $extensions == '*' // All.
+            || ($extensions[0] == '~' && preg_test($extensions, $extension)) // RegExp.
+            || in_array($extension, preg_split('~\s*,\s*~', $extensions, flags: 1), true)
         );
     }
 
@@ -384,38 +386,51 @@ abstract class AbstractSource implements Stringable
      *
      * @param  string $target
      * @return void
-     * @throws froq\file\upload\UploadException
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      * @since  5.0
      */
     protected final function overwriteCheck(string $target): void
     {
         if (!$this->options['overwrite'] && file_exists($target)) {
-            throw new UploadException(
-                'Cannot overwrite existing file `%s`', $target,
-                UploadError::OPTION_NOT_ALLOWED_OVERWRITE
+            self::throw(
+                'Cannot overwrite on existing file `%s`', $target,
+                code: UploadError::OPTION_NOT_ALLOWED_OVERWRITE
             );
         }
     }
 
     /**
-     * Save a file with given or generated name, return name.
-     *
-     * @param  string      $name
-     * @param  string|null $appendix
-     * @return string
-     * @throws froq\file\upload\UploadException
+     * Throw a related exception.
      */
-    abstract public function save(string $name = null, string $appendix = null): string;
+    private static function throw(...$args): void
+    {
+        $exception = match (true) {
+            is_class_of(static::class, FileSource::class)  => FileSourceException::class,
+            is_class_of(static::class, ImageSource::class) => ImageSourceException::class,
+        };
+
+        throw new $exception(...$args);
+    }
 
     /**
-     * Move a file with given or generated name, return name.
+     * Save file and return its full path.
      *
-     * @param  string $name
+     * @param  string      $path
      * @param  string|null $appendix
      * @return string
-     * @throws froq\file\upload\UploadException
+     * @throws froq\file\upload\{FileSourceException|ImageSourceException}
      */
-    abstract public function move(string $name = null, string $appendix = null): string;
+    abstract public function save(string $path = null, string $appendix = null): string;
+
+    /**
+     * Move file and return its full path.
+     *
+     * @param  string      $path
+     * @param  string|null $appendix
+     * @return string
+     * @throws froq\file\upload\{FileSourceException|ImageSourceException}
+     */
+    abstract public function move(string $path = null, string $appendix = null): string;
 
     /**
      * Clear sources/resources.

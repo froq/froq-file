@@ -9,9 +9,9 @@ namespace froq\file\object;
 
 /**
  * @package froq\file\object
- * @object  froq\file\object\ObjectException
+ * @object  froq\file\object\TempFileObjectException
  * @author  Kerem Güneş
- * @since   5.0
+ * @since   6.0
  */
-class ObjectException extends \froq\file\FileException
+class TempFileObjectException extends FileObjectException
 {}

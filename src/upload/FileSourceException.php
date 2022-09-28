@@ -5,13 +5,13 @@
  */
 declare(strict_types=1);
 
-namespace froq\file\mime;
+namespace froq\file\upload;
 
 /**
- * @package froq\file\mime
- * @object  froq\file\mime\MimeException
+ * @package froq\file\upload
+ * @object  froq\file\upload\FileSourceException
  * @author  Kerem Güneş
- * @since   3.0, 4.0
+ * @since   6.0
  */
-class MimeException extends \froq\file\FileException
+class FileSourceException extends UploadException
 {}

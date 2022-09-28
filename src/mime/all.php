@@ -3,7 +3,6 @@
  * MIMEs.
  * Original source: https://github.com/jshttp/mime-db
  */
-
 return [
     // 'application/octet-stream' => ['bin', 'dms', 'lrf', 'mar', 'so', 'dist', 'distz', 'pkg', 'bpk', 'dump', 'elc', 'deploy', 'exe', 'dll', 'deb', 'dmg', 'iso', 'img', 'msi', 'msp', 'msm', 'buffer'],
 
@@ -928,5 +927,6 @@ return [
     'x-world/x-vrml' => ['wrl'],
     'x-world/x-vrt' => ['vrt'],
 
-    'directory' => ['']
+    'inode/directory' => ['directory'],
+    'directory' => ['directory']
 ];

@@ -7,36 +7,37 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
-use froq\file\object\{ObjectException, FileObject, ImageObject};
-use froq\common\trait\{OptionTrait, ApplyTrait};
+use froq\file\{File, mime\Mime};
 use froq\common\interface\{Sizable, Stringable};
+use froq\common\trait\{ApplyTrait, OptionTrait};
 
 /**
- * Abstract Object.
- *
- * Represents an abstract object entity which aims to work with file/image resources in OOP style.
+ * Base object class.
  *
  * @package froq\file\object
  * @object  froq\file\object\AbstractObject
  * @author  Kerem Güneş
- * @since   4.0, 5.0 Moved to object directory.
+ * @since   4.0, 5.0
+ * @internal
  */
 abstract class AbstractObject implements Sizable, Stringable
 {
-    /**
-     * @see froq\common\trait\ApplyTrait
-     * @see froq\common\trait\OptionTrait
-     */
     use ApplyTrait, OptionTrait;
 
-    /** @var ?resource|?GdImage */
-    protected $resource;
+    /** @var mixed<resource|GdImage>|null */
+    protected mixed $resource = null;
 
     /** @var ?string */
-    protected $resourceFile;
+    protected ?string $resourceFile = null;
+
+    /** @var array */
+    protected static array $resourceFileExclude = [];
 
     /** @var ?string */
-    protected ?string $mime;
+    protected ?string $mime = null;
+
+    /** @var ?string */
+    protected ?string $extension = null;
 
     /** @var ?bool */
     protected ?bool $freed = null;
@@ -44,35 +45,46 @@ abstract class AbstractObject implements Sizable, Stringable
     /**
      * Constructor.
      *
-     * @param  resource|GdImage|null $resource
-     * @param  string|null           $mime
-     * @param  array|null            $options
-     * @param  string|null           $resourceFile @internal
-     * @throws froq\file\ObjectException
+     * @param  mixed<resource|GdImage>|null $resource
+     * @param  string|null                  $mime
+     * @param  array|null                   $options
+     * @param  string|null                  $resourceFile @internal
+     * @causes froq\file\object\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
-    public function __construct($resource = null, string $mime = null, array $options = null, string $resourceFile = null)
+    public function __construct(mixed $resource = null, string $mime = null, array $options = null, string $resourceFile = null)
     {
-        if ($resource != null) {
+        if ($resource !== null) {
             if ($this instanceof FileObject) {
-                if (!is_stream($resource)) {
-                    throw new ObjectException('Resource type must be stream, %s given',
-                        get_type($resource));
-                }
-            } elseif ($this instanceof ImageObject) {
-                if ($mime && !in_array($mime, static::$mimes)) {
-                    throw new ObjectException('Invalid MIME `%s`, valids are: %s',
-                        [$mime, join(', ', static::$mimes)]);
+                // When a file path given.
+                if (is_string($resource)) {
+                    static $that; // Closed resource error workaround.
+                    $that = FileObject::fromFile($resource, $mime, $options)->keepResourceFile(true);
+                    [$resource, $resourceFile, $mime] = [
+                        $that->getResource(), $that->getResourceFile(), $that->getMime()];
+                    unset($that);
                 }
 
+                if (!is_stream($resource)) {
+                    self::throw('Resource type must be stream, %t given', $resource);
+                }
+
+                // For clean ups (mostly for temps).
+                $resourceFile ??= fmeta($resource)['uri'];
+            } elseif ($this instanceof ImageObject) {
+                // When a file path given.
+                if (is_string($resource)) {
+                    $that = ImageObject::fromFile($resource, $mime, $options)->keepResourceFile(true);
+                    [$resource, $resourceFile, $mime, $that] = [
+                        $that->getResource(), $that->getResourceFile(), $that->getMime(), null];
+                }
                 // When a resource given, eg: fopen('path/to/file.jpg', 'rb').
-                if (is_stream($resource)) {
-                    $temp = ImageObject::fromString(freadall($resource));
-                    [$resource, $mime] = [$temp->getResource(), $temp->getMime(), $temp->free()];
+                elseif (is_stream($resource)) {
+                    $that = ImageObject::fromString(freadall($resource), $mime, $options);
+                    [$resource, $mime, $that] = [$that->getResource(), $that->getMime(), null];
                 }
 
                 if (!is_image($resource)) {
-                    throw new ObjectException('Resource type must be stream|GdImage, %s given',
-                        get_type($resource));
+                    self::throw('Resource type must be stream|GdImage, %t given', $resource);
                 }
             }
         }
@@ -95,9 +107,9 @@ abstract class AbstractObject implements Sizable, Stringable
     /**
      * Get resource.
      *
-     * @return resource|GdImage|null
+     * @return mixed<resource|GdImage>|null
      */
-    public final function getResource()
+    public final function getResource(): mixed
     {
         return $this->resource;
     }
@@ -107,40 +119,96 @@ abstract class AbstractObject implements Sizable, Stringable
      *
      * @return string|null
      */
-    public final function getResourceFile()
+    public final function getResourceFile(): string|null
     {
         return $this->resourceFile;
     }
 
     /**
-     * Set mime type.
+     * Keep resource file.
      *
-     * @param  string $mime
-     * @return void
+     * Note: This method is only for temp files and calling this method
+     * will prevent deleting temp files. So, unlink() can be called for
+     * that purpose. @see free()
+     *
+     * @param  string|bool $file File name or "true" only.
+     * @return self
+     * @since  6.0
      */
-    public final function setMime(string $mime): void
+    public final function keepResourceFile(string|bool $file): self
     {
-        $this->mime = $mime;
+        if ($file === true && $this->resourceFile) {
+            $file = $this->resourceFile;
+        }
+
+        $file && self::$resourceFileExclude[] = $file;
+
+        return $this;
     }
 
     /**
-     * Get mime type.
+     * Set mime.
+     *
+     * @param  string $mime
+     * @return self
+     */
+    public final function setMime(string $mime): self
+    {
+        $this->mime = strtolower($mime);
+
+        return $this;
+    }
+
+    /**
+     * Get mime.
      *
      * @return string|null
      */
     public final function getMime(): string|null
     {
-        return $this->mime;
+        return match (true) {
+            !!$this->mime => $this->mime,
+            !!$this->resourceFile => Mime::getType($this->resourceFile, false),
+            default => null
+        };
+    }
+
+    /**
+     * Set extension.
+     *
+     * @param  string $extension
+     * @return self
+     */
+    public final function setExtension(string $extension): self
+    {
+        $this->extension = strtolower(trim($extension, '.'));
+
+        return $this;
+    }
+
+    /**
+     * Get extension.
+     *
+     * @return string|null
+     */
+    public final function getExtension(): string|null
+    {
+        return match (true) {
+            !!$this->extension => $this->extension,
+            !!$this->mime => Mime::getExtensionByType($this->mime),
+            !!$this->resourceFile => File::getExtension($this->resourceFile),
+            default => null
+        };
     }
 
     /**
      * Create a resource copy.
      *
-     * @return &resource|&GdImage|null
+     * @return &mixed<resource|GdImage>|null
      */
-    public final function &createResourceCopy()
+    public final function &createResourceCopy(): mixed
     {
-        if (empty($this->resource)) {
+        if (!$this->resource) {
             return null;
         }
 
@@ -159,7 +227,7 @@ abstract class AbstractObject implements Sizable, Stringable
                 $height = imagesy($this->resource)
             );
 
-            if (in_array($this->mime, ['image/png', 'image/gif', 'image/webp'])) {
+            if (in_array($this->getMime(), ['image/webp', 'image/png', 'image/gif'], true)) {
                 imagealphablending($copy, false);
                 imagesavealpha($copy, true);
                 imageantialias($copy, true);
@@ -177,12 +245,12 @@ abstract class AbstractObject implements Sizable, Stringable
     /**
      * Remove a resource copy.
      *
-     * @param  resource|GdImage &$copy
+     * @param  mixed<resource|GdImage> &$copy
      * @return bool|null
      */
-    public final function removeResourceCopy(&$copy): bool|null
+    public final function removeResourceCopy(mixed &$copy): bool|null
     {
-        if ($copy == null) {
+        if (!$copy) {
             return null;
         }
 
@@ -193,34 +261,49 @@ abstract class AbstractObject implements Sizable, Stringable
             return true;
         }
 
-        throw new ObjectException('Invalid resource copy, valids are: stream, GdImage');
+        self::throw('Invalid resource copy [valids: stream,GdImage]');
     }
 
     /**
      * Open a file as resource.
      *
-     * @param  string      $file
+     * @param  string|null $file
      * @param  string|null $mime
      * @param  array|null  $options
      * @return self
+     * @causes froq\file\object\{TempFileObjectException|FileObjectException|ImageObjectException}
      * @since  5.0
      */
-    public final function open(string $file, string $mime = null, array $options = null): self
+    public final function open(string $file = null, string $mime = null, array $options = null): self
     {
         if ($this instanceof TempFileObject) {
-            throw new ObjectException('Method %s() not available for %s', [__method__, TempFileObject::class]);
+            self::throw('Method open() is not available for %s classes', TempFileObject::class);
         }
 
+        $file ??= $this->resourceFile;
+        if ($file === null || trim($file) === '') {
+            self::throw('No file given & no resource file to process');
+        }
+
+        // Free.
         $this->free();
         $this->freed = null;
 
-        $that = static::fromFile($file, $mime, $options);
+        $resource = null;
+        try {
+            if ($this instanceof FileObject) {
+                $resource =@ fopen($file, $options['mode'] ?? static::$optionsDefault['mode']);
+            } elseif ($this instanceof ImageObject) {
+                $resource =@ imagecreatefromstring(File::getContents($file));
+            }
+        } catch (\Throwable $e) {
+            self::throw($e->getMessage(), code: $e->getCode(), cause: $e);
+        }
 
-        $this->resource     = $that->resource;
-        $this->resourceFile = $that->resourceFile;
-        $this->mime         = $that->mime;
-
-        $that->free();
+        $this->resource     = $resource ?: self::throw('Cannot create resource [error: @error]');
+        $this->resourceFile = $file;    // To clean ups & speed ups resize(), crop(), getContents() etc.
+        $this->mime         = $mime     ?? mime_content_type($file);
+        $this->options      = $options  ?? $this->options;
 
         return $this;
     }
@@ -229,13 +312,16 @@ abstract class AbstractObject implements Sizable, Stringable
      * Clean up resource & resource file.
      *
      * @return bool
+     * @causes froq\file\object\{TempFileObjectException|FileObjectException|ImageObjectException}
      * @since  5.0
      */
     public final function close(): bool
     {
-        $this->free();
+        if ($this instanceof TempFileObject) {
+            self::throw('Method close() is not available for %s classes', TempFileObject::class);
+        }
 
-        return $this->isFreed();
+        return $this->free();
     }
 
     /**
@@ -245,54 +331,79 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null $name
      * @param  int|null    $mode
      * @return string
-     * @throws froq\file\ObjectException
+     * @causes froq\file\object\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     public final function save(string $directory, string $name = null, int $mode = null): string
     {
-        $directory = trim($directory);
-        if ($directory == '') {
-            throw new ObjectException('Empty directory given');
+        if (trim($directory) === '') {
+            self::throw('Empty directory given');
         }
 
-        if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
-            throw new ObjectException('Cannot make directory [error: %s, directory: %s]',
-                ['@error', $directory]);
-        } elseif (!is_writable($directory)) {
-            throw new ObjectException('Cannot write %s directory, it is not writable',
-                $directory);
+        if (!dirmake($directory)) {
+            self::throw('Cannot make directory [directory: %S, error: @error]', $directory);
         }
 
-        // Make a random UUID name if no name given.
-        $file = chop($directory, '/') .'/'. ($name ?: uuid());
+        // Make a file name with time-prefixed UUID if none given.
+        $file = chop($directory, '/') .'/'. ($name ?: uuid(true));
 
-        // Default is 0644.
-        $mode && touch($file) && chmod($file, $mode);
+        // Add extension if none given by names.
+        if (!$name || !str_contains($name, '.')) {
+            $extension = $this->getExtension();
+            $extension && $file .= '.'. $extension;
+        }
 
         if (file_put_contents($file, $this->toString()) === false) {
-            throw new ObjectException('Cannot write file [error: %s]', '@error');
+            self::throw('Cannot write to file [error: @error]');
+        }
+
+        // Default is 0644.
+        if ($mode && !chmod($file, $mode)) {
+            self::throw('Cannot change mode of file [error: @error]');
         }
 
         return $file;
     }
 
     /**
-     * Free resources.
+     * Unsave file/image a saved absolute file.
      *
-     * @return void
+     * @param  string $file
+     * @return bool
      */
-    public final function free(): void
+    public final function unsave(string $file): bool
     {
-        if (isset($this->resource) && is_stream($this->resource)) {
-            fclose($this->resource);
-        }
-        if (isset($this->resourceFile) && is_tmpnam($this->resourceFile)) {
-            unlink($this->resourceFile);
+        return is_file($file) && unlink($file);
+    }
+
+    /**
+     * Free resource & remove resource file if it's a temp file and not in
+     * `$resourceFileExclude` list or `$force` is true.
+     *
+     * @param  bool $force Discards $resourceFileExclude for temp files.
+     * @return bool
+     */
+    public final function free(bool $force = false): bool
+    {
+        if (!$this->freed) {
+            $this->freed = true;
+
+            if ($this->resource && is_stream($this->resource)) {
+                $this->freed = fclose($this->resource);
+            }
+            $this->resource = null;
+
+            if ($this->resourceFile && is_tmpnam($this->resourceFile) && (
+                $force || !in_array($this->resourceFile, self::$resourceFileExclude, true)
+            )) {
+                $this->freed = unlink($this->resourceFile);
+                $this->resourceFile = null;
+            }
+
+            return $this->freed;
         }
 
-        // Void.
-        $this->resource = $this->resourceFile = null;
-
-        $this->freed = true;
+        // Freed before.
+        return false;
     }
 
     /**
@@ -302,76 +413,48 @@ abstract class AbstractObject implements Sizable, Stringable
      */
     public final function isFreed(): bool
     {
-        return ($this->freed === true);
+        return (bool) $this->freed;
     }
 
     /**
-     * Create a file/image object from resource.
+     * Check resource state.
      *
-     * @param  resource    $resource
-     * @param  string|null $mime
-     * @param  array|null  $options
-     * @param  string|null $resourceFile @internal
-     * @return static
-     * @throws froq\file\object\ObjectException
+     * @return bool
      */
-    public static final function fromResource($resource, string $mime = null, array $options = null,
-        string $resourceFile = null): static
+    public final function isValid(): bool
     {
-        $resource || throw new ObjectException('Empty resource given');
-
-        return new static($resource, $mime, $options, $resourceFile);
-    }
-
-    /**
-     * Create a file object from temporary resource.
-     *
-     * @param  string|null $mime
-     * @param  array|null  $options
-     * @return static
-     */
-    public static final function fromTempResource(string $mime = null, array $options = null): static
-    {
-        if (static::class != FileObject::class) {
-            throw new ObjectException('Method %s() available for only %s', [__method__, FileObject::class]);
-        }
-
-        $resource     = tmpfile();
-        $resourceFile = fmeta($resource)['uri'];
-
-        return self::fromResource($resource, $mime, $options, $resourceFile);
-    }
-
-    /**
-     * Create a file object from a temporary file.
-     *
-     * @param  string|null $file
-     * @param  string|null $mime
-     * @param  array|null  $options
-     * @return static
-     */
-    public static final function fromTempFile(string $file = null, string $mime = null, array $options = null): static
-    {
-        $resource = $file ? fopen($file, 'r+b') : fopen(tmpnam(), 'w+b');
-
-        return self::fromResource($resource, $mime, $options, $file);
+        return $this->resource && (is_stream($this->resource) || is_image($this->resource));
     }
 
     /**
      * Check resource validity.
      *
      * @return void
-     * @throws froq\file\object\ObjectException
+     * @causes froq\file\object\{TempFileObjectException|FileObjectException|ImageObjectException}
      */
     protected final function resourceCheck(): void
     {
-        if ($this->freed) {
-            throw new ObjectException('No resource to process with, it is freed');
+        if ($this->isFreed()) {
+            self::throw('No resource to process with, freed');
         }
-        if (empty($this->resource) || (!is_stream($this->resource) && !is_image($this->resource))) {
-            throw new ObjectException('No resource to process with, it is not valid [resource: %s]',
+        if (!$this->isValid()) {
+            self::throw('No resource to process with, not valid [resource: %s]',
                 get_type($this->resource));
         }
+    }
+
+    /**
+     * Throw a related exception.
+     */
+    private static function throw(...$args): void
+    {
+        $exception = match (true) {
+            is_class_of(static::class, TempFileObject::class) => TempFileObjectException::class,
+            is_class_of(static::class, FileObject::class)     => FileObjectException::class,
+            is_class_of(static::class, ImageObject::class)    => ImageObjectException::class,
+        };
+
+        throw new $exception(...$args);
     }
 
     /**
@@ -381,9 +464,9 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null $mime
      * @param  array|null  $options
      * @return static
-     * @throws froq\file\object\ObjectException
+     * @throws froq\file\object\{FileObjectException|ImageObjectException}
      */
-    abstract public static function fromFile(string $file, string $mime = null, array $options = null): static;
+    abstract public static function fromFile(string $file, string $mime = null, array $options = null): FileObject|ImageObject;
 
     /**
      * Create a file/image object from string.
@@ -392,7 +475,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * @param  string|null $mime
      * @param  array|null  $options
      * @return static
-     * @throws froq\file\object\ObjectException
+     * @throws froq\file\object\{FileObjectException|ImageObjectException}
      */
-    abstract public static function fromString(string $string, string $mime = null, array $options = null): static;
+    abstract public static function fromString(string $string, string $mime = null, array $options = null): FileObject|ImageObject;
 }

@@ -7,24 +7,20 @@ declare(strict_types=1);
 
 namespace froq\file;
 
-use froq\common\Error;
-
 /**
- * File Error.
- *
  * @package froq\file
  * @object  froq\file\FileError
  * @author  Kerem Güneş
  * @since   3.0
  */
-class FileError extends Error
+class FileError extends \froq\common\Error
 {
     /**
-     * Error codes.
+     * Codes.
      * @const int
      */
-    public const DIRECTORY_GIVEN = 1,
-                 INVALID_PATH    = 2,
-                 NO_FILE         = 3,
-                 NO_PERMISSION   = 4;
+    public final const DIRECTORY            = 1,
+                       NO_FILE_EXISTS       = 2,
+                       NO_ACCESS_PERMISSION = 3,
+                       NO_VALID_PATH        = 4;
 }

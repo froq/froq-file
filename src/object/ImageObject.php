@@ -7,45 +7,31 @@ declare(strict_types=1);
 
 namespace froq\file\object;
 
-use froq\file\object\{AbstractObject, ObjectException, FileObject};
-use froq\file\upload\ImageSource;
-use froq\file\File;
+use froq\file\{File, upload\ImageSource};
 
 /**
- * Image Object.
- *
- * Represents an image object entity which aims to work with image resources in OOP style.
+ * An image class, for working with images in OOP style.
  *
  * @package froq\file\object
  * @object  froq\file\object\ImageObject
  * @author  Kerem Güneş
- * @since   4.0, 5.0 Moved to object directory.
+ * @since   4.0, 5.0
  */
 class ImageObject extends AbstractObject
 {
     /** @const string */
-    public const MIME_JPEG = 'image/jpeg', MIME_PNG  = 'image/png',
-                 MIME_GIF  = 'image/gif',  MIME_WEBP = 'image/webp';
+    public final const MIME_JPEG = 'image/jpeg', MIME_PNG  = 'image/png',
+                       MIME_GIF  = 'image/gif',  MIME_WEBP = 'image/webp';
 
     /** @var array */
-    protected static array $mimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    public final const MIMES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
     /** @var array */
     protected static array $optionsDefault = [
         'jpegQuality'  => -1, 'webpQuality' => -1,
-        'pngZipLevel'  => -1, 'pngFilters'  => -1,
+        'pngQuality'   => -1, 'pngFilters'  => -1,
         'transparency' => true, // For only webp's.
     ];
-
-    /**
-     * Get mimes.
-     *
-     * @return array
-     */
-    public final function getMimes(): array
-    {
-        return self::$mimes;
-    }
 
     /**
      * Get a copy of image object as a new ImageObject.
@@ -56,7 +42,8 @@ class ImageObject extends AbstractObject
     {
         $this->resourceCheck();
 
-        return new ImageObject($this->createResourceCopy(), $this->mime);
+        return new ImageObject($this->createResourceCopy(),
+            $this->getMime(), $this->getOptions(), $this->getResourceFile());
     }
 
     /**
@@ -66,12 +53,7 @@ class ImageObject extends AbstractObject
      */
     public final function valid(): bool
     {
-        try {
-            $this->resourceCheck();
-            return true;
-        } catch (ObjectException) {
-            return false;
-        }
+        return ($this->resource && !$this->freed);
     }
 
     /**
@@ -84,18 +66,24 @@ class ImageObject extends AbstractObject
      */
     public final function resize(int $width, int $height, array $options = null): self
     {
-        $temp = ($resourceFile = $this->getResourceFile())
-              ? FileObject::fromTempFile($resourceFile)
-              : FileObject::fromTempResource()->setContents($this->getContents());
+        $temp = $this->resourceFile
+              ? FileObject::fromFile($this->resourceFile)
+              : FileObject::fromString($this->getContents());
+
+        array_extract(
+            array_merge($this->options, (array) $options),
+            'jpegQuality, webpQuality, pngQuality, pngFilters',
+            $jpegQuality, $webpQuality, $pngQuality, $pngFilters,
+        );
 
         $image = (new ImageSource)->prepare(
-            ['type' => $this->mime, 'file' => $temp->path(), 'directory' => tmp()],
-            ['clear' => false, 'clearSource' => false, 'useImagick' => true,
-             'jpegQuality' => $options['jpegQuality'] ?? $this->options['jpegQuality'],
-             'webpQuality' => $options['webpQuality'] ?? $this->options['webpQuality']]
+            ['type' => $this->getMime(), 'file' => $temp->path(), 'directory' => tmp()],
+            ['clear' => false, 'clearSource' => false, 'tryImagick' => true,
+             'jpegQuality' => $jpegQuality, 'webpQuality' => $webpQuality,
+             'pngQuality'  => $pngQuality,  'pngFilters'  => $pngFilters]
         )->resize($width, $height, $options);
 
-        unset($temp);
+        unset($temp); // Free.
 
         $this->resource     = imagecreatefromstring($image->toString());
         $this->resourceFile = $image->save(); // As temp file.
@@ -113,18 +101,24 @@ class ImageObject extends AbstractObject
      */
     public final function crop(int $width, int $height = null, array $options = null): self
     {
-        $temp = ($resourceFile = $this->getResourceFile())
-              ? FileObject::fromTempFile($resourceFile)
-              : FileObject::fromTempResource()->setContents($this->getContents());
+        $temp = $this->resourceFile
+              ? FileObject::fromFile($this->resourceFile)
+              : FileObject::fromString($this->getContents());
+
+        array_extract(
+            array_merge($this->options, (array) $options),
+            'jpegQuality, webpQuality, pngQuality, pngFilters',
+            $jpegQuality, $webpQuality, $pngQuality, $pngFilters,
+        );
 
         $image = (new ImageSource)->prepare(
-            ['type' => $this->mime, 'file' => $temp->path(), 'directory' => tmp()],
-            ['clear' => false, 'clearSource' => false, 'useImagick' => true,
-             'jpegQuality' => $options['jpegQuality'] ?? $this->options['jpegQuality'],
-             'webpQuality' => $options['webpQuality'] ?? $this->options['webpQuality']]
+            ['type' => $this->getMime(), 'file' => $temp->path(), 'directory' => tmp()],
+            ['clear' => false, 'clearSource' => false, 'tryImagick' => true,
+             'jpegQuality' => $jpegQuality, 'webpQuality' => $webpQuality,
+             'pngQuality'  => $pngQuality,  'pngFilters'  => $pngFilters]
         )->crop($width, $height, $options);
 
-        unset($temp);
+        unset($temp); // Free.
 
         $this->resource     = imagecreatefromstring($image->toString());
         $this->resourceFile = $image->save(); // As temp file.
@@ -154,15 +148,15 @@ class ImageObject extends AbstractObject
         if (($contents = $this->getContents())
             && ($info = getimagesizefromstring($contents))) {
             $info += [
-                'width'      => $info[0], 'height' => $info[1],
-                'type'       => $info[2], 'size'   => strlen($contents),
-                'extension'  => image_type_to_extension($info[2]),
-                'exif'       => null,
+                'width'     => $info[0], 'height' => $info[1],
+                'type'      => $info[2], 'size'   => strlen($contents),
+                'extension' => image_type_to_extension($info[2]),
+                'exif'      => null,
             ];
 
             // For only JPEG (and also PNG? https://stackoverflow.com/q/9542359/362780).
             if ($info['type'] == 2 && function_exists('exif_read_data')) {
-                $fp = tmpfile();
+                $fp = fopen('php://temp', 'w+b');
                 fwrite($fp, $contents) && $info['exif'] = exif_read_data($fp);
                 fclose($fp);
 
@@ -199,21 +193,20 @@ class ImageObject extends AbstractObject
      * Get image contents as binary format.
      *
      * @return string|null
-     * @throws froq\file\object\ObjectException
+     * @throws froq\file\object\ImageObjectException
      */
     public final function getContents(): string|null
     {
-        if ($resourceFile = $this->getResourceFile()) {
-            return file_get_contents($resourceFile);
+        if ($this->resourceFile) {
+            return file_get_contents($this->resourceFile);
         }
 
         $this->resourceCheck();
 
-        if (!isset($this->mime)) {
-            throw new ObjectException('No MIME given yet, try after calling setMime()');
-        }
-        if (!in_array($this->mime, self::$mimes)) {
-            throw new ObjectException('Invalid MIME `%s`, valids are: %s', [$this->mime, join(', ', self::$mimes)]);
+        if (!$mime = $this->getMime()) {
+            throw new ImageObjectException('No MIME given yet, try after calling setMime()');
+        } elseif (!in_array($mime, self::MIMES, true)) {
+            throw new ImageObjectException('Invalid MIME `%s` [valids: %a]', [$mime, self::MIMES]);
         }
 
         ob_start();
@@ -221,12 +214,12 @@ class ImageObject extends AbstractObject
         // Without copy (that resampled copy), PNG, GIF, WEBP will be losing transparency.
         $copy = null;
 
-        match ($this->mime) {
+        match ($mime) {
             self::MIME_JPEG => imagejpeg($this->resource, null, $this->options['jpegQuality']),
             self::MIME_WEBP => $this->options['transparency'] // For some speed (@default=true).
                 ? imagewebp($copy = $this->createResourceCopy(), null, $this->options['webpQuality'])
                 : imagewebp($this->resource, null, $this->options['webpQuality']),
-            self::MIME_PNG  => imagepng($copy = $this->createResourceCopy(), null, $this->options['pngZipLevel'],
+            self::MIME_PNG  => imagepng($copy = $this->createResourceCopy(), null, $this->options['pngQuality'],
                 $this->options['pngFilters']),
             self::MIME_GIF  => imagegif($copy = $this->createResourceCopy()),
         };
@@ -243,7 +236,7 @@ class ImageObject extends AbstractObject
      */
     public final function isJpeg(): bool
     {
-        return ($this->mime == self::MIME_JPEG);
+        return ($this->getMime() == self::MIME_JPEG);
     }
 
     /**
@@ -253,7 +246,7 @@ class ImageObject extends AbstractObject
      */
     public final function isPng(): bool
     {
-        return ($this->mime == self::MIME_PNG);
+        return ($this->getMime() == self::MIME_PNG);
     }
 
     /**
@@ -263,7 +256,7 @@ class ImageObject extends AbstractObject
      */
     public final function isGif(): bool
     {
-        return ($this->mime == self::MIME_GIF);
+        return ($this->getMime() == self::MIME_GIF);
     }
 
     /**
@@ -273,25 +266,25 @@ class ImageObject extends AbstractObject
      */
     public final function isWebp(): bool
     {
-        return ($this->mime == self::MIME_WEBP);
+        return ($this->getMime() == self::MIME_WEBP);
     }
 
     /**
-     * Get Base64 contents.
+     * Get contents as Base64 encoded.
      *
      * @return string
      */
     public final function toBase64(): string
     {
-        return base64_encode($this->getContents());
+        return base64_encode($this->toString());
     }
 
     /**
-     * Get Base64 URL.
+     * Get contents as Data URL.
      *
      * @return string
      */
-    public final function toBase64Url(): string
+    public final function toDataUrl(): string
     {
         return 'data:' . $this->getMime() . ';base64,' . $this->toBase64();
     }
@@ -301,7 +294,7 @@ class ImageObject extends AbstractObject
      */
     public final function size(): int
     {
-        $ret = ($resourceFile = $this->getResourceFile()) ? filesize($resourceFile)
+        $ret = $this->resourceFile ? filesize($this->resourceFile)
              : (($contents = $this->getContents()) ? strlen($contents) : false);
 
         return ($ret !== false) ? $ret : -1;
@@ -318,43 +311,36 @@ class ImageObject extends AbstractObject
     /**
      * @inheritDoc froq\file\object\AbstractObject
      */
-    public static final function fromFile(string $file, string $mime = null, array $options = null): static
+    public static final function fromFile(string $file, string $mime = null, array $options = null): ImageObject
     {
         if (File::errorCheck($file, $error)) {
-            throw new ObjectException($error->getMessage(), null, $error->getCode());
+            throw new ImageObjectException($error);
         }
 
-        $resource = imagecreatefromstring(file_get_contents($file));
-        $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
+        $resource =@ imagecreatefromstring(file_get_contents($file))
+            ?: throw new ImageObjectException('Cannot create resource [error: @error]');
 
         $mime ??= mime_content_type($file);
 
-        $that = new static($resource, $mime, $options);
+        $resourceFile = $file; // To speed up resize(), crop(), getContents() etc.
 
-        // To speed up resize(), crop(), getContents() etc.
-        $that->resourceFile = $file;
-
-        return $that;
+        return new ImageObject($resource, $mime, $options, $resourceFile);
     }
 
     /**
      * @inheritDoc froq\file\object\AbstractObject
      */
-    public static final function fromString(string $string, string $mime = null, array $options = null): static
+    public static final function fromString(string $string, string $mime = null, array $options = null): ImageObject
     {
-        $resource = imagecreatefromstring($string);
-        $resource || throw new ObjectException('Cannot create resource [error: %s]', '@error');
+        $resource =@ imagecreatefromstring($string)
+            ?: throw new ImageObjectException('Cannot create resource [error: @error]');
 
         $mime ??= getimagesizefromstring($string)['mime'];
 
-        $that = new static($resource, $mime, $options);
+        $resourceFile = tmpnam(); // To speed up resize(), crop(), getContents() etc.
 
-        // To speed up resize(), crop(), getContents() etc.
-        $that->resourceFile = file_create_temp('froq/image');
-        $that->resourceFile || throw new ObjectException('Cannot create resource file [error: %s]', '@error');
+        file_put_contents($resourceFile, $string);
 
-        file_set_contents($that->resourceFile, $string);
-
-        return $that;
+        return new ImageObject($resource, $mime, $options, $resourceFile);
     }
 }
