@@ -22,7 +22,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
     /**
      * Internal iterator object.
      *
-     * @var Iterator<SplFileInfo>
+     * @var Iterator
      */
     private \Iterator $iterator;
 
@@ -63,9 +63,9 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
      * Get an item.
      *
      * @param  int $index
-     * @return SplFileInfo|null
+     * @return mixed
      */
-    public function get(int $index): \SplFileInfo|null
+    public function get(int $index): mixed
     {
         return $this->getArrayIterator()[$index] ?? null;
     }
@@ -73,9 +73,9 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
     /**
      * Get first item.
      *
-     * @return SplFileInfo|null
+     * @return mixed
      */
-    public function getFirst(): \SplFileInfo|null
+    public function getFirst(): mixed
     {
         return $this->get(0);
     }
@@ -83,9 +83,9 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
     /**
      * Get last item.
      *
-     * @return SplFileInfo|null
+     * @return mixed
      */
-    public function getLast(): \SplFileInfo|null
+    public function getLast(): mixed
     {
         return $this->get($this->count() - 1);
     }
