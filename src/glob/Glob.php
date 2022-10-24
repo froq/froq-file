@@ -29,8 +29,10 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
     /**
      * Constructor.
      *
-     * @param  string $pattern
-     * @param  int    $flags
+     * @param  string      $pattern
+     * @param  int         $flags
+     * @param  string|null $fileClass
+     * @param  string|null $infoClass
      * @throws froq\file\glob\GlobException
      */
     public function __construct(string $pattern, int $flags = 0, string $fileClass = null, string $infoClass = null)

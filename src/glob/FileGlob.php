@@ -20,9 +20,9 @@ class FileGlob extends Glob
     /**
      * @override
      */
-    public function __construct(string $pattern, int $flags = 0)
+    public function __construct(string $pattern, int $flags = 0, string $fileClass = null, string $infoClass = null)
     {
-        parent::__construct($pattern, $flags);
+        parent::__construct($pattern, $flags, $fileClass, $infoClass);
 
         /** @var SplFileInfo $info */
         $this->filter(fn($info) => $info->isFile());
