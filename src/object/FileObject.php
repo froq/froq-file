@@ -98,6 +98,7 @@ class FileObject extends AbstractObject
     /**
      * Read a line from file.
      *
+     * @param  int $length
      * @return string|null
      */
     public final function readLine(int $length = 1024): string|null
