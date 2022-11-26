@@ -55,7 +55,7 @@ class File extends AbstractSystem
     {
         $sure || throw new FileException(
             'Be sure before calling %s() and deleting all contents of file `%s`',
-            [__method__, $this->path]
+            [__METHOD__, $this->path]
         );
 
         if (!$this->exists()) {
