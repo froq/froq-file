@@ -24,7 +24,7 @@ class DirectoryGlob extends Glob
     {
         parent::__construct($pattern, $flags, $fileClass, $infoClass);
 
-        /** @var SplFileInfo $info */
-        $this->filter(fn($info) => $info->isDir());
+        // Filter directories only.
+        $this->filter(fn(\SplFileInfo $info): bool => $info->isDir());
     }
 }
