@@ -54,7 +54,7 @@ class File extends AbstractSystem
     public final function empty(bool $sure = false): bool
     {
         $sure || throw new FileException(
-            'Be sure before calling %s() and deleting all contents of file `%s`',
+            'Be sure before calling %s() and deleting all contents of file %q',
             [__METHOD__, $this->path]
         );
 
@@ -64,7 +64,7 @@ class File extends AbstractSystem
 
         if (file_put_contents($this->path, '', LOCK_EX) === false) {
             throw new FileException(
-                'Cannot empty file `%s` [error: %s]', [$this->path, '@error']
+                'Cannot empty file %q [error: %s]', [$this->path, '@error']
             );
         }
 

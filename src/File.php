@@ -207,7 +207,7 @@ final class File extends \StaticClass
             $ret =@ stream_get_contents($file, -1, 0);
         } else {
             throw new FileException(
-                'Invalid file type `%s` [valids: string,stream]', $type
+                'Invalid file type %q [valids: string, stream]', $type
             );
         }
 
@@ -249,7 +249,7 @@ final class File extends \StaticClass
             $ret =@ stream_set_contents($file, $contents);
         } else {
             throw new FileException(
-                'Invalid file type `%s` [valids: string,stream]', $type
+                'Invalid file type %q [valids: string, stream]', $type
             );
         }
 

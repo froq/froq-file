@@ -206,7 +206,7 @@ class ImageObject extends AbstractObject
         if (!$mime = $this->getMime()) {
             throw new ImageObjectException('No MIME given yet, try after calling setMime()');
         } elseif (!in_array($mime, self::MIMES, true)) {
-            throw new ImageObjectException('Invalid MIME `%s` [valids: %a]', [$mime, self::MIMES]);
+            throw new ImageObjectException('Invalid MIME %q [valids: %A]', [$mime, self::MIMES]);
         }
 
         ob_start();

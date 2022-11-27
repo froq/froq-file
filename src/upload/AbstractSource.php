@@ -171,12 +171,12 @@ abstract class AbstractSource implements Stringable
         // Validate file's real path & existence.
         if (!$source = get_real_path($source, true)) {
             self::throw(
-                'No source given, `file` or `tmp_name` field cannot be empty',
+                'No source given, "file" or "tmp_name" field cannot be empty',
                 code: UploadError::NO_VALID_FILE
             );
         } elseif (File::errorCheck($source, $error)) {
             self::throw(
-                'No valid source given such `%s`', $source,
+                'No valid source given such %q', $source,
                 code: UploadError::NO_VALID_SOURCE, cause: $error
             );
         }
@@ -194,14 +194,14 @@ abstract class AbstractSource implements Stringable
 
         if (!$this->isAllowedMime((string) $mime)) {
             self::throw(
-                'Mime `%s` not allowed by options, allowed mimes: %s',
+                'Mime %q not allowed by options, allowed mimes: %s',
                 [$mime, $options['allowedMimes']],
                 code: UploadError::OPTION_NOT_ALLOWED_MIME
             );
         }
         if (!$this->isAllowedExtension((string) $extension)) {
             self::throw(
-                'Extension `%s` not allowed by options, allowed extensions: %s',
+                'Extension %q not allowed by options, allowed extensions: %s',
                 [$extension, $options['allowedExtensions']],
                 code: UploadError::OPTION_NOT_ALLOWED_EXTENSION
             );
@@ -210,7 +210,7 @@ abstract class AbstractSource implements Stringable
             $maxFileSize = Util::convertBytes((string) $options['maxFileSize']);
             if ($maxFileSize > -1 && $size > $maxFileSize) {
                 self::throw(
-                    'File size exceeded, `maxFileSize` option: %s (%s bytes)',
+                    'File size exceeded, "maxFileSize" option: %s (%s bytes)',
                     [$options['maxFileSize'], $maxFileSize],
                     code: UploadError::OPTION_SIZE_EXCEEDED
                 );
@@ -258,15 +258,16 @@ abstract class AbstractSource implements Stringable
 
                 $hashAlgo = $hashAlgos[$this->options['hashLength'] ?? $hashLengthDefault] ?? null;
                 $hashAlgo || self::throw(
-                    'Invalid `hashLength` option `%s` [valids: 8,16,32,40]',
-                    $this->options['hashLength']
+                    'Invalid "hashLength" option %q [valids: %A]',
+                    [$this->options['hashLength'], array_keys($hashAlgos)]
                 );
 
                 $name = match ($hash) {
                     'rand'  => hash($hashAlgo, uuid()),
                     'name'  => hash($hashAlgo, $name),
                     default => self::throw(
-                        'Invalid `hash` option `%s` [valids: rand,name]', $hash
+                        'Invalid "hash" option %q [valids: rand, name]',
+                        $hash
                     ),
                 };
 
@@ -307,7 +308,7 @@ abstract class AbstractSource implements Stringable
         // Check / create directory.
         if (!$directory) {
             self::throw(
-                'No directory given, `directory` field or option cannot be empty',
+                'No directory given, "directory" field or option cannot be empty',
                 code: UploadError::DIRECTORY_EMPTY
             );
         } elseif (!dirmake($directory)) {
@@ -332,7 +333,7 @@ abstract class AbstractSource implements Stringable
         $extension = $extension ?: $sourceInfo['extension'];
         if (!$this->isAllowedExtension((string) $extension)) {
             self::throw(
-                'Extension `%s` not allowed by options, allowed extensions: %s',
+                'Extension %q not allowed by options, allowed extensions: %s',
                 [$extension, $this->options['allowedExtensions']],
                 code: UploadError::OPTION_NOT_ALLOWED_EXTENSION
             );
@@ -393,7 +394,7 @@ abstract class AbstractSource implements Stringable
     {
         if (!$this->options['overwrite'] && file_exists($target)) {
             self::throw(
-                'Cannot overwrite on existing file `%s`', $target,
+                'Cannot overwrite on existing file %q', $target,
                 code: UploadError::OPTION_NOT_ALLOWED_OVERWRITE
             );
         }

@@ -92,7 +92,7 @@ class Directory extends AbstractSystem
     public final function empty(bool $sure = false): bool
     {
         $sure || throw new DirectoryException(
-            'Be sure before calling %s() and deleting all contents of directory `%s`',
+            'Be sure before calling %s() and deleting all contents of directory %q',
             [__METHOD__, $this->path]
         );
 
