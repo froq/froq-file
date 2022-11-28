@@ -131,7 +131,7 @@ abstract class AbstractObject implements Sizable, Stringable
      * will prevent deleting temp files. So, unlink() can be called for
      * that purpose. @see free()
      *
-     * @param  string|bool $file File name or "true" only.
+     * @param  string|bool $file File name or "true" only. @todo Use "true" type.
      * @return self
      * @since  6.0
      */
