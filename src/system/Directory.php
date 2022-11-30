@@ -111,7 +111,7 @@ class Directory extends AbstractSystem
         }
 
         // The fastest way, so far..
-        $rmrfExec = function ($root): void {
+        $rmrfExec = function (string $root): void {
             try {
                 exec(
                     'find ' . escapeshellarg($root) . ' ' .
