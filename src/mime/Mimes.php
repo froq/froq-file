@@ -16,7 +16,7 @@ namespace froq\file\mime;
  * @since   3.0, 4.0
  * @static
  */
-final class Mimes extends \StaticClass
+class Mimes extends \StaticClass
 {
     /** @var array */
     private static array $all;

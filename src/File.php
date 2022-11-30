@@ -19,7 +19,7 @@ use froq\file\object\{FileObject, FileObjectException};
  * @since   3.0, 4.0
  * @static
  */
-final class File extends \StaticClass
+class File extends \StaticClass
 {
     /**
      * Get file mime.

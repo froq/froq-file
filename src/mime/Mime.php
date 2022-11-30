@@ -18,7 +18,7 @@ use froq\file\{File, FileError};
  * @since   1.0, 4.0
  * @static
  */
-final class Mime extends \StaticClass
+class Mime extends \StaticClass
 {
     /**
      * Get a file type.
