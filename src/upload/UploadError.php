@@ -15,27 +15,21 @@ namespace froq\file\upload;
  */
 class UploadError extends \froq\file\FileError
 {
-    /**
-     * Codes.
-     * @const int
-     */
-    public final const INTERNAL                     = 1,
-                       NO_VALID_FILE                = 2,
-                       NO_VALID_SOURCE              = 3,
-                       OPTION_EMPTY                 = 4,
-                       OPTION_SIZE_EXCEEDED         = 5,
-                       OPTION_EMPTY_EXTENSION       = 6,
-                       OPTION_NOT_ALLOWED_MIME      = 7,
-                       OPTION_NOT_ALLOWED_EXTENSION = 8,
-                       OPTION_NOT_ALLOWED_OVERWRITE = 9,
-                       DIRECTORY_EMPTY              = 10,
-                       DIRECTORY_ERROR              = 11;
+    /** Codes. */
+    public const INTERNAL                     = 1,
+                 NO_VALID_FILE                = 2,
+                 NO_VALID_SOURCE              = 3,
+                 OPTION_EMPTY                 = 4,
+                 OPTION_SIZE_EXCEEDED         = 5,
+                 OPTION_EMPTY_EXTENSION       = 6,
+                 OPTION_NOT_ALLOWED_MIME      = 7,
+                 OPTION_NOT_ALLOWED_EXTENSION = 8,
+                 OPTION_NOT_ALLOWED_OVERWRITE = 9,
+                 DIRECTORY_EMPTY              = 10,
+                 DIRECTORY_ERROR              = 11;
 
-    /**
-     * Messages.
-     * @const array
-     */
-    public final const MESSAGES = [
+    /** Messages. */
+    public const MESSAGES = [
         0 => '',
         1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
         2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',

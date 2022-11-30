@@ -15,12 +15,9 @@ namespace froq\file;
  */
 class FileError extends \froq\common\Error
 {
-    /**
-     * Codes.
-     * @const int
-     */
-    public final const DIRECTORY            = 1,
-                       NO_FILE_EXISTS       = 2,
-                       NO_ACCESS_PERMISSION = 3,
-                       NO_VALID_PATH        = 4;
+    /** Codes. */
+    public const DIRECTORY            = 1,
+                 NO_FILE_EXISTS       = 2,
+                 NO_ACCESS_PERMISSION = 3,
+                 NO_VALID_PATH        = 4;
 }
