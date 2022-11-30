@@ -111,7 +111,7 @@ class Directory extends AbstractSystem
         }
 
         // The fastest way, so far..
-        $rmrfExec = function ($root) {
+        $rmrfExec = function ($root): void {
             try {
                 exec(
                     'find ' . escapeshellarg($root) . ' ' .
@@ -121,7 +121,7 @@ class Directory extends AbstractSystem
             } catch (\Error) {}
         };
         // Oh, my lad..
-        $rmrf = function ($root) use (&$rmrf, &$rmrfExec) {
+        $rmrf = function (string $root) use (&$rmrf, &$rmrfExec): void {
             if ($paths = glob($root . '/*')) {
                 foreach ($paths as $path) {
                     if (is_file($path)) {
