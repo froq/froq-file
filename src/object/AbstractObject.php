@@ -24,22 +24,22 @@ abstract class AbstractObject implements Sizable, Stringable
 {
     use ApplyTrait, OptionTrait;
 
-    /** @var mixed<resource|GdImage>|null */
+    /** Resource (stream or GdImage). */
     protected mixed $resource = null;
 
-    /** @var ?string */
+    /** Resource file. */
     protected ?string $resourceFile = null;
 
-    /** @var array */
+    /** Resource files (kept for saving `free()` calls). */
     protected static array $resourceFileExclude = [];
 
-    /** @var ?string */
+    /** MIME type. */
     protected ?string $mime = null;
 
-    /** @var ?string */
+    /** Extension */
     protected ?string $extension = null;
 
-    /** @var ?bool */
+    /** Freed state. */
     protected ?bool $freed = null;
 
     /**
