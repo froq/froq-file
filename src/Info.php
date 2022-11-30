@@ -66,25 +66,25 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
     }
 
     /** @override */ #[\ReturnTypeWillChange]
-    public final function getType(): string|null
+    public function getType(): string|null
     {
         return $this->pathInfo['type'];
     }
 
     /** @override */ #[\ReturnTypeWillChange]
-    public final function getExtension(): string|null
+    public function getExtension(): string|null
     {
         return $this->pathInfo['extension'];
     }
 
     /** @override */ #[\ReturnTypeWillChange]
-    public final function getFilename(): string|null
+    public function getFilename(): string|null
     {
         return $this->pathInfo['filename'];
     }
 
     /** @missing */
-    public final function getDirname(): string
+    public function getDirname(): string
     {
         return $this->pathInfo['dirname'];
     }
@@ -94,7 +94,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
      *
      * @return string|null
      */
-    public final function getMime(): string|null
+    public function getMime(): string|null
     {
         return \froq\file\File::getMime($this->getPathname());
     }
@@ -104,7 +104,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
      *
      * @return bool
      */
-    public final function exists(): bool
+    public function exists(): bool
     {
         return file_exists($this->getPathname());
     }
@@ -114,7 +114,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
      *
      * @return bool
      */
-    public final function isAvailable(): bool
+    public function isAvailable(): bool
     {
         return $this->toPath()->isAvailable();
     }
@@ -125,7 +125,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
      * @param  string $op
      * @return bool
      */
-    public final function isAvailableFor(string $op): bool
+    public function isAvailableFor(string $op): bool
     {
         return $this->toPath()->isAvailableFor($op);
     }
@@ -135,7 +135,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
      *
      * @return froq\file\system\Path
      */
-    public final function toPath(): Path
+    public function toPath(): Path
     {
         return new Path($this->getPathname());
     }
@@ -145,7 +145,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
      *
      * @return froq\file\system\File
      */
-    public final function toFile(): File
+    public function toFile(): File
     {
         return new File($this->getPathname());
     }
@@ -155,19 +155,19 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
      *
      * @return froq\file\system\Directory
      */
-    public final function toDir(): Directory
+    public function toDir(): Directory
     {
         return new Directory($this->getPathname());
     }
 
     /** @alias toDir() */
-    public final function toDirectory()
+    public function toDirectory()
     {
         return $this->toDir();
     }
 
     /** @alias SplFileInfo::isDir() */
-    public final function isDirectory()
+    public function isDirectory()
     {
         return $this->isDir();
     }
@@ -175,7 +175,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
     /**
      * @inheritDoc froq\common\interface\Arrayable
      */
-    public final function toArray(): array
+    public function toArray(): array
     {
         return $this->pathInfo;
     }
@@ -183,7 +183,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
     /**
      * @inheritDoc froq\common\interface\Objectable
      */
-    public final function toObject(): object
+    public function toObject(): object
     {
         return (object) $this->pathInfo;
     }
@@ -194,7 +194,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
      * @param  string $path
      * @return string
      */
-    public static final function normalizePath(string $path): string
+    public static function normalizePath(string $path): string
     {
         return get_real_path($path, check: false);
     }
@@ -202,14 +202,14 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
     /**
      * @inheritDoc ArrayAccess
      */
-    public final function offsetExists(mixed $key): bool
+    public function offsetExists(mixed $key): bool
     {
         return array_key_exists($key, $this->pathInfo);
     }
     /**
      * @inheritDoc ArrayAccess
      */
-    public final function offsetGet(mixed $key): mixed
+    public function offsetGet(mixed $key): mixed
     {
         return $this->pathInfo[$key] ?? null;
     }
@@ -218,7 +218,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
      * @inheritDoc ArrayAccess
      * @throws     ReadonlyError
      */
-    public final function offsetSet(mixed $key, mixed $_): never
+    public function offsetSet(mixed $key, mixed $_): never
     {
         throw new \ReadonlyError($this);
     }
@@ -227,7 +227,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
      * @inheritDoc ArrayAccess
      * @throws     ReadonlyError
      */
-    public final function offsetUnset(mixed $key): never
+    public function offsetUnset(mixed $key): never
     {
         throw new \ReadonlyError($this);
     }
