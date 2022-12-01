@@ -68,7 +68,9 @@ abstract class AbstractSystem
         }
     }
 
-    /** @magic */
+    /**
+     * @magic
+     */
     public function __toString(): string
     {
         return $this->path;
