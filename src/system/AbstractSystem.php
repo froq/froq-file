@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file\system;
 
 use froq\util\Util;
@@ -13,31 +11,30 @@ use froq\util\Util;
  * Base system class.
  *
  * @package froq\file\system
- * @object  froq\file\system\AbstractSystem
+ * @class   froq\file\system\AbstractSystem
  * @author  Kerem Güneş
  * @since   6.0
- * @internal
  */
 abstract class AbstractSystem
 {
-    /** @const int */
+    /** Modes. */
     public final const MODE_ALL   = 7, MODE_READ    = 1,
                        MODE_WRITE = 2, MODE_EXECUTE = 4;
 
-    /** @const string */
+    /** Mode ops. */
     public final const MODE_OP_ALL   = 'all',   MODE_OP_READ    = 'read',
                        MODE_OP_WRITE = 'write', MODE_OP_EXECUTE = 'execute';
 
-    /** @const array */
+    /** Valid mode ops. */
     public final const MODE_OPS = ['all', 'read', 'write', 'execute'];
 
-    /** @var string */
+    /** Path. */
     public readonly string $path;
 
-    /** @var string */
+    /** Original path. */
     public readonly string $pathOrig;
 
-    /** @var array|null */
+    /** Path info. */
     public readonly array|null $pathInfo;
 
     /**

@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file;
 
 use froq\file\system\{Path, File, Directory};
@@ -14,19 +12,19 @@ use froq\common\interface\{Arrayable, Objectable};
  * An extended SplFileInfo class.
  *
  * @package froq\file
- * @object  froq\file\Info
+ * @class   froq\file\Info
  * @author  Kerem Güneş
  * @since   6.0
  */
 class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
 {
-    /** @var string */
+    /** Path */
     public readonly string $path;
 
-    /** @var string */
+    /** Original path. */
     public readonly string $pathOrig;
 
-    /** @var array|null */
+    /** Resolved path info. */
     public readonly array|null $pathInfo;
 
     /**

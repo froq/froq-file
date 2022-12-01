@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file\upload;
 
 use froq\file\File;
@@ -17,7 +15,7 @@ use froq\util\Util;
  * Base upload class.
  *
  * @package froq\file\upload
- * @object  froq\file\upload\AbstractSource
+ * @class   froq\file\upload\AbstractSource
  * @author  Kerem Güneş
  * @since   4.0, 5.0
  * @internal
@@ -26,16 +24,16 @@ abstract class AbstractSource implements Stringable
 {
     use ApplyTrait, OptionTrait;
 
-    /** @var string */
+    /** Source file / image. */
     protected string $source;
 
-    /** @var array */
+    /** Source file / image info. */
     protected array $sourceInfo;
 
-    /** @var string */
+    /** Target file / image. */
     protected string $target;
 
-    /** @var array */
+    /** Default options. */
     protected static array $optionsDefault = [
         'hash'              => null,  // Available commands: 'rand' or 'name' (default=none).
         'hashLength'        => null,  // Available lengths: 8, 16, 32 or 40 (default=32).

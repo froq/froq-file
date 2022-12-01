@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file\object;
 
 use froq\file\{File, upload\ImageSource};
@@ -13,20 +11,20 @@ use froq\file\{File, upload\ImageSource};
  * An image class, for working with images in OOP style.
  *
  * @package froq\file\object
- * @object  froq\file\object\ImageObject
+ * @class   froq\file\object\ImageObject
  * @author  Kerem Güneş
  * @since   4.0, 5.0
  */
 class ImageObject extends AbstractObject
 {
-    /** @const string */
+    /** MIME types. */
     public final const MIME_JPEG = 'image/jpeg', MIME_PNG  = 'image/png',
                        MIME_GIF  = 'image/gif',  MIME_WEBP = 'image/webp';
 
-    /** @var array */
+    /** Valid MIME types. */
     public final const MIMES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
-    /** @var array */
+    /** Default options. */
     protected static array $optionsDefault = [
         'jpegQuality'  => -1, 'webpQuality' => -1,
         'pngQuality'   => -1, 'pngFilters'  => -1,

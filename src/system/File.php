@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file\system;
 
 use froq\file\object\FileObject;
@@ -13,7 +11,7 @@ use froq\file\object\FileObject;
  * A class for working with file objects.
  *
  * @package froq\file\system
- * @object  froq\file\system\File
+ * @class   froq\file\system\File
  * @author  Kerem Güneş
  * @since   6.0
  */

@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file\object;
 
 use froq\file\{File, FileError};
@@ -13,13 +11,13 @@ use froq\file\{File, FileError};
  * A file class, for working with files in OOP style.
  *
  * @package froq\file\object
- * @object  froq\file\object\FileObject
+ * @class   froq\file\object\FileObject
  * @author  Kerem Güneş
  * @since   4.0, 5.0
  */
 class FileObject extends AbstractObject
 {
-    /** @var array */
+    /** Default options. */
     protected static array $optionsDefault = [
         'mode' => 'r+b'
     ];

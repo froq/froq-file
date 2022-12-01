@@ -1,17 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file;
 
 /**
  * Simple finder class with RegExp and Glob utilities.
  *
  * @package froq\file
- * @object  froq\file\Finder
+ * @class   froq\file\Finder
  * @author  Kerem Güneş
  * @since   6.0
  */
@@ -20,10 +18,10 @@ class Finder
     /** Root directory for queries. */
     protected ?string $root = null;
 
-    /** File class, default SplFileObject. */
+    /** File class. */
     protected ?string $fileClass = null;
 
-    /** Info class, default SplFileInfo. */
+    /** Info class. */
     protected ?string $infoClass = null;
 
     /**

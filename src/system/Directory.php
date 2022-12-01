@@ -1,23 +1,21 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file\system;
 
 /**
  * A class for working with directory objects.
  *
  * @package froq\file\system
- * @object  froq\file\system\Directory
+ * @class   froq\file\system\Directory
  * @author  Kerem Güneş
  * @since   6.0
  */
 class Directory extends AbstractSystem
 {
-    /** @const string */
+    /** Directory separator. */
     public final const SEPARATOR = DIRECTORY_SEPARATOR;
 
     /**

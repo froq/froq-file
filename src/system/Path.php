@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file\system;
 
 use froq\file\object\FileObject;
@@ -13,23 +11,23 @@ use froq\file\object\FileObject;
  * A class for working with path (file/directory) objects.
  *
  * @package froq\file\system
- * @object  froq\file\system\Path
+ * @class   froq\file\system\Path
  * @author  Kerem Güneş
  * @since   6.0
  */
 class Path extends AbstractSystem
 {
-    /** @const string */
+    /** Path separator. */
     public final const SEPARATOR = PATH_SEPARATOR;
 
-    /** @const string */
+    /** Path types. */
     public final const TYPE_DIR  = 'dir',  TYPE_DIRECTORY = 'dir', // Alias.
                        TYPE_FILE = 'file', TYPE_LINK      = 'link';
 
-    /** @const array<string> */
+    /** Valid path types. */
     public final const TYPES = ['dir', 'file', 'link'];
 
-    /** @var string|null */
+    /** Path type. */
     public readonly string|null $type;
 
     /**

@@ -1,21 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file\upload;
 
 /**
  * @package froq\file\upload
- * @object  froq\file\upload\UploadError
+ * @class   froq\file\upload\UploadError
  * @author  Kerem Güneş
  * @since   4.0, 5.0
  */
 class UploadError extends \froq\file\FileError
 {
-    /** Codes. */
+    /** Error codes. */
     public const INTERNAL                     = 1,
                  NO_VALID_FILE                = 2,
                  NO_VALID_SOURCE              = 3,
@@ -28,7 +26,7 @@ class UploadError extends \froq\file\FileError
                  DIRECTORY_EMPTY              = 10,
                  DIRECTORY_ERROR              = 11;
 
-    /** Messages. */
+    /** Message map by code. */
     public const MESSAGES = [
         0 => '',
         1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
@@ -47,7 +45,7 @@ class UploadError extends \froq\file\FileError
      * @return string
      * @since  6.0
      */
-    public static final function toMessage(int $code): string
+    public static function toMessage(int $code): string
     {
         return self::MESSAGES[$code] ?? 'Unknown error';
     }

@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file\upload;
 
 use GdImage, Imagick, ImagickException;
@@ -13,34 +11,34 @@ use GdImage, Imagick, ImagickException;
  * An image class for working/manipulating images in OOP style.
  *
  * @package froq\file\upload
- * @object  froq\file\upload\ImageSource
+ * @class   froq\file\upload\ImageSource
  * @author  Kerem Güneş
  * @since   3.0, 5.0
  */
 class ImageSource extends AbstractSource
 {
-    /** @const int */
+    /** Default quality. */
     public final const QUALITY = -1;
 
-    /** @const array */
+    /** Supported image types. */
     public final const SUPPORTED_TYPES = [
         IMAGETYPE_JPEG, IMAGETYPE_WEBP,
         IMAGETYPE_PNG,  IMAGETYPE_GIF
     ];
 
-    /** @var GdImage|Imagick|null */
+    /** Source instance. */
     protected GdImage|Imagick|null $sourceImage = null;
 
-    /** @var GdImage|Imagick|null */
+    /** Target instance. */
     protected GdImage|Imagick|null $targetImage = null;
 
-    /** @var array */
+    /** Image info. */
     protected array $info;
 
-    /** @var array */
+    /** New dimensions. */
     protected array $newDimensions;
 
-    /** @var array */
+    /** Default options. */
     protected static array $optionsDefault = [
         'jpegQuality'   => -1, 'webpQuality' => -1, // All default.
         'pngQuality'    => -1, 'pngFilters'  => -1, // All default.
@@ -51,7 +49,7 @@ class ImageSource extends AbstractSource
         'background'    => 'none', // Availables: 'none' for transparency, 'black', 'white'.
     ];
 
-    /** @var bool */
+    /** Resized state. */
     protected bool $resized = false;
 
     /**

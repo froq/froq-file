@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file;
 
 use froq\file\upload\{ImageSource, ImageSourceException};
@@ -14,7 +12,7 @@ use froq\common\trait\OptionTrait;
  * Proxy class for manipulating images.
  *
  * @package froq\file
- * @object  froq\file\Image
+ * @class   froq\file\Image
  * @author  Kerem Güneş
  * @since   6.0
  */
