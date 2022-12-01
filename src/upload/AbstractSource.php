@@ -240,9 +240,10 @@ abstract class AbstractSource implements Stringable
      */
     public final function prepareName(string $name, string $appendix = null): string
     {
-        $name = trim($name);
+        $name     = trim($name);
+        $appendix = trim($appendix ?? '');
 
-        if ($name != '') {
+        if ($name !== '') {
             // Some security & standardization stuff.
             $name = preg_replace('~[^\w\-]~', '-', $name);
             if (strlen($name) > 255) {
@@ -274,7 +275,7 @@ abstract class AbstractSource implements Stringable
         }
 
         // Appendix like 'crop' (ie: abc123-crop.jpg).
-        if ($appendix != '') {
+        if ($appendix !== '') {
             $name .= '-' . preg_replace('~[^\w\-]~', '', $appendix);
         }
 
@@ -356,8 +357,8 @@ abstract class AbstractSource implements Stringable
         $mimes = (string) $this->options['allowedMimes'];
 
         return (
-                $mimes == '*' // All.
-            || ($mimes[0] == '~' && preg_test($mimes, $mime)) // RegExp.
+                $mimes === '*' // All.
+            || ($mimes[0] === '~' && preg_test($mimes, $mime)) // RegExp.
             || in_array($mime, preg_split('~\s*,\s*~', $mimes, flags: 1), true)
         );
     }
@@ -374,8 +375,8 @@ abstract class AbstractSource implements Stringable
         $extensions = (string) $this->options['allowedExtensions'];
 
         return (
-                $extensions == '*' // All.
-            || ($extensions[0] == '~' && preg_test($extensions, $extension)) // RegExp.
+                $extensions === '*' // All.
+            || ($extensions[0] === '~' && preg_test($extensions, $extension)) // RegExp.
             || in_array($extension, preg_split('~\s*,\s*~', $extensions, flags: 1), true)
         );
     }

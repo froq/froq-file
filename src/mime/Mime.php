@@ -29,7 +29,7 @@ class Mime extends \StaticClass
     public static function getType(string $file, bool $errorCheck = true): string|null
     {
         if ($errorCheck && File::errorCheck($file, $error)) {
-            if ($error->code != FileError::DIRECTORY) {
+            if ($error->code !== FileError::DIRECTORY) {
                 throw new MimeException($error);
             }
 
@@ -51,9 +51,9 @@ class Mime extends \StaticClass
                 $exec = exec('file -i '. escapeshellarg($file));
                 if (preg_match('~: *([^/ ]+/[^; ]+)~', $exec, $match)) {
                     $type = strtolower($match[1]);
-                    if ($type == 'inode/directory') {
+                    if ($type === 'inode/directory') {
                         $type = 'directory';
-                    } elseif ($type == 'inode/x-empty') {
+                    } elseif ($type === 'inode/x-empty') {
                         $type = 'application/x-empty';
                     }
                 }

@@ -407,7 +407,7 @@ class FileObject extends AbstractObject
     {
         if (File::errorCheck($file, $error)) {
             $skip = false; // Create mode check for absent files.
-            if ($error->getCode() == FileError::NO_FILE_EXISTS) {
+            if ($error->getCode() === FileError::NO_FILE_EXISTS) {
                 $mode = strval($options['mode'] ?? static::$optionsDefault['mode']);
                 $skip = strpbrk($mode, 'waxc') !== false;
             }

@@ -230,7 +230,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
      */
     public function offsetExists(mixed $index): bool
     {
-        return $this->get($index) != null;
+        return $this->get($index) !== null;
     }
 
     /**

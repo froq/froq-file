@@ -30,7 +30,7 @@ class Directory extends AbstractSystem
 
         if ($this->isFile()) {
             throw new DirectoryException(
-                (realpath($path) != $this->path)
+                (realpath($path) !== $this->path)
                     ? 'Given path is a file [path: %s, real path: %s]'
                     : 'Given path is a file [path: %s]',
                 [$path, $this->path]
@@ -97,7 +97,7 @@ class Directory extends AbstractSystem
         );
 
         // A small safety check..
-        if ($this->path == '/') {
+        if ($this->path === '/') {
             throw new DirectoryException(
                 'Cannot call empty() method for root / directory'
             );

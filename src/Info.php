@@ -37,7 +37,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
     {
         if (str_contains($path, "\0")) {
             throw new InfoException('Invalid path, path contains NULL-bytes');
-        } elseif (trim($path) == '') {
+        } elseif (trim($path) === '') {
             throw new InfoException('Invalid path, empty path given');
         }
 

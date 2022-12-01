@@ -83,7 +83,7 @@ class ImageSource extends AbstractSource
     {
         if ($width < 0 || $height < 0) {
             throw new ImageSourceException('Both width and height must be greater than -1');
-        } elseif ($width == 0 && $height == 0 && empty($options['resample'])) {
+        } elseif ($width === 0 && $height === 0 && empty($options['resample'])) {
             throw new ImageSourceException('Either width or height must be greater than 0');
         }
 
@@ -102,8 +102,8 @@ class ImageSource extends AbstractSource
         $newWidth = $newHeight = 0;
         if ($proportion !== false) {
             $factor    = (
-                $width == 0 ? $height / $origHeight : (
-                    $height == 0 ? $width / $origWidth : (
+                $width === 0 ? $height / $origHeight : (
+                    $height === 0 ? $width / $origWidth : (
                         min($width / $origWidth, $height / $origHeight)
                     )
                 )
@@ -132,7 +132,7 @@ class ImageSource extends AbstractSource
         } else {
             $background = null;
 
-            if ($this->options['background'] == 'none'
+            if ($this->options['background'] === 'none'
                 && in_array($type, [IMAGETYPE_WEBP, IMAGETYPE_PNG, IMAGETYPE_GIF], true)) {
                 // Transparent.
                 $background = imagecolorallocatealpha($this->targetImage, 255, 255, 255, 127);
@@ -144,7 +144,7 @@ class ImageSource extends AbstractSource
                 $background = match ($this->options['background']) {
                     'black' => imagecolorallocate($this->targetImage, 0, 0, 0),
                     'white' => imagecolorallocate($this->targetImage, 255, 255, 255),
-                    default => $this->options['background'] != 'none' ? $this->options['background'] : null
+                    default => $this->options['background'] !== 'none' ? $this->options['background'] : null
                 };
             }
 
@@ -190,7 +190,7 @@ class ImageSource extends AbstractSource
     {
         if ($width < 0 || $height < 0) {
             throw new ImageSourceException('Both width and height must be greater than -1');
-        } elseif ($width == 0 && $height == 0) {
+        } elseif ($width === 0 && $height === 0) {
             throw new ImageSourceException('Either width or height must be greater than 0');
         }
 
@@ -229,7 +229,7 @@ class ImageSource extends AbstractSource
         } else {
             $background = null;
 
-            if ($this->options['background'] == 'none'
+            if ($this->options['background'] === 'none'
                 && in_array($type, [IMAGETYPE_WEBP, IMAGETYPE_PNG, IMAGETYPE_GIF], true)) {
                 // Transparent.
                 $background = imagecolorallocatealpha($this->targetImage, 255, 255, 255, 127);
@@ -241,7 +241,7 @@ class ImageSource extends AbstractSource
                 $background = match ($this->options['background']) {
                     'black' => imagecolorallocate($this->targetImage, 0, 0, 0),
                     'white' => imagecolorallocate($this->targetImage, 255, 255, 255),
-                    default => $this->options['background'] != 'none' ? $this->options['background'] : null
+                    default => $this->options['background'] !== 'none' ? $this->options['background'] : null
                 };
             }
 
@@ -274,7 +274,7 @@ class ImageSource extends AbstractSource
     {
         if ($width < 0 || $height < 0) {
             throw new ImageSourceException('Both width and height must be greater than -1');
-        } elseif ($width == 0 && $height == 0) {
+        } elseif ($width === 0 && $height === 0) {
             throw new ImageSourceException('Either width or height must be greater than 0');
         }
 
@@ -350,7 +350,7 @@ class ImageSource extends AbstractSource
                 'white' => imagecolorallocate($this->targetImage, 255, 255, 255),
                 default => (
                     // Make default as transparent.
-                    $background != 'none' ? $background
+                    $background !== 'none' ? $background
                         : imagecolorallocatealpha($this->targetImage, 255, 255, 255, 127)
             )};
 
@@ -376,7 +376,7 @@ class ImageSource extends AbstractSource
     {
         if ($appendDimensions) {
             $dimensions = $this->getNewDimensions() ?: $this->getDimensions();
-            $appendix = ($appendix == '')
+            $appendix = ((string) $appendix === '')
                 ? vsprintf('%dx%d', $dimensions)
                 : vsprintf('%dx%d-%s', [...$dimensions, $appendix]);
         }
@@ -402,7 +402,7 @@ class ImageSource extends AbstractSource
     {
         if ($appendDimensions) {
             $dimensions = $this->getNewDimensions() ?: $this->getDimensions();
-            $appendix = ($appendix == '')
+            $appendix = ((string) $appendix === '')
                 ? vsprintf('%dx%d', $dimensions)
                 : vsprintf('%dx%d-%s', [...$dimensions, $appendix]);
         }
@@ -657,7 +657,7 @@ class ImageSource extends AbstractSource
 
         if ($image instanceof Imagick) {
             $quality = (int) ($this->options['jpegQuality'] ?? $this->options['webpQuality']);
-            if ($quality > 0 && ($type == IMAGETYPE_JPEG || $type == IMAGETYPE_WEBP)) {
+            if ($quality > 0 && ($type === IMAGETYPE_JPEG || $type === IMAGETYPE_WEBP)) {
                 $image->setImageCompression(Imagick::COMPRESSION_JPEG);
                 $image->setImageCompressionQuality($quality);
             }
@@ -711,7 +711,7 @@ class ImageSource extends AbstractSource
 
         if ($image instanceof Imagick) {
             $quality = (int) ($this->options['jpegQuality'] ?? $this->options['webpQuality']);
-            if ($quality > 0 && ($type == IMAGETYPE_JPEG || $type == IMAGETYPE_WEBP)) {
+            if ($quality > 0 && ($type === IMAGETYPE_JPEG || $type === IMAGETYPE_WEBP)) {
                 $image->setImageCompression(Imagick::COMPRESSION_JPEG);
                 $image->setImageCompressionQuality($quality);
             }

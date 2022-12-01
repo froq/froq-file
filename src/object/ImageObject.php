@@ -153,7 +153,7 @@ class ImageObject extends AbstractObject
             ];
 
             // For only JPEG (and also PNG? https://stackoverflow.com/q/9542359/362780).
-            if ($info['type'] == 2 && function_exists('exif_read_data')) {
+            if ($info['type'] === IMAGETYPE_JPEG && function_exists('exif_read_data')) {
                 $fp = fopen('php://temp', 'w+b');
                 fwrite($fp, $contents) && $info['exif'] = exif_read_data($fp);
                 fclose($fp);
@@ -234,7 +234,7 @@ class ImageObject extends AbstractObject
      */
     public final function isJpeg(): bool
     {
-        return ($this->getMime() == self::MIME_JPEG);
+        return ($this->getMime() === self::MIME_JPEG);
     }
 
     /**
@@ -244,7 +244,7 @@ class ImageObject extends AbstractObject
      */
     public final function isPng(): bool
     {
-        return ($this->getMime() == self::MIME_PNG);
+        return ($this->getMime() === self::MIME_PNG);
     }
 
     /**
@@ -254,7 +254,7 @@ class ImageObject extends AbstractObject
      */
     public final function isGif(): bool
     {
-        return ($this->getMime() == self::MIME_GIF);
+        return ($this->getMime() === self::MIME_GIF);
     }
 
     /**
@@ -264,7 +264,7 @@ class ImageObject extends AbstractObject
      */
     public final function isWebp(): bool
     {
-        return ($this->getMime() == self::MIME_WEBP);
+        return ($this->getMime() === self::MIME_WEBP);
     }
 
     /**

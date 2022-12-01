@@ -302,32 +302,32 @@ abstract class AbstractSystem
 
             $mode = 0;
             foreach ($ops as $op) {
-                if ($op == self::MODE_OP_ALL) {
+                if ($op === self::MODE_OP_ALL) {
                     $mode |= self::MODE_READ | self::MODE_WRITE | self::MODE_EXECUTE;
                     break;
                 }
-                if ($op == self::MODE_OP_READ) {
+                if ($op === self::MODE_OP_READ) {
                     $mode |= self::MODE_READ;
                 }
-                if ($op == self::MODE_OP_WRITE) {
+                if ($op === self::MODE_OP_WRITE) {
                     $mode |= self::MODE_WRITE;
                 }
-                if ($op == self::MODE_OP_EXECUTE) {
+                if ($op === self::MODE_OP_EXECUTE) {
                     $mode |= self::MODE_EXECUTE;
                 }
             }
         }
 
-        if ($mode == self::MODE_ALL) {
+        if ($mode === self::MODE_ALL) {
             return $this->isReadable() && $this->isWritable() && $this->isExecutable();
         }
-        if (($mode & self::MODE_READ) == self::MODE_READ && !$this->isReadable()) {
+        if (($mode & self::MODE_READ) === self::MODE_READ && !$this->isReadable()) {
             return false;
         }
-        if (($mode & self::MODE_WRITE) == self::MODE_WRITE && !$this->isWritable()) {
+        if (($mode & self::MODE_WRITE) === self::MODE_WRITE && !$this->isWritable()) {
             return false;
         }
-        if (($mode & self::MODE_EXECUTE) == self::MODE_EXECUTE && !$this->isExecutable()) {
+        if (($mode & self::MODE_EXECUTE) === self::MODE_EXECUTE && !$this->isExecutable()) {
             return false;
         }
         return true;
@@ -636,9 +636,9 @@ abstract class AbstractSystem
         } elseif ($this instanceof Directory) {
             return mkdir($this->path, $mode ?? 0755, $recursive);
         } elseif ($this instanceof Path) {
-            if ($this->type == Path::TYPE_FILE) {
+            if ($this->type === Path::TYPE_FILE) {
                 return mkfile($this->path, $mode ?? 0644);
-            } elseif ($this->type == Path::TYPE_DIRECTORY) {
+            } elseif ($this->type === Path::TYPE_DIRECTORY) {
                 return mkdir($this->path, $mode ?? 0755, $recursive);
             }
         }
@@ -658,11 +658,11 @@ abstract class AbstractSystem
         } elseif ($this instanceof Directory) {
             return rmdir($this->path);
         } elseif ($this instanceof Path) {
-            if ($this->type == Path::TYPE_FILE) {
+            if ($this->type === Path::TYPE_FILE) {
                 return rmfile($this->path);
-            } elseif ($this->type == Path::TYPE_DIRECTORY) {
+            } elseif ($this->type === Path::TYPE_DIRECTORY) {
                 return rmdir($this->path);
-            } elseif ($this->type == Path::TYPE_LINK) {
+            } elseif ($this->type === Path::TYPE_LINK) {
                 return unlink($this->path);
             }
         }

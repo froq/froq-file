@@ -29,7 +29,7 @@ class File extends AbstractSystem
 
         if ($this->isDir()) {
             throw new FileException(
-                (realpath($path) != $this->path)
+                (realpath($path) !== $this->path)
                     ? 'Given path is a directory [path: %s, real path: %s]'
                     : 'Given path is a directory [path: %s]',
                 [$path, $this->path]

@@ -409,6 +409,6 @@ class File extends \StaticClass
             }
         }
 
-        return ($error != null);
+        return ($error !== null);
     }
 }
