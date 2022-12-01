@@ -745,13 +745,17 @@ abstract class AbstractSystem
         return $ret;
     }
 
-    /** @alias isDir() */
+    /**
+     * @alias isDir()
+     */
     public final function isDirectory()
     {
         return $this->isDir();
     }
 
-    /** @alias rename() */
+    /**
+     * @alias rename()
+     */
     public final function move(...$args)
     {
         return $this->rename(...$args);

@@ -155,19 +155,25 @@ class Path extends AbstractSystem
         return new Directory($this->path);
     }
 
-    /** @alias makeDirectory() */
+    /**
+     * @alias makeDirectory()
+     */
     public final function makeDir(...$args)
     {
         return $this->makeDirectory(...$args);
     }
 
-    /** @alias removeDirectory() */
+    /**
+     * @alias removeDirectory()
+     */
     public final function removeDir()
     {
         return $this->removeDirectory();
     }
 
-    /** @alias toDirectory() */
+    /**
+     * @alias toDirectory()
+     */
     public final function toDir()
     {
         return $this->toDirectory();

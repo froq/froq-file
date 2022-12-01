@@ -160,13 +160,17 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
         return new Directory($this->getPathname());
     }
 
-    /** @alias toDir() */
+    /**
+     * @alias toDir()
+     */
     public function toDirectory()
     {
         return $this->toDir();
     }
 
-    /** @alias SplFileInfo::isDir() */
+    /**
+     * @alias isDir()
+     */
     public function isDirectory()
     {
         return $this->isDir();
