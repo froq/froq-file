@@ -59,31 +59,44 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
         parent::__construct($this->path);
     }
 
-    /** @magic */
+    /**
+     * @magic
+     */
     public function __toString(): string
     {
         return $this->path;
     }
 
-    /** @override */ #[\ReturnTypeWillChange]
+    /**
+     * @override
+     */
+    #[\ReturnTypeWillChange]
     public function getType(): string|null
     {
         return $this->pathInfo['type'];
     }
 
-    /** @override */ #[\ReturnTypeWillChange]
+    /**
+     * @override
+     */
+    #[\ReturnTypeWillChange]
     public function getExtension(): string|null
     {
         return $this->pathInfo['extension'];
     }
 
-    /** @override */ #[\ReturnTypeWillChange]
+    /**
+     * @override
+     */
+    #[\ReturnTypeWillChange]
     public function getFilename(): string|null
     {
         return $this->pathInfo['filename'];
     }
 
-    /** @missing */
+    /**
+     * @missing
+     */
     public function getDirname(): string
     {
         return $this->pathInfo['dirname'];
