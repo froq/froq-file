@@ -39,7 +39,9 @@ class File extends AbstractSystem
         }
     }
 
-    /** @override */
+    /**
+     * @override
+     */
     public final function okay(): bool
     {
         return is_file($this->path);
