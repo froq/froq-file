@@ -211,7 +211,7 @@ class Info extends \SplFileInfo implements Arrayable, Objectable, \ArrayAccess
      */
     public static function normalizePath(string $path): string
     {
-        return get_real_path($path, check: false);
+        return get_real_path($path);
     }
 
     /**
