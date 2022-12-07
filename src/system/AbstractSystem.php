@@ -396,7 +396,7 @@ abstract class AbstractSystem
 
             switch (true) {
                 case ($this instanceof File):
-                    clearstatcache();
+                    $this->clearStats();
                     return $return(filesize($this->path));
                 case ($this instanceof Directory):
                     $size = 0;
@@ -407,7 +407,7 @@ abstract class AbstractSystem
                     return $return($size);
                 case ($this instanceof Path):
                     if ($this->isFile()) {
-                        clearstatcache();
+                        $this->clearStats();
                         return $return(filesize($this->path));
                     } elseif ($this->isDirectory()) {
                         $size = 0;
@@ -435,13 +435,13 @@ abstract class AbstractSystem
 
             switch (true) {
                 case ($this instanceof File):
-                    clearstatcache();
+                    $this->clearStats();
                     return $return(filesize($this->path));
                 case ($this instanceof Directory):
                     return $return($this->getIterator()->valid());
                 case ($this instanceof Path):
                     if ($this->isFile()) {
-                        clearstatcache();
+                        $this->clearStats();
                         return $return(filesize($this->path));
                     } elseif ($this->isDirectory()) {
                         return $return($this->getIterator()->valid());
@@ -595,7 +595,7 @@ abstract class AbstractSystem
             return null;
         }
 
-        clearstatcache();
+        $this->clearStats();
 
         $ret = $link ? lstat($this->path) : stat($this->path);
 
@@ -619,7 +619,7 @@ abstract class AbstractSystem
      */
     public final function clearStats(): void
     {
-        clearstatcache();
+        clearstatcache(true, $this->path);
     }
 
     /**
