@@ -263,8 +263,8 @@ class File extends \StaticClass
     /**
      * Set/get file mode.
      *
-     * @param  string   $file
-     * @param  int|null $mode
+     * @param  string        $file
+     * @param  int|bool|null $mode @todo Use "true" type.
      * @return string|null
      * @throws froq\file\FileException
      * @since  4.0
