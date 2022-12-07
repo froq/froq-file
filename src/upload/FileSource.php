@@ -6,7 +6,7 @@
 namespace froq\file\upload;
 
 /**
- * An file class for working with files in OOP style.
+ * An file class for working with files.
  *
  * @package froq\file\upload
  * @class   froq\file\upload\FileSource

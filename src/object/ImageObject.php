@@ -8,7 +8,7 @@ namespace froq\file\object;
 use froq\file\{File, upload\ImageSource};
 
 /**
- * An image class, for working with images in OOP style.
+ * An image class, for working with images.
  *
  * @package froq\file\object
  * @class   froq\file\object\ImageObject

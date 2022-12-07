@@ -8,7 +8,7 @@ namespace froq\file\object;
 use froq\file\{File, FileError};
 
 /**
- * A file class, for working with files in OOP style.
+ * A file class, for working with files.
  *
  * @package froq\file\object
  * @class   froq\file\object\FileObject

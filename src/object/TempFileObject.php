@@ -6,7 +6,7 @@
 namespace froq\file\object;
 
 /**
- * A class, for working with temp files in OOP style.
+ * A class, for working with temp files.
  *
  * @package froq\file\object
  * @class   froq\file\object\TempFileObject
