@@ -7,9 +7,9 @@ namespace froq\file;
 
 /**
  * @package froq\file
- * @class   froq\file\InfoException
+ * @class   froq\file\FileInfoException
  * @author  Kerem Güneş
  * @since   6.0
  */
-class InfoException extends FileException
+class FileInfoException extends FileException
 {}
