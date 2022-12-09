@@ -15,7 +15,7 @@ namespace froq\file;
  */
 class FileInfo extends \SplFileInfo
 {
-    /** Path */
+    /** Path name. */
     public readonly string $path;
 
     /** Resolved info. */
