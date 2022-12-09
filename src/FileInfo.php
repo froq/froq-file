@@ -221,22 +221,6 @@ class FileInfo extends \SplFileInfo
     }
 
     /**
-     * @alias isDir()
-     */
-    public function isDirectory()
-    {
-        return $this->isDir();
-    }
-
-    /**
-     * @alias getDirInfo()
-     */
-    public function getDirectoryInfo()
-    {
-        return $this->getDirInfo();
-    }
-
-    /**
      * Check whether this file/directory is available for read/write operations.
      *
      * @return bool
@@ -278,5 +262,21 @@ class FileInfo extends \SplFileInfo
         }
 
         return false;
+    }
+
+    /**
+     * @alias isDir()
+     */
+    public function isDirectory()
+    {
+        return $this->isDir();
+    }
+
+    /**
+     * @alias getDirInfo()
+     */
+    public function getDirectoryInfo()
+    {
+        return $this->getDirInfo();
     }
 }
