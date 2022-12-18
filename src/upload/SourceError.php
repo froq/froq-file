@@ -7,11 +7,11 @@ namespace froq\file\upload;
 
 /**
  * @package froq\file\upload
- * @class   froq\file\upload\UploadError
+ * @class   froq\file\upload\SourceError
  * @author  Kerem Güneş
- * @since   4.0, 5.0
+ * @since   4.0, 5.0, 7.0
  */
-class UploadError extends \froq\file\FileError
+class SourceError extends \froq\file\FileSystemError
 {
     /** Error codes. */
     public const INTERNAL                     = 1,
@@ -28,7 +28,6 @@ class UploadError extends \froq\file\FileError
 
     /** Message map by code. */
     public const MESSAGES = [
-        0 => '',
         1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
         2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
         3 => 'The uploaded file was only partially uploaded',

@@ -3,13 +3,13 @@
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-namespace froq\file\object;
+namespace froq\file;
 
 /**
- * @package froq\file\object
- * @class   froq\file\object\FileObjectException
+ * @package froq\file
+ * @class   froq\file\DirectoryException
  * @author  Kerem Güneş
- * @since   6.0
+ * @since   7.0
  */
-class FileObjectException extends ObjectException
+class DirectoryException extends PathException
 {}

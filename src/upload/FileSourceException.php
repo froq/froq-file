@@ -11,5 +11,5 @@ namespace froq\file\upload;
  * @author  Kerem Güneş
  * @since   6.0
  */
-class FileSourceException extends UploadException
+class FileSourceException extends SourceException
 {}

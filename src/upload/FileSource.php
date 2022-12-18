@@ -6,65 +6,66 @@
 namespace froq\file\upload;
 
 /**
- * An file class for working with files.
+ * File class for working with uploaded files.
  *
  * @package froq\file\upload
  * @class   froq\file\upload\FileSource
  * @author  Kerem Güneş
- * @since   3.0, 5.0
+ * @since   3.0, 5.0, 7.0
  */
-class FileSource extends AbstractSource
+class FileSource extends Source
 {
     /**
-     * @inheritDoc froq\file\upload\AbstractSource
+     * @inheritDoc froq\file\upload\Source
      */
-    public final function save(string $path = null, string $appendix = null): string
+    public function save(string $to, string $appendix = null): string
     {
-        $source = $this->getSource();
-        $target = $this->prepareTarget($path, $appendix);
+        $source = $this->getSourceFile();
+        $target = $this->prepareTarget($to, $appendix);
 
         $this->overwriteCheck($target);
 
         if (copy($source, $target)) {
+            $this->applyMode($target);
             return $target;
         }
 
-        throw new FileSourceException('Failed saving file [error: @error]');
+        throw FileSourceException::error();
     }
 
     /**
-     * @inheritDoc froq\file\upload\AbstractSource
+     * @inheritDoc froq\file\upload\Source
      */
-    public final function move(string $path = null, string $appendix = null): string
+    public function move(string $to, string $appendix = null): string
     {
-        $source = $this->getSource();
-        $target = $this->prepareTarget($path, $appendix);
+        $source = $this->getSourceFile();
+        $target = $this->prepareTarget($to, $appendix);
 
         $this->overwriteCheck($target);
 
         if (rename($source, $target)) {
+            $this->applyMode($target);
             return $target;
         }
 
-        throw new FileSourceException('Failed moving file [error: @error]');
+        throw FileSourceException::error();
     }
 
     /**
-     * @inheritDoc froq\file\upload\AbstractSource
+     * @inheritDoc froq\file\upload\Source
      */
-    public final function clear(bool $force = false): void
+    public function clear(bool $force = false): void
     {
         if ($force || $this->options['clearSource']) {
-            $file = $this->getSource();
-            is_file($file) && unlink($file);
+            $this->clearSource();
         }
     }
 
     /**
      * @inheritDoc froq\common\interface\Stringable
      */
-    public final function toString(): string
+    public function toString(): string
     {
-        return file_get_contents($this->getSource());
+        return (string) file_get_contents($this->getSourceFile());
     }
 }

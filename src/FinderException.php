@@ -11,5 +11,5 @@ namespace froq\file;
  * @author  Kerem Güneş
  * @since   6.0
  */
-class FinderException extends FileException
+class FinderException extends FileSystemException
 {}

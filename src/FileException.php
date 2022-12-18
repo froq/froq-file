@@ -9,7 +9,7 @@ namespace froq\file;
  * @package froq\file
  * @class   froq\file\FileException
  * @author  Kerem Güneş
- * @since   1.0
+ * @since   7.0
  */
-class FileException extends \froq\common\Exception
+class FileException extends PathException
 {}

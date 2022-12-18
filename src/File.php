@@ -5,410 +5,635 @@
  */
 namespace froq\file;
 
-use froq\file\mime\{Mime, MimeException};
-use froq\file\object\{FileObject, FileObjectException};
+use froq\common\interface\Stringable;
 
 /**
- * A static file utility class.
+ * File class for working with regular files.
  *
  * @package froq\file
  * @class   froq\file\File
  * @author  Kerem Güneş
- * @since   3.0, 4.0
- * @static
+ * @since   7.0
  */
-class File extends \StaticClass
+class File extends Path implements Stringable, \IteratorAggregate
 {
-    /**
-     * Get file mime.
-     *
-     * @param  string $file
-     * @return string|null
-     */
-    public static function getMime(string $file): string|null
-    {
-        try { return Mime::getType($file); }
-            catch (MimeException) { return null; }
-    }
+    /** Default mode. */
+    public const MODE = 0644;
+
+    /** Stream handle. */
+    private ?Stream $stream = null;
+
+    /** Line for iterations. */
+    private ?int $line = null;
+
+    /** Temp file to remove. */
+    protected ?string $temp = null;
+
+    /** Given or resolved mime. */
+    protected ?string $mime = null;
+
+    /** Given or resolved extension. */
+    protected ?string $extension = null;
 
     /**
-     * Get file extension.
-     *
-     * @param  string $file
-     * @param  bool   $withDot
-     * @return string|null
-     */
-    public static function getExtension(string $file, bool $withDot = false): string|null
-    {
-        return file_extension($file, $withDot);
-    }
-
-    /**
-     * Check whether given path is a file.
-     *
-     * @param  string $path
-     * @return bool|null
-     */
-    public static function isFile(string $path): bool|null
-    {
-        // Errors happen in strict mode, else warning only.
-        try { return is_file($path); } catch (\Error) { return null; }
-    }
-
-    /**
-     * Check whether given path is a directory.
-     *
-     * @param  string $path
-     * @return bool|null
-     */
-    public static function isDirectory(string $path): bool|null
-    {
-        // Errors happen in strict mode, else warning only.
-        try { return is_dir($path); } catch (\Error) { return null; }
-    }
-
-    /**
-     * Check whether a file is readable.
-     *
-     * @param  string $file
-     * @return bool
-     */
-    public static function isReadable(string $file): bool
-    {
-        return self::isFile($file) && is_readable($file);
-    }
-
-    /**
-     * Check whether a file is writable.
-     *
-     * @param  string $file
-     * @return bool
-     */
-    public static function isWritable(string $file): bool
-    {
-        return self::isFile($file) && is_writable($file);
-    }
-
-    /**
-     * Check whether a file is available to read/write.
-     *
-     * @param  string $file
-     * @return bool
-     * @since  6.0
-     */
-    public static function isAvailable(string $file): bool
-    {
-        return self::isReadable($file) && self::isWritable($file);
-    }
-
-    /**
-     * Make a file.
-     *
-     * @param  string $file
-     * @param  int    $mode
-     * @param  bool   $temp
-     * @return string|null
      * @throws froq\file\FileException
-     * @since  6.0
+     * @override
      */
-    public static function make(string $file, int $mode = 0644, bool $temp = false): string|null
+    public function __construct(string $path, array $options = null)
     {
-        return @file_create($file, $mode, $temp) ?: throw new FileException('@error');
-    }
-
-    /**
-     * Remove a file.
-     *
-     * @param  string $file
-     * @return bool
-     * @throws froq\file\FileException
-     * @since  6.0
-     */
-    public static function remove(string $file): bool
-    {
-        return @file_remove($file) ?: throw new FileException('@error');
-    }
-
-    /**
-     * Open a file as FileObject.
-     *
-     * @param  string      $file
-     * @param  string      $mode
-     * @param  string|null $mime
-     * @param  array|null  $options
-     * @return froq\file\object\FileObject
-     * @throws froq\file\FileException
-     */
-    public static function open(string $file, string $mode = 'r+b', string $mime = null, array $options = null): FileObject
-    {
-        $options['mode'] = $mode;
-
         try {
-            return FileObject::fromFile($file, $mime, $options);
-        } catch (FileObjectException $e) {
-            throw new FileException($e);
+            parent::__construct($path);
+        } catch (\Throwable $e) {
+            throw FileException::exception($e);
+        }
+
+        if ($options) {
+            $this->mime      = $options['mime']      ?? null;
+            $this->extension = $options['extension'] ?? null;
+
+            // Auto-open.
+            if (!empty($options['open'])) {
+                $this->open($options['open']);
+            }
         }
     }
 
     /**
-     * Open a temp file as FileObject.
+     * Set line for iteration.
      *
-     * @param  string      $prefix
-     * @param  string      $mode
-     * @param  string|null $mime
-     * @param  array|null  $options
-     * @return froq\file\object\FileObject
-     * @throws froq\file\FileException
+     * @param  int $line
+     * @return self
      */
-    public static function openTemp(string $prefix = '', string $mode = 'w+b', string $mime = null, array $options = null): FileObject
+    public function setLine(int $line): self
     {
-        $options['mode'] = $mode;
+        $this->line = $line;
 
-        try {
-            $file = file_create($prefix, temp: true);
-            return FileObject::fromFile($file, $mime, $options);
-        } catch (FileObjectException $e) {
-            file_remove($file);
-            throw new FileException($e);
-        }
+        return $this;
     }
 
     /**
-     * Read entire contents from a file/stream.
+     * Get current line.
      *
-     * @param  mixed<string|resource> $file
-     * @return string
-     * @throws froq\file\FileException
-     * @since  4.0
+     * @return int|null
      */
-    public static function getContents(mixed $file): string
+    public function getLine(): int|null
     {
-        if (is_string($file)) {
-            if (is_dir($file)) {
-                throw new FileException(
-                    'Cannot write file, it\'s a directory [file: %s]', $file
-                );
-            }
-            if (!file_exists($file)) {
-                throw new FileException(
-                    'Cannot read file, it\'s not existing [file: %s]', $file
-                );
-            }
-            if (!is_readable($file)) {
-                throw new FileException(
-                    'Cannot read file, it\'s not readable [file: %s]', $file
-                );
-            }
+        return $this->line;
+    }
 
-            $ret =@ file_get_contents($file);
-        } elseif (is_stream($file)) {
-            $ret =@ stream_get_contents($file, -1, 0);
-        } else {
-            throw new FileException(
-                'Invalid file type %q [valids: string, stream]', $type
-            );
+    /**
+     * Set mime.
+     *
+     * @param  string $mime
+     * @return self
+     */
+    public function setMime(string $mime): self
+    {
+        $this->mime = strtolower($mime);
+
+        return $this;
+    }
+
+    /**
+     * Get mime.
+     *
+     * @return string|null
+     */
+    public function getMime(): string|null
+    {
+        return $this->mime ??= @file_mime($this->getPath())
+            ?? mime\Mime::getTypeByExtension((string) $this->getExtension());
+    }
+
+    /**
+     * Set extension.
+     *
+     * @param  string $extension
+     * @return self
+     */
+    public function setExtension(string $extension): self
+    {
+        $this->extension = strtolower($extension);
+
+        return $this;
+    }
+
+    /**
+     * Get extension.
+     *
+     * @return string|null
+     */
+    public function getExtension(): string|null
+    {
+        return $this->extension ??= @file_extension($this->getPath())
+            ?? mime\Mime::getExtensionByType((string) $this->getMime());
+    }
+
+    /**
+     * Open stream.
+     *
+     * @param  string $mode
+     * @return self
+     * @throws froq\file\FileException
+     */
+    public function open(string $mode = 'rb'): self
+    {
+        if (is_dir($this->getPath())) {
+            throw FileException::forCannotOpenADirectory();
         }
+
+        $resource = @fopen($this->getPath(), $mode) ?: throw FileException::error();
+
+        $this->stream = new Stream($resource, $this->temp);
+        $this->temp   = null; // Already sent to stream.
+
+        return $this;
+    }
+
+    /**
+     * Close stream.
+     *
+     * @return bool
+     */
+    public function close(): bool
+    {
+        return (bool) $this->stream?->close();
+    }
+
+    /**
+     * Validate stream.
+     *
+     * @return bool
+     */
+    public function valid(): bool
+    {
+        return (bool) $this->stream?->valid();
+    }
+
+    /**
+     * Write & synchronize.
+     *
+     * @param  string   $data
+     * @param  int|null $length
+     * @param  bool     $reset @internal
+     * @return int|null
+     * @throws froq\file\FileException
+     */
+    public function write(string $data, int $length = null, bool $reset = false): int|null
+    {
+        $res = $this->resource();
+        $ret = $reset ? @freset($res, $data) : @fwrite($res, $data, $length);
 
         if ($ret === false) {
-            throw new FileException(
-                'Cannot read file [file: %s, error: %s]', [$file, '@error']
-            );
+            throw FileException::error();
         }
 
-        return $ret;
+        // Synchronize changes.
+        @fsync($res);
+
+        return ($ret !== false) ? $ret : null;
     }
 
     /**
-     * Write given contents entirely into a file/stream.
+     * Write line & synchronize.
      *
-     * @param  mixed<string|resource> $file
-     * @param  string                 $contents
-     * @param  int                    $flags
-     * @return bool
-     * @throws froq\file\FileException
-     * @since  4.0
+     * @param  string $data
+     * @param  string $eol
+     * @return int|null
+     * @causes froq\file\FileException
      */
-    public static function setContents(mixed $file, string $contents, int $flags = 0): bool
+    public function writeLine(string $data, string $eol = PHP_EOL): int|null
     {
-        if (is_string($file)) {
-            if (is_dir($file)) {
-                throw new FileException(
-                    'Cannot write file, it\'s a directory [file: %s]', $file
-                );
-            }
-            if (file_exists($file) && !is_writable($file)) {
-                throw new FileException(
-                    'Cannot write file, it\'s not writable [file: %s]', $file
-                );
-            }
-
-            $ret =@ file_set_contents($file, $contents, $flags);
-        } elseif (is_stream($file)) {
-            $ret =@ stream_set_contents($file, $contents);
-        } else {
-            throw new FileException(
-                'Invalid file type %q [valids: string, stream]', $type
-            );
-        }
-
-        if ($ret === null) {
-            throw new FileException(
-                'Cannot write file [file: %s, error: %s]', [$file, '@error']
-            );
-        }
-
-        return true;
+        return $this->write($data . $eol);
     }
 
     /**
-     * Set/get file mode.
+     * Write all & synchronize, truncating first.
      *
-     * @param  string        $file
-     * @param  int|bool|null $mode @todo Use "true" type.
+     * @param  string $data
+     * @return int|null
+     * @causes froq\file\FileException
+     */
+    public function writeAll(string $data): int|null
+    {
+        return $this->write($data, reset: true);
+    }
+
+    /**
+     * Read.
+     *
+     * @param  int $length
      * @return string|null
-     * @throws froq\file\FileException
-     * @since  4.0
+     * @causes froq\file\FileException
      */
-    public static function mode(string $file, int|bool $mode = null): string|null
+    public function read(int $length): string|null
     {
-        if ($mode !== null) {
-            // Set mode.
-            if (is_int($mode)) {
-                $ret =@ chmod($file, $mode);
-                if ($ret === false) {
-                    throw new FileException(
-                        'Cannot set file mode [file: %s, error: %s]',
-                        [$file, '@error']
-                    );
-                }
-                $ret = $mode;
+        $ret = @fread($this->resource(), $length);
+
+        // @tome: fread() returns '' if EOF.
+        return ($ret !== false && $ret !== '') ? $ret : null;
+    }
+
+    /**
+     * Read line.
+     *
+     * @return string|null
+     * @causes froq\file\FileException
+     */
+    public function readLine(): string|null
+    {
+        $ret = @fgets($this->resource());
+
+        return ($ret !== false) ? chop($ret) : null;
+    }
+
+    /**
+     * Read all.
+     *
+     * @return string|null
+     * @causes froq\file\FileException
+     */
+    public function readAll(): string|null
+    {
+        $ret = @freadall($this->resource());
+
+        return ($ret !== false) ? $ret : null;
+    }
+
+    /**
+     * Read char.
+     *
+     * @return string|null
+     * @causes froq\file\FileException
+     */
+    public function readChar(): string|null
+    {
+        $ret = @fgetc($this->resource());
+
+        return ($ret !== false) ? $ret : null;
+    }
+
+    /**
+     * Read until.
+     *
+     * @param  string $search
+     * @return string|null
+     * @causes froq\file\FileException
+     */
+    public function readUntil(string $search): string|null
+    {
+        $res = $this->resource();
+        $ret = null;
+        $pos = null;
+
+        do {
+            $read = $this->read(1024);
+            if ($read !== null && ($pos = strpos($read, $search)) !== false) {
+                $read = substr($read, 0, $pos);
             }
-            // Get mode.
-            else {
-                $ret =@ fileperms($file);
-                if ($ret === false) {
-                    throw new FileException(
-                        'Cannot get file stat [file: %s, error: %s]',
-                        [$file, '@error']
-                    );
-                }
+            if ($read === null || $read === '') {
+                break;
             }
+            $ret .= $read;
+        } while (!$pos && !feof($res));
 
-            // Comparing.
-            // $mode = mode($file, true)
-            // $mode === '0644' or octdec($mode) === 0644
-            return $ret ? ('0' . decoct($ret & 0777)) : null;
-        }
-
-        // Get full permissions.
-        $perms =@ fileperms($file);
-        if ($perms === false) {
-            throw new FileException(
-                'Cannot get file stat [file: %s, error: %s]',
-                [$file, '@error']
-            );
-        }
-
-        // Source http://php.net/fileperms.
-        $ret = match ($perms & 0xf000) {
-             0xc000 => 's', // Socket.
-             0xa000 => 'l', // Symbolic link.
-             0x8000 => 'r', // Regular.
-             0x6000 => 'b', // Block special.
-             0x4000 => 'd', // Directory.
-             0x2000 => 'c', // Character special.
-             0x1000 => 'p', // FIFO pipe.
-            default => 'u', // Unknown.
-        };
-
-        // Owner.
-        $ret .= (($perms & 0x0100) ? 'r' : '-');
-        $ret .= (($perms & 0x0080) ? 'w' : '-');
-        $ret .= (($perms & 0x0040) ? (($perms & 0x0800) ? 's' : 'x' ) : (($perms & 0x0800) ? 'S' : '-'));
-
-        // Group.
-        $ret .= (($perms & 0x0020) ? 'r' : '-');
-        $ret .= (($perms & 0x0010) ? 'w' : '-');
-        $ret .= (($perms & 0x0008) ? (($perms & 0x0400) ? 's' : 'x' ) : (($perms & 0x0400) ? 'S' : '-'));
-
-        // World.
-        $ret .= (($perms & 0x0004) ? 'r' : '-');
-        $ret .= (($perms & 0x0002) ? 'w' : '-');
-        $ret .= (($perms & 0x0001) ? (($perms & 0x0200) ? 't' : 'x' ) : (($perms & 0x0200) ? 'T' : '-'));
+        // Fix pointer.
+        $pos && @fseek($res, $pos);
 
         return $ret;
     }
 
     /**
-     * Check error state.
+     * Flush.
      *
-     * @param  string                    $file
-     * @param  froq\file\FileError|null &$error
      * @return bool
+     * @causes froq\file\FileException
      */
-    public static function errorCheck(string $file, FileError &$error = null): bool
+    public function flush(): bool
     {
-        $error = null;
+        return @fflush($this->resource());
+    }
 
-        if (str_contains($file, "\0")) {
-            $error = new FileError(
-                'No valid path, path contains NULL-bytes',
-                code: FileError::NO_VALID_PATH
-            );
-            return true;
-        } elseif (trim($file) === '') {
-            $error = new FileError(
-                'No valid path, path is empty',
-                code: FileError::NO_VALID_PATH
-            );
-            return true;
+    /**
+     * Empty (truncate).
+     *
+     * @return bool
+     * @causes froq\file\FileException
+     */
+    public function empty(): bool
+    {
+        return @ftruncate($this->resource(), 0);
+    }
+
+    /**
+     * Tell.
+     *
+     * @return int|null
+     * @causes froq\file\FileException
+     */
+    public function tell(): int|null
+    {
+        $ret = @ftell($this->resource());
+
+        return ($ret !== false) ? $ret : null;
+    }
+
+    /**
+     * Seek.
+     *
+     * @param  int $where
+     * @param  int $whence
+     * @return bool
+     * @causes froq\file\FileException
+     */
+    public function seek(int $where, int $whence = SEEK_SET): bool
+    {
+        return @fseek($this->resource(), $where, $whence) === 0;
+    }
+
+    /**
+     * Rewind.
+     *
+     * @return bool
+     * @causes froq\file\FileException
+     */
+    public function rewind(): bool
+    {
+        return @rewind($this->resource());
+    }
+
+    /**
+     * Lock.
+     *
+     * @param  int      $operation
+     * @param  int|null &$wouldBlock
+     * @return bool
+     * @causes froq\file\FileException
+     */
+    public function lock(int $operation, int &$wouldBlock = null): bool
+    {
+        return @flock($this->resource(), $operation, $wouldBlock);
+    }
+
+    /**
+     * Unlock.
+     *
+     * @return bool
+     * @causes froq\file\FileException
+     */
+    public function unlock(): bool
+    {
+        return @flock($this->resource(), LOCK_UN);
+    }
+
+    /**
+     * Get meta.
+     *
+     * @return array|null
+     * @causes froq\file\FileException
+     */
+    public function meta(): array|null
+    {
+        return @fmeta($this->resource()) ?: null;
+    }
+
+    /**
+     * Get stat.
+     *
+     * @return array|null
+     * @causes froq\file\FileException
+     */
+    public function stat(): array|null
+    {
+        return @fstat($this->resource()) ?: null;
+    }
+
+    /**
+     * Get size.
+     *
+     * @return int|null
+     * @causes froq\file\FileException
+     */
+    public function size(): int|null
+    {
+        $ret = @fsize($this->resource());
+
+        return ($ret !== false) ? $ret : null;
+    }
+
+    /**
+     * Get EOF state.
+     *
+     * @return bool
+     * @causes froq\file\FileException
+     */
+    public function eof(): bool
+    {
+        return feof($this->resource());
+    }
+
+    /**
+     * Set contents.
+     *
+     * @param  string $contents
+     * @return int|null
+     * @causes froq\file\FileException
+     */
+    public function setContents(string $contents): int|null
+    {
+        return $this->writeAll($contents);
+    }
+
+    /**
+     * Get contents.
+     *
+     * @return string|null
+     * @causes froq\file\FileException
+     */
+    public function getContents(): string|null
+    {
+        return $this->readAll();
+    }
+
+    /**
+     * Copy and set contents from given file.
+     *
+     * @param  string $from
+     * @return self
+     * @causes froq\file\FileException
+     */
+    public function copy(string $from): self
+    {
+        $file = new File($from);
+        $file->open('rb')->lock(LOCK_EX);
+
+        $this->setContents($this->getPath(), $file->toString());
+
+        $file->unlock();
+
+        return $this;
+    }
+
+    /**
+     * Save contents to given file & return saved file path.
+     *
+     * @param  string $to
+     * @param  bool   $force
+     * @param  int    $mode
+     * @return string
+     * @throws froq\file\FileException
+     * @causes froq\file\FileException
+     */
+    public function save(string $to, bool $force = false, int $mode = self::MODE): string
+    {
+        $file = new File($to);
+        if (!$force && $file->exists()) {
+            throw FileException::forCannotOverwriteFile($to);
         }
 
-        // Sadly is_file(), is_readable(), stat() even SplFileInfo is not giving a proper error when
-        // a 'permission' / 'not exists' / 'null byte (\0)' error occurs, or path is a directory. :/
-        // Also seems not documented on php.net but when $filename contains null byte (\0) then a
-        // TypeError will be thrown with message such: TypeError: fopen() expects parameter 1 to be
-        // a valid path, string given in..
-        $fp = null;
-        try {
-            $fp =@ fopen($file, 'r');
-        } catch (\Error $e) {
-            $error = $e->getMessage();
+        $file->open('wb')->lock(LOCK_EX);
+        $file->setContents($this->toString());
+        $file->unlock();
+
+        // Apply mode.
+        $file->mode($mode);
+
+        return $file->getPath();
+    }
+
+    /**
+     * Move contents to given file, delete this file & return moved file path.
+     *
+     * @param  string $to
+     * @param  bool   $force
+     * @param  int    $mode
+     * @return string
+     * @throws froq\file\FileException
+     * @causes froq\file\FileException
+     */
+    public function move(string $to, bool $force = false, int $mode = self::MODE): string
+    {
+        $file = new File($to);
+        if (!$force && $file->exists()) {
+            throw FileException::forCannotOverwriteFile($to);
         }
 
-        if ($fp) {
-            fclose($fp);
+        $file->open('wb')->lock(LOCK_EX);
+        $file->setContents($this->toString());
+        $file->unlock();
 
-            if (is_dir($file)) {
-                $error = new FileError(
-                    'Given path is a directory [path: %s]',
-                    $file, FileError::DIRECTORY
-                );
+        // Apply mode.
+        $file->mode($mode);
+
+        // Drop old.
+        $this->delete();
+
+        return $file->getPath();
+    }
+
+    /**
+     * Delete this file.
+     *
+     * @return bool
+     * @causes froq\file\FileException
+     */
+    public function delete(): bool
+    {
+        return $this->remove(true);
+    }
+
+    /**
+     * @inheritDoc froq\common\interface\Stringable
+     */
+    public function toString(): string
+    {
+        return (string) $this->getContents();
+    }
+
+    /**
+     * Get contents as Base-64 encoded.
+     *
+     * @return string
+     */
+    public function toBase64(): string
+    {
+        return base64_encode($this->toString());
+    }
+
+    /**
+     * Get contents as Data URL.
+     *
+     * @return string
+     */
+    public function toDataUrl(): string
+    {
+        return 'data:' . $this->getMime() . ';base64,' . $this->toBase64();
+    }
+
+    /**
+     * @inheritDoc IteratorAggregate
+     */
+    public function getIterator(): \Iterator
+    {
+        // Open if not opened, or rewind only if opened.
+        $this->valid() ? $this->rewind() : $this->open();
+
+        $linePos = +$this->line;
+        $lineInd = 0;
+
+        while (null !== ($line = $this->readLine())) {
+            $lineInd++;
+
+            // Update current line.
+            $this->line = $lineInd;
+
+            if ($lineInd < $linePos) {
+                continue;
             }
-        } else {
-            $error ??= error_message() ?? 'Unknown error';
 
-            if (stripos($error, 'no such file')) {
-                $error = new FileError(
-                    'No file exists [file: %s]',
-                    $file, FileError::NO_FILE_EXISTS
-                );
-            } elseif (stripos($error, 'permission denied')) {
-                $error = new FileError(
-                    'No access permission [file: %s]',
-                    $file, FileError::NO_ACCESS_PERMISSION
-                );
-            } elseif (stripos($error, 'valid path')) {
-                $path  = substr($file, 0, 255) . '...';
-                $error = new FileError(
-                    'No valid path [path: %s]',
-                    $path, FileError::NO_VALID_PATH
-                );
-            } else {
-                $error = new FileError($error);
-            }
+            yield $lineInd => $line;
         }
+    }
 
-        return ($error !== null);
+    /**
+     * Get directory.
+     *
+     * @return froq\file\Directory
+     */
+    public function getDirectory(): Directory
+    {
+        return new Directory(dirname($this->getPath()));
+    }
+
+    /**
+     * Create a file from given string.
+     *
+     * @param  string     $string
+     * @param  array|null $options
+     * @throws froq\file\FileException
+     */
+    public static function fromString(string $string, array $options = null): File
+    {
+        $temp = @file_create('froq/', temp: true)   ?? throw FileException::error();
+        @file_write($temp, $string, flags: LOCK_EX) ?? throw FileException::error();
+
+        $that = new File($temp, $options);
+        $that->temp = $temp;
+
+        // For size() etc.
+        $that->open('r+b');
+
+        return $that;
+    }
+
+    /**
+     * Get stream resource or throw a `FileException` if not valid or opened yet.
+     *
+     * @throws froq\file\FileException
+     */
+    private function resource()
+    {
+        return $this->stream?->resource()
+            ?? throw FileException::forInvalidStream();
     }
 }

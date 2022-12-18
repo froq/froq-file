@@ -9,7 +9,7 @@ namespace froq\file;
  * @package froq\file
  * @class   froq\file\ImageException
  * @author  Kerem Güneş
- * @since   6.0
+ * @since   7.0
  */
 class ImageException extends FileException
 {}

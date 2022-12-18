@@ -3,13 +3,13 @@
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-namespace froq\file\system;
+namespace froq\file;
 
 /**
- * @package froq\file\system
- * @class   froq\file\system\PathException
+ * @package froq\file
+ * @class   froq\file\StatException
  * @author  Kerem Güneş
- * @since   6.0
+ * @since   7.0
  */
-class PathException extends SystemException
+class StatException extends FileSystemException
 {}
