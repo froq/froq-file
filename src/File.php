@@ -102,7 +102,9 @@ class File extends Path implements Stringable, \IteratorAggregate
     public function getMime(): string|null
     {
         return $this->mime ??= @file_mime($this->getPath())
-            ?? mime\Mime::getTypeByExtension((string) $this->getExtension());
+            ?? mime\Mime::getTypeByExtension((string) (
+                $this->extension ?: @file_extension($this->getPath())
+            ));
     }
 
     /**
@@ -126,7 +128,9 @@ class File extends Path implements Stringable, \IteratorAggregate
     public function getExtension(): string|null
     {
         return $this->extension ??= @file_extension($this->getPath())
-            ?? mime\Mime::getExtensionByType((string) $this->getMime());
+            ?? mime\Mime::getExtensionByType((string) (
+                $this->mime ?: @file_mime($this->getPath())
+            ));
     }
 
     /**
