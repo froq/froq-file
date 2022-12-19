@@ -12,7 +12,6 @@ namespace froq\file;
  * @class   froq\file\Stream
  * @author  Kerem Güneş
  * @since   7.0
- * @internal
  */
 class Stream
 {
@@ -112,16 +111,16 @@ class Stream
         if (isset($this->resource)) {
             if ($this->type() === 'dir') {
                 $ret = true;
-                @ closedir($this->resource);
+                @closedir($this->resource);
             } else {
-                $ret =@ fclose($this->resource);
+                $ret = @fclose($this->resource);
             }
 
             $this->resource = null;
 
             // Drop temp file as well.
             if (isset($this->tempfile)) {
-                @ unlink($this->tempfile);
+                @unlink($this->tempfile);
             }
         }
 

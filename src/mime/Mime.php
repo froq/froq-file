@@ -33,7 +33,7 @@ class Mime
 
         try {
             // This function may not be available.
-            $type =@ mime_content_type($file);
+            $type = @mime_content_type($file);
             if ($type === false) {
                 $type = null;
             }
@@ -79,7 +79,7 @@ class Mime
 
         foreach (Mimes::all() as $type => $extensions) {
             if (equals($search, $type)) {
-                return @ $extensions[$index];
+                return @$extensions[$index];
             }
         }
 
