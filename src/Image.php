@@ -86,7 +86,7 @@ class Image extends File
         $that->info = $info;
 
         // For size() etc.
-        $that->open('r+b');
+        $that->open('a+b');
 
         return $that;
     }

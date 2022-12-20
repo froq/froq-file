@@ -625,7 +625,7 @@ class File extends Path implements Stringable, \IteratorAggregate
         $that->temp = $temp;
 
         // For size() etc.
-        $that->open('r+b');
+        $that->open('a+b');
 
         return $that;
     }
