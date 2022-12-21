@@ -94,7 +94,7 @@ class PathInfo implements \Stringable
      */
     public function getRootDirectory(): string|null
     {
-        if ($depth = substr_count($this->path, DIRECTORY_SEPARATOR)) {
+        if (($depth = substr_count($this->path, DIRECTORY_SEPARATOR)) > 1) {
             return dirname($this->path, $depth - 1);
         }
 
@@ -108,8 +108,8 @@ class PathInfo implements \Stringable
      */
     public function getParentDirectory(): string|null
     {
-        if (substr_count($this->path, DIRECTORY_SEPARATOR)) {
-            return dirname($this->path, 2);
+        if (($dirname = dirname($this->path)) !== '') {
+            return $dirname !== $this->path ? $dirname : null;
         }
 
        return null;
