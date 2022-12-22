@@ -225,6 +225,6 @@ class FileSystem
      */
     public static function normalizePath(string $path): string|null
     {
-        return get_real_path($path, check: false, real: false);
+        return get_real_path($path, check: null, real: false);
     }
 }
