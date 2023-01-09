@@ -58,7 +58,7 @@ class FileSystem
     public static function openDirectory(string $path, array $options = null): Directory
     {
         try {
-            $ret = new Directory($path);
+            $ret = new Directory($path, $options);
             return $ret->open();
         } catch (DirectoryException $e) {
             throw new FileSystemException($e);
@@ -76,7 +76,7 @@ class FileSystem
     public static function openFile(string $path, array $options = null): File
     {
         try {
-            $ret = new File($path);
+            $ret = new File($path, $options);
             return $ret->open($options['mode'] ?? 'rb');
         } catch (FileException $e) {
             throw new FileSystemException($e);
