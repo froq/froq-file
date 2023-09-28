@@ -203,7 +203,7 @@ class FileSystem
      */
     public static function joinPaths(string ...$paths): string
     {
-        return join($s = DIRECTORY_SEPARATOR, map($paths, fn($n) => trim($n, $s)));
+        return join(DIRECTORY_SEPARATOR, map($paths, fn($p) => trim($p, DIRECTORY_SEPARATOR)));
     }
 
     /**
