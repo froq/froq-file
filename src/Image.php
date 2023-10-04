@@ -69,9 +69,9 @@ class Image extends File
     public static function fromString(string $string, array $options = null): Image
     {
         // Also validate if given string is valid image string.
-        @imagecreatefromstring($string) ?: throw ImageException::error();
+        $info = @getimagesizefromstring($string) ?: throw ImageException::forInvalidImageData();
 
-        $info = getimagesizefromstring($string);
+        // Add extra info fields as readable fields.
         [$info['type'], $info['width'], $info['height']] = array_select($info, [2, 0, 1]);
 
         // When no mime / extension given.

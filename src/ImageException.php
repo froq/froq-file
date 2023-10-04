@@ -12,4 +12,10 @@ namespace froq\file;
  * @since   7.0
  */
 class ImageException extends FileException
-{}
+{
+    public static function forInvalidImageData(): static
+    {
+        // Same error as imagecreatefromstring() gives.
+        return new static('Data is not in a recognized format');
+    }
+}
