@@ -16,11 +16,12 @@ namespace froq\file\glob;
 class DirectoryGlob extends Glob
 {
     /**
+     * @param mixed ...$arguments Same as Glob.__construct() method.
      * @override
      */
-    public function __construct(string $pattern, int $flags = 0, string $fileClass = null, string $infoClass = null)
+    public function __construct(mixed ...$arguments)
     {
-        parent::__construct($pattern, $flags, $fileClass, $infoClass);
+        parent::__construct(...$arguments);
 
         // Filter directories only.
         $this->filter(fn(\SplFileInfo $info): bool => $info->isDir());
