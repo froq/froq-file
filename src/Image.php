@@ -36,7 +36,7 @@ class Image extends File
     /**
      * Get image info, resolve if absent.
      *
-     * @param  string|null $key
+     * @param  int|string|null $key
      * @return mixed
      * @causes froq\file\ImageException
      */
