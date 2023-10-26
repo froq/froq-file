@@ -63,6 +63,7 @@ class Image extends File
      *
      * @param  string     $string
      * @param  array|null $options
+     * @return froq\file\Image
      * @throws froq\file\ImageException
      * @override
      */

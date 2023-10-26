@@ -614,6 +614,7 @@ class File extends Path implements Stringable, \IteratorAggregate
      *
      * @param  string     $string
      * @param  array|null $options
+     * @return froq\file\File
      * @throws froq\file\FileException
      */
     public static function fromString(string $string, array $options = null): File
