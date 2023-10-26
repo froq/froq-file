@@ -11,5 +11,5 @@ namespace froq\file\mime;
  * @author  Kerem Güneş
  * @since   3.0, 4.0
  */
-class MimeException extends \froq\file\FileException
+class MimeException extends \froq\file\FileSystemException
 {}

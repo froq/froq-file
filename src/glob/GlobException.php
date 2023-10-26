@@ -11,5 +11,5 @@ namespace froq\file\glob;
  * @author  Kerem Güneş
  * @since   6.1
  */
-class GlobException extends \froq\file\FileException
+class GlobException extends \froq\file\FileSystemException
 {}
