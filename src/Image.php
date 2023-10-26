@@ -5,6 +5,8 @@
  */
 namespace froq\file;
 
+use froq\file\mime\Mime;
+
 /**
  * Image class for working with image files.
  *
@@ -77,7 +79,7 @@ class Image extends File
 
         // When no mime / extension given.
         $options['mime']      ??= $info['mime'];
-        $options['extension'] ??= mime\Mime::getExtensionByType($info['mime']);
+        $options['extension'] ??= Mime::getExtensionByType($info['mime']);
 
         $temp = @file_create('froq/', temp: true)   ?? throw ImageException::error();
         @file_write($temp, $string, flags: LOCK_EX) ?? throw ImageException::error();
