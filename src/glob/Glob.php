@@ -222,7 +222,8 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
      */
     public function getArrayIterator(): \ArrayIterator
     {
-        return $this->iterator->getArrayIterator()[0] ?? null;
+        return $this->iterator->getArrayIterator()[0]
+            ?? new \ArrayIterator(); // Fallback.
     }
 
     /**
