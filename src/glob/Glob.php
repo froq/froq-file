@@ -106,6 +106,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
     public function filter(callable $func): self
     {
         $iterator = new \ArrayIterator();
+
         foreach ($this->iterator as $item) {
             $func($item) && $iterator[] = $item;
         }
@@ -122,6 +123,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
     public function map(callable $func): self
     {
         $iterator = new \ArrayIterator();
+
         foreach ($this->iterator as $item) {
             $iterator[] = $func($item);
         }
@@ -149,6 +151,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
     public function reverse(): self
     {
         $iterator = new \ArrayIterator();
+
         for ($i = $this->count() - 1; $i > -1; $i--) {
             $iterator[] = $this->get($i);
         }
@@ -168,6 +171,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
         $sorted->uasort($func);
 
         $iterator = new \ArrayIterator();
+
         foreach ($sorted as $item) {
             $iterator[] = $item;
         }
