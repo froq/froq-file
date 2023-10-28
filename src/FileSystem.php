@@ -12,6 +12,7 @@ namespace froq\file;
  * @class   froq\file\FileSystem
  * @author  Kerem Güneş
  * @since   7.0
+ * @static
  */
 class FileSystem
 {
