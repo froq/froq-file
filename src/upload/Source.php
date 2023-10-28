@@ -41,8 +41,9 @@ abstract class Source implements Stringable
     /**
      * Constructor.
      *
-     * @param string|array $file
-     * @param array|null   $options
+     * @param  string|array $file
+     * @param  array|null   $options
+     * @throws froq\file\upload\{FileSourceException|ImageSourceException}
      */
     public function __construct(string|array $file, array $options = null)
     {
@@ -169,8 +170,8 @@ abstract class Source implements Stringable
     /**
      * Check whether given size allowed by options.
      *
-     * @param  int $size
-     * @param  int &$max
+     * @param  int       $size
+     * @param  int|null &$max
      * @return bool
      */
     public function isAllowedSize(int $size, int &$max = null): bool
@@ -257,7 +258,7 @@ abstract class Source implements Stringable
      * @param  string      $path
      * @param  string|null $appendix
      * @return string
-     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
+     * @throws froq\file\upload\{FileSourceException|ImageSourceException}
      */
     protected function prepareTarget(string $path, string $appendix = null): string
     {
@@ -297,7 +298,7 @@ abstract class Source implements Stringable
      *
      * @param  string $target
      * @return void
-     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
+     * @throws froq\file\upload\{FileSourceException|ImageSourceException}
      */
     protected function overwriteCheck(string $path): void
     {

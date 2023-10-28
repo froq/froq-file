@@ -68,11 +68,14 @@ class FileSystemException extends \froq\common\Exception
         return new $exception($e->getMessage(), cause: $cause, reduce: true);
     }
 
+    /**
+     * Get real exception class (mostly for subclasses).
+     */
     protected static function getExceptionClass(): string
     {
         $traces = new TraceStack(options: 1);
 
-        // Search for related exception.
+        // Search related exception.
         foreach ($traces as $trace) {
             if ($trace->object !== null) {
                 $class = $trace->object::class . 'Exception';
