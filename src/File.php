@@ -42,6 +42,12 @@ class File extends Path implements Stringable, \IteratorAggregate
      */
     public function __construct(string $path, array $options = null)
     {
+        // Temporary files.
+        if (!empty($options['temp'])) {
+            $options['open'] ??= 'a+b'; // Ready for write.
+            $path = @tmpnam() ?? throw FileException::error();
+        }
+
         try {
             parent::__construct($path);
         } catch (\Throwable $e) {
@@ -146,7 +152,6 @@ class File extends Path implements Stringable, \IteratorAggregate
         $resource = @fopen($this->getPath(), $mode) ?: throw FileException::error();
 
         $this->stream = new Stream($resource, $this->temp);
-        unset($this->temp); // Already sent to stream.
 
         return $this;
     }
@@ -604,6 +609,19 @@ class File extends Path implements Stringable, \IteratorAggregate
     public function getDirectory(): Directory
     {
         return new Directory(dirname($this->getPath()));
+    }
+
+    /**
+     * Create a temp file.
+     *
+     * @param  array|null $options
+     * @return static
+     */
+    public static function fromTemp(array $options = null): static
+    {
+        $options['temp'] = true;
+
+        return new static('', $options);
     }
 
     /**
