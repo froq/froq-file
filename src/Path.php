@@ -80,7 +80,7 @@ abstract class Path
     {
         // Some speed & less work.
         if ($read && !$write && !$execute) {
-            return $this->info->exists();
+            return $this->info->isReadable();
         }
 
         $ops = [];
