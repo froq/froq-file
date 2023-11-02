@@ -18,6 +18,9 @@ abstract class Path
     /** Path name. */
     private string $path;
 
+    /** Path info. */
+    private PathInfo $info;
+
     /**
      * Constructor.
      *
@@ -27,8 +30,8 @@ abstract class Path
     public function __construct(string $path)
     {
         try {
-            $info = new PathInfo($path);
-            $this->path = $info->getPath();
+            $this->info = new PathInfo($path);
+            $this->path = $this->info->getPath();
         } catch (\Throwable $e) {
             throw PathException::exception($e);
         }
@@ -51,17 +54,46 @@ abstract class Path
      */
     public function getPathInfo(): PathInfo
     {
-        return new PathInfo($this->path);
+        return $this->info;
     }
 
     /**
-     * Check whether this path exists.
+     * Check existence of this path.
      *
      * @return bool
      */
     public function exists(): bool
     {
-        return @file_exists($this->path);
+        return $this->info->exists();
+    }
+
+    /**
+     * Check permissions of this path.
+     *
+     * @param  bool $read
+     * @param  bool $write
+     * @param  bool $execute
+     * @return bool
+     * @throws froq\file\PathException If all arguments are false.
+     */
+    public function okay(bool $read = true, bool $write = false, bool $execute = false): bool
+    {
+        // Some speed & less work.
+        if ($read && !$write && !$execute) {
+            return $this->info->exists();
+        }
+
+        $ops = [];
+
+        $read && $ops[] = 'read';
+        $write && $ops[] = 'write';
+        $execute && $ops[] = 'execute';
+
+        try {
+            return $this->info->isAvailableFor($ops);
+        } catch (\Throwable $e) {
+            throw new PathException($e);
+        }
     }
 
     /**

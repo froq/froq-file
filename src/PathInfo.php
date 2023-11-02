@@ -398,17 +398,21 @@ class PathInfo implements \Stringable
     /**
      * Check whether path is available for given (read/write/execute) operations.
      *
-     * @param  string $ops
+     * @param  string|array $ops
      * @return bool
+     * @throws froq\file\PathInfoException If no ops given.
      */
-    public function isAvailableFor(string $ops): bool
+    public function isAvailableFor(string|array $ops): bool
     {
         static $opsValid = ['read', 'write', 'execute'];
 
         if ($this->exists()) {
             $opsGiven = [];
 
-            foreach (explode('|', $ops) as $op) {
+            // Convert to eg. "read|write" form.
+            is_array($ops) || $ops = explode('|', $ops);
+
+            foreach ($ops as $op) {
                 $opsGiven[] = $op;
 
                 if ($op === 'read' && !$this->isReadable()) {
@@ -422,8 +426,9 @@ class PathInfo implements \Stringable
                 }
             }
 
-            // Validates given ops as well.
-            return $opsGiven && array_contains($opsValid, ...$opsGiven);
+            $opsGiven || throw PathInfoException::forNoOpsGiven();
+
+            return array_contains($opsValid, ...$opsGiven);
         }
 
         return false;

@@ -146,7 +146,7 @@ class File extends Path implements Stringable, \IteratorAggregate
         $resource = @fopen($this->getPath(), $mode) ?: throw FileException::error();
 
         $this->stream = new Stream($resource, $this->temp);
-        $this->temp   = null; // Already sent to stream.
+        unset($this->temp); // Already sent to stream.
 
         return $this;
     }

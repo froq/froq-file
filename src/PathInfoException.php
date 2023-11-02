@@ -20,4 +20,9 @@ class PathInfoException extends FileSystemException
             cause: new error\InvalidPathError(reduce: true)
         );
     }
+
+    public static function forNoOpsGiven(): static
+    {
+        return new static('No ops given [use one or combine read,write,execute ops]');
+    }
 }
