@@ -46,7 +46,8 @@ class File extends Path implements Stringable, \IteratorAggregate
         if (!empty($options['temp'])) {
             $options['open'] ??= 'a+b'; // Ready for write.
             $path = @tmpnam() ?? throw FileException::error();
-            // Autodrop (@default=true).
+
+            // For autodrop (@default=true).
             if (!empty($options['tempdrop'])) {
                 $this->temp = $path;
             }
