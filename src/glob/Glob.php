@@ -1,10 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file\glob;
 
 use froq\common\interface\Arrayable;
@@ -13,17 +11,13 @@ use froq\common\interface\Arrayable;
  * Glob class for files & directories.
  *
  * @package froq\file\glob
- * @object  froq\file\glob\Glob
+ * @class   froq\file\glob\Glob
  * @author  Kerem Güneş
  * @since   6.1
  */
 class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
 {
-    /**
-     * Internal iterator object.
-     *
-     * @var Iterator
-     */
+    /** Internal iterator object. */
     private \Iterator $iterator;
 
     /**
@@ -112,6 +106,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
     public function filter(callable $func): self
     {
         $iterator = new \ArrayIterator();
+
         foreach ($this->iterator as $item) {
             $func($item) && $iterator[] = $item;
         }
@@ -128,6 +123,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
     public function map(callable $func): self
     {
         $iterator = new \ArrayIterator();
+
         foreach ($this->iterator as $item) {
             $iterator[] = $func($item);
         }
@@ -155,6 +151,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
     public function reverse(): self
     {
         $iterator = new \ArrayIterator();
+
         for ($i = $this->count() - 1; $i > -1; $i--) {
             $iterator[] = $this->get($i);
         }
@@ -174,6 +171,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
         $sorted->uasort($func);
 
         $iterator = new \ArrayIterator();
+
         foreach ($sorted as $item) {
             $iterator[] = $item;
         }
@@ -228,7 +226,8 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
      */
     public function getArrayIterator(): \ArrayIterator
     {
-        return $this->iterator->getArrayIterator()[0] ?? null;
+        return $this->iterator->getArrayIterator()[0]
+            ?? new \ArrayIterator(); // Fallback.
     }
 
     /**
@@ -236,7 +235,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
      */
     public function offsetExists(mixed $index): bool
     {
-        return $this->get($index) != null;
+        return $this->get($index) !== null;
     }
 
     /**

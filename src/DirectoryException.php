@@ -3,13 +3,13 @@
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-namespace froq\file\mime;
+namespace froq\file;
 
 /**
- * @package froq\file\mime
- * @class   froq\file\mime\MimeException
+ * @package froq\file
+ * @class   froq\file\DirectoryException
  * @author  Kerem Güneş
- * @since   3.0, 4.0
+ * @since   7.0
  */
-class MimeException extends \froq\file\FileSystemException
+class DirectoryException extends PathException
 {}

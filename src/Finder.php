@@ -1,17 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file;
 
 /**
  * Simple finder class with RegExp and Glob utilities.
  *
  * @package froq\file
- * @object  froq\file\Finder
+ * @class   froq\file\Finder
  * @author  Kerem Güneş
  * @since   6.0
  */
@@ -20,24 +18,14 @@ class Finder
     /** Root directory for queries. */
     protected ?string $root = null;
 
-    /** File class, default SplFileObject. */
-    protected ?string $fileClass = null;
-
-    /** Info class, default SplFileInfo. */
-    protected ?string $infoClass = null;
-
     /**
      * Constructor.
      *
      * @param string|null $root
-     * @param string|null $fileClass
-     * @param string|null $infoClass
      */
-    public function __construct(string $root = null, string $fileClass = null, string $infoClass = null)
+    public function __construct(string $root = null)
     {
-        $this->root      = $root;
-        $this->fileClass = $fileClass;
-        $this->infoClass = $infoClass;
+        $this->root = $root;
     }
 
     /**
@@ -64,52 +52,6 @@ class Finder
     }
 
     /**
-     * Set file class.
-     *
-     * @param  string $fileClass
-     * @return self
-     */
-    public function setFileClass(string $fileClass): self
-    {
-        $this->fileClass = $fileClass;
-
-        return $this;
-    }
-
-    /**
-     * Get file class.
-     *
-     * @return string|null
-     */
-    public function getFileClass(): string|null
-    {
-        return $this->fileClass;
-    }
-
-    /**
-     * Set info class.
-     *
-     * @param  string $infoClass
-     * @return self
-     */
-    public function setInfoClass(string $infoClass): self
-    {
-        $this->infoClass = $infoClass;
-
-        return $this;
-    }
-
-    /**
-     * Get info class.
-     *
-     * @return string|null
-     */
-    public function getInfoClass(): string|null
-    {
-        return $this->infoClass;
-    }
-
-    /**
      * Find files/directories by given pattern using regex utils.
      *
      * @param  string $pattern
@@ -130,8 +72,6 @@ class Finder
         } catch (\Throwable $e) {
             throw new FinderException($e, extract: true);
         }
-
-        $this->assignIteratorClasses($iterator);
 
         return $iterator;
     }
@@ -162,8 +102,6 @@ class Finder
             throw new FinderException($e, extract: true);
         }
 
-        $this->assignIteratorClasses($iterator);
-
         return $iterator;
     }
 
@@ -184,8 +122,6 @@ class Finder
         } catch (\Throwable $e) {
             throw new FinderException($e, extract: true);
         }
-
-        $this->assignIteratorClasses($iterator);
 
         return $iterator;
     }
@@ -234,29 +170,5 @@ class Finder
         }
 
         return $root;
-    }
-
-    /**
-     * Assign provided file / info classes for an iterator.
-     *
-     * @param  Iterator $iterator
-     * @return void
-     * @throws froq\file\FinderException
-     */
-    protected function assignIteratorClasses(\Iterator $iterator): void
-    {
-        if (($fileClass = $this->getFileClass()) !== null) {
-            if (!class_exists($fileClass)) {
-                throw new FinderException('File class %q not found', $fileClass);
-            }
-            $iterator->setFileClass($fileClass);
-        }
-
-        if (($infoClass = $this->getInfoClass()) !== null) {
-            if (!class_exists($infoClass)) {
-                throw new FinderException('Info class %q not found', $infoClass);
-            }
-            $iterator->setInfoClass($infoClass);
-        }
     }
 }

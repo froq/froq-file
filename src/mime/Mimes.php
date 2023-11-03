@@ -1,24 +1,22 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file\mime;
 
 /**
  * An MIME type registry class with `all()` method.
  *
  * @package froq\file\mime
- * @object  froq\file\mime\Mimes
+ * @class   froq\file\mime\Mimes
  * @author  Kerem Güneş
  * @since   3.0, 4.0
  * @static
  */
-final class Mimes extends \StaticClass
+class Mimes extends \StaticClass
 {
-    /** @var array */
+    /** All MIMEs. */
     private static array $all;
 
     /**

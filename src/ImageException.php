@@ -1,17 +1,21 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file;
 
 /**
  * @package froq\file
- * @object  froq\file\ImageException
+ * @class   froq\file\ImageException
  * @author  Kerem Güneş
- * @since   6.0
+ * @since   7.0
  */
 class ImageException extends FileException
-{}
+{
+    public static function forInvalidImageData(): static
+    {
+        // Same error as imagecreatefromstring() gives.
+        return new static('Data is not in a recognized format');
+    }
+}

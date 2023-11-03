@@ -1,402 +1,111 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Copyright (c) 2015 · Kerem Güneş
  * Apache License 2.0 · http://github.com/froq/froq-file
  */
-declare(strict_types=1);
-
 namespace froq\file;
 
-use froq\file\upload\{ImageSource, ImageSourceException};
-use froq\common\trait\OptionTrait;
+use froq\file\mime\Mime;
 
 /**
- * Proxy class for manipulating images.
+ * Image class for working with image files.
  *
  * @package froq\file
- * @object  froq\file\Image
+ * @class   froq\file\Image
  * @author  Kerem Güneş
- * @since   6.0
+ * @since   7.0
  */
-class Image
+class Image extends File
 {
-    use OptionTrait;
-
-    /** Source file info. */
-    private array $fileInfo = [];
-
-    /** Source manipulator object. */
-    public readonly ImageSource $source;
+    /** Resolved image info. */
+    protected ?array $info = null;
 
     /**
-     * Constructor.
-     *
-     * @param string|null $file
-     * @param array|null  $options
+     * @throws froq\file\ImageException
+     * @override
      */
-    public function __construct(string $file = null, array $options = null)
+    public function __construct(string $path, array $options = null)
     {
-        if (isset($file)) {
-            $this->setFile($file);
+        try {
+            parent::__construct($path, $options);
+        } catch (\Throwable $e) {
+            throw ImageException::exception($e);
         }
-        if (isset($options['directory'])) {
-            $this->setDirectory($options['directory']);
-        }
-
-        $this->setOptions($options);
     }
 
     /**
-     * Set file.
+     * Get image info, resolve if absent.
      *
-     * @param  string $file
-     * @return self
+     * @param  int|string|null $key
+     * @return mixed
+     * @causes froq\file\ImageException
      */
-    public function setFile(string $file): self
+    public function info(int|string $key = null): mixed
     {
-        $this->fileInfo['file'] = $file;
+        $this->info ??= $this->information();
 
-        return $this;
+        return @($key !== null ? $this->info[$key] : $this->info);
     }
 
     /**
-     * Get file.
-     *
-     * @return string|null
-     */
-    public function getFile(): string|null
-    {
-        return $this->fileInfo['file'] ?? null;
-    }
-
-    /**
-     * Set file info.
-     *
-     * @param  array $fileInfo
-     * @return self
-     */
-    public function setFileInfo(array $fileInfo): self
-    {
-        $this->fileInfo = [...$this->fileInfo, ...$fileInfo];
-
-        return $this;
-    }
-
-    /**
-     * Get file info.
+     * Get image dimensions, resolve if absent.
      *
      * @return array
+     * @causes froq\file\ImageException
      */
-    public function getFileInfo(): array
+    public function dims(): array
     {
-        return $this->fileInfo;
+        $this->info ??= $this->information();
+
+        return @[$this->info[0], $this->info[1]];
     }
 
     /**
-     * Set name.
+     * Create an image from given string.
      *
-     * @param  string $name
-     * @return self
+     * @param  string     $string
+     * @param  array|null $options
+     * @return froq\file\Image
+     * @throws froq\file\ImageException
+     * @override
      */
-    public function setName(string $name): self
+    public static function fromString(string $string, array $options = null): Image
     {
-        $this->fileInfo['name'] = $name;
+        // Also validate if given string is valid image string.
+        $info = @getimagesizefromstring($string) ?: throw ImageException::forInvalidImageData();
 
-        return $this;
+        // Add extra info fields as readable fields.
+        [$info['type'], $info['width'], $info['height']] = array_select($info, [2, 0, 1]);
+
+        // When no mime / extension given.
+        $options['mime']      ??= $info['mime'];
+        $options['extension'] ??= Mime::getExtensionByType($info['mime']);
+
+        $temp = @file_create('froq/', temp: true)   ?? throw ImageException::error();
+        @file_write($temp, $string, flags: LOCK_EX) ?? throw ImageException::error();
+
+        $that = new Image($temp, $options);
+        $that->temp = $temp;
+        $that->info = $info;
+
+        // For size() etc.
+        $that->open('a+b');
+
+        return $that;
     }
 
     /**
-     * Get name.
+     * Resolve image information.
      *
-     * @return string|null
-     */
-    public function getName(): string|null
-    {
-        return $this->fileInfo['name'] ?? null;
-    }
-
-    /**
-     * Set extension.
-     *
-     * @param  string $extension
-     * @return self
-     */
-    public function setExtension(string $extension): self
-    {
-        $this->fileInfo['extension'] = $extension;
-
-        return $this;
-    }
-
-    /**
-     * Get extension.
-     *
-     * @return string|null
-     */
-    public function getExtension(): string|null
-    {
-        return $this->fileInfo['extension'] ?? null;
-    }
-
-    /**
-     * Set directory.
-     *
-     * @param  string $directory
-     * @return self
-     */
-    public function setDirectory(string $directory): self
-    {
-        $this->fileInfo['directory'] = $directory;
-
-        return $this;
-    }
-
-    /**
-     * Get directory.
-     *
-     * @return string|null
-     */
-    public function getDirectory(): string|null
-    {
-        return $this->fileInfo['directory'] ?? null;
-    }
-
-    /**
-     * Get or create source object.
-     *
-     * @return froq\file\upload\ImageSource
      * @throws froq\file\ImageException
      */
-    public function source(): ImageSource
+    private function information(): array
     {
-        if (empty($this->fileInfo['file'])) {
-            throw new ImageException('No source file given yet');
-        }
+        $ret = @getimagesize($this->getPath()) ?: throw ImageException::error();
 
-        if (empty($this->source)) {
-            try {
-                $this->source = new ImageSource();
-                $this->source->prepare($this->fileInfo, $this->options);
-            } catch (ImageSourceException $e) {
-                throw new ImageException($e);
-            }
-        }
+        // Add type, with and height as named.
+        [$ret['type'], $ret['width'], $ret['height']] = array_select($ret, [2, 0, 1]);
 
-        return $this->source;
-    }
-
-    /**
-     * Proxy method to source's save().
-     *
-     * @see froq\file\upload\ImageSource::save()
-     */
-    public function save(...$args): string
-    {
-        try {
-            return $this->source()->save(...$args);
-        } catch (ImageSourceException $e) {
-            throw new ImageException($e);
-        }
-    }
-
-    /**
-     * Proxy method to source's move().
-     *
-     * @see froq\file\upload\ImageSource::move()
-     */
-    public function move(...$args): string
-    {
-        try {
-            return $this->source()->move(...$args);
-        } catch (ImageSourceException $e) {
-            throw new ImageException($e);
-        }
-    }
-
-    /**
-     * Proxy method to source's clear().
-     *
-     * @see froq\file\upload\ImageSource::clear()
-     */
-    public function clear(...$args): void
-    {
-        $this->source()->clear(...$args);
-    }
-
-    /**
-     * Proxy method to source's resample().
-     *
-     * @see froq\file\upload\ImageSource::resample()
-     */
-    public function resample(): self
-    {
-        try {
-            $this->source()->resample();
-            return $this;
-        } catch (ImageSourceException $e) {
-            throw new ImageException($e);
-        }
-    }
-
-    /**
-     * Proxy method to source's resize().
-     *
-     * @see froq\file\upload\ImageSource::resize()
-     */
-    public function resize(...$args): self
-    {
-        try {
-            $this->source()->resize(...$args);
-            return $this;
-        } catch (ImageSourceException $e) {
-            throw new ImageException($e);
-        }
-    }
-
-    /**
-     * Proxy method to source's resizeThumbnail().
-     *
-     * @see froq\file\upload\ImageSource::resizeThumbnail()
-     */
-    public function resizeThumbnail(...$args): self
-    {
-        try {
-            $this->source()->resizeThumbnail(...$args);
-            return $this;
-        } catch (ImageSourceException $e) {
-            throw new ImageException($e);
-        }
-    }
-
-    /**
-     * Proxy method to source's crop().
-     *
-     * @see froq\file\upload\ImageSource::crop()
-     */
-    public function crop(...$args): self
-    {
-        try {
-            $this->source()->crop(...$args);
-            return $this;
-        } catch (ImageSourceException $e) {
-            throw new ImageException($e);
-        }
-    }
-
-    /**
-     * Proxy method to source's cropThumbnail().
-     *
-     * @see froq\file\upload\ImageSource::cropThumbnail()
-     */
-    public function cropThumbnail(...$args): self
-    {
-        try {
-            $this->source()->cropThumbnail(...$args);
-            return $this;
-        } catch (ImageSourceException $e) {
-            throw new ImageException($e);
-        }
-    }
-
-    /**
-     * Proxy method to source's chop().
-     *
-     * @see froq\file\upload\ImageSource::chop()
-     */
-    public function chop(...$args): self
-    {
-        try {
-            $this->source()->chop(...$args);
-            return $this;
-        } catch (ImageSourceException $e) {
-            throw new ImageException($e);
-        }
-    }
-
-    /**
-     * Proxy method to source's rotate().
-     *
-     * @see froq\file\upload\ImageSource::rotate()
-     */
-    public function rotate(...$args): self
-    {
-        try {
-            $this->source()->rotate(...$args);
-            return $this;
-        } catch (ImageSourceException $e) {
-            throw new ImageException($e);
-        }
-    }
-
-    /**
-     * Get source file size.
-     *
-     * @return int
-     */
-    public function size(): int
-    {
-        return $this->source()->getSize();
-    }
-
-    /**
-     * Get source file mime.
-     *
-     * @return string
-     */
-    public function mime(): string
-    {
-        return $this->source()->getMime();
-    }
-
-    /**
-     * Get source file info.
-     *
-     * @return array
-     */
-    public function info(): array
-    {
-        return $this->source()->getInfo();
-    }
-
-    /**
-     * Proxy method to source's toString().
-     *
-     * @see froq\file\upload\ImageSource::toString()
-     */
-    public function toString(): string
-    {
-        try {
-            return $this->source()->toString();
-        } catch (ImageSourceException $e) {
-            throw new ImageException($e);
-        }
-    }
-
-    /**
-     * Proxy method to source's toBase64().
-     *
-     * @see froq\file\upload\ImageSource::toBase64()
-     */
-    public function toBase64(): string
-    {
-        try {
-            return $this->source()->toBase64();
-        } catch (ImageSourceException $e) {
-            throw new ImageException($e);
-        }
-    }
-
-    /**
-     * Proxy method to source's toDataUrl().
-     *
-     * @see froq\file\upload\ImageSource::toDataUrl()
-     */
-    public function toDataUrl(): string
-    {
-        try {
-            return $this->source()->toDataUrl();
-        } catch (ImageSourceException $e) {
-            throw new ImageException($e);
-        }
+        return $ret;
     }
 }
