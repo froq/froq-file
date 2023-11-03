@@ -46,6 +46,10 @@ class File extends Path implements Stringable, \IteratorAggregate
         if (!empty($options['temp'])) {
             $options['open'] ??= 'a+b'; // Ready for write.
             $path = @tmpnam() ?? throw FileException::error();
+            // Autodrop (@default=true).
+            if (!empty($options['tempdrop'])) {
+                $this->temp = $path;
+            }
         }
 
         try {
@@ -614,12 +618,15 @@ class File extends Path implements Stringable, \IteratorAggregate
     /**
      * Create a temp file.
      *
+     * @param  bool       $autodrop
      * @param  array|null $options
      * @return static
      */
-    public static function fromTemp(array $options = null): static
+    public static function fromTemp(bool $autodrop = true, array $options = null): static
     {
-        $options['temp'] = true;
+        // Temporary file options.
+        $options['temp']     = true;
+        $options['tempdrop'] = $autodrop;
 
         return new static('', $options);
     }
