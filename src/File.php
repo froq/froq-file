@@ -47,7 +47,7 @@ class File extends Path implements Stringable, \IteratorAggregate
             $options['open'] ??= 'a+b'; // Ready for write.
             $path = @tmpnam() ?? throw FileException::error();
 
-            // For autodrop (@default=true).
+            // Auto-drop (@default=true).
             if (!empty($options['tempdrop'])) {
                 $this->temp = $path;
             }
@@ -63,7 +63,7 @@ class File extends Path implements Stringable, \IteratorAggregate
             $this->mime      = $options['mime']      ?? null;
             $this->extension = $options['extension'] ?? null;
 
-            // Auto-open.
+            // Auto-open (@default=null).
             if (!empty($options['open'])) {
                 $this->open($options['open']);
             }
