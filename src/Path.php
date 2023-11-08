@@ -68,7 +68,7 @@ abstract class Path
     }
 
     /**
-     * Check permissions of this path.
+     * Check existence & permissions of this path.
      *
      * @param  bool $read
      * @param  bool $write
@@ -178,11 +178,11 @@ abstract class Path
         $force || throw PathException::forCannotRemove($this->path);
 
         if ($this instanceof File) {
-            return @unlink($this->getPath()) ?: throw PathException::error();
+            return @unlink($this->path) ?: throw PathException::error();
         }
 
         if ($this instanceof Directory) {
-            return @rmdir($this->getPath()) ?: throw PathException::error();
+            return @rmdir($this->path) ?: throw PathException::error();
         }
 
         return false;
