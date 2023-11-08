@@ -21,7 +21,6 @@ class Mime
      *
      * @param  string $file
      * @return string|null
-     * @throws froq\file\MimeException
      */
     public static function getType(string $file): string|null
     {
