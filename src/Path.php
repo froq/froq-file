@@ -6,7 +6,7 @@
 namespace froq\file;
 
 /**
- * Base class for directory / file classes.
+ * Base class for directory & file classes.
  *
  * @package froq\file
  * @class   froq\file\Path
@@ -214,7 +214,7 @@ abstract class Path
      * Clear this path, if it's a directory empty it.
      *
      * @param  bool $force
-     * @param  bool $exec
+     * @param  bool $exec For Unix only.
      * @return bool
      * @throws froq\file\PathException
      */
@@ -237,7 +237,7 @@ abstract class Path
      * Drop this path, if it's a directory empty it first.
      *
      * @param  bool $force
-     * @param  bool $exec
+     * @param  bool $exec For Unix only.
      * @return bool
      * @throws froq\file\PathException
      */
@@ -250,14 +250,6 @@ abstract class Path
         }
 
         if ($this instanceof Directory) {
-            foreach ($this->read(sort: false) as $path) {
-                if (is_file($path) || is_link($path)) {
-                    $this->dropFile($path);
-                } elseif (is_dir($path)) {
-                    $this->dropDirectory($path, $exec);
-                }
-            }
-
             return $this->dropDirectory($this->path, $exec);
         }
 
@@ -277,25 +269,49 @@ abstract class Path
     }
 
     /**
-     * Drop a directory clearing inside recursively.
-     *
-     * Note: Option `$exec` for only Unix systems to bypass `rm` command limit
-     * when the count of files too large.
+     * Drop a directory (clearing inside recursively).
      *
      * @throws froq\file\PathException
      */
     private function dropDirectory(string $path, bool $exec = false): bool
     {
-        if (!$exec) {
-            // Use glob utility.
-            $rmrf = function (string $root): bool {
+        clearstatcache(true, $path);
+
+        return @$this->rmrf($path, $exec)($path) ?: throw PathException::error();
+    }
+
+    /**
+     * Create a `rm -rf` function that will completely drop a directory.
+     *
+     * Note: Option `$exec` for only Unix systems to bypass `rm` command limit
+     * when the count of files too large inside.
+     */
+    private function rmrf(string $route, bool $exec): \Closure
+    {
+        return $exec ?
+            // Fastest so far.
+            function (string $root): bool {
+                try {
+                    exec(
+                        'find ' . escapeshellarg($root) . ' ' .
+                        '-type f -print0 | xargs -0 rm 2>/dev/null'
+                    );
+
+                    // @tome: No need for $exec here (recursion!).
+                    return $this->dropDirectory($root);
+                } catch (\Throwable) {
+                    return false;
+                }
+            } :
+            // Use glob.
+            function (string $root): bool {
                 $ret = false;
 
-                foreach (glob($root . '/*', GLOB_NOSORT) as $path) {
-                    if (is_file($path) || is_link($path)) {
-                        $ret = $this->dropFile($path);
-                    } elseif (is_dir($path)) {
-                        $ret = $this->dropDirectory($path);
+                foreach (glob($root . '/*', GLOB_NOSORT) as $pat) {
+                    if (is_file($pat) || is_link($pat)) {
+                        $ret = $this->dropFile($pat);
+                    } elseif (is_dir($pat)) {
+                        $ret = $this->dropDirectory($pat);
                     }
 
                     if (!$ret) {
@@ -304,25 +320,7 @@ abstract class Path
                 }
 
                 return rmdir($root);
-            };
-        } else {
-            // Fastest way so far & for Unix only.
-            $rmrf = function (string $root): bool {
-                try {
-                    exec(
-                        'find ' . escapeshellarg($root) . ' ' .
-                        '-type f -print0 | xargs -0 rm 2>/dev/null'
-                    );
-
-                    return $this->dropDirectory($root);
-                } catch (\Throwable) {
-                    return false;
-                }
-            };
-        }
-
-        clearstatcache(true, $path);
-
-        return @$rmrf($path, $exec) ?: throw PathException::error();
+            }
+        ;
     }
 }
