@@ -109,7 +109,7 @@ class PathInfo implements \Stringable
     public function getParentDirectory(): string|null
     {
         if (($dirname = dirname($this->path)) !== '') {
-            return $dirname !== $this->path ? $dirname : null;
+            return ($dirname !== $this->path) ? $dirname : null;
         }
 
        return null;

@@ -47,7 +47,7 @@ class File extends Path implements Stringable, \IteratorAggregate
             $options['open'] ??= 'a+b'; // Ready for write.
             $path = @tmpnam() ?? throw FileException::error();
 
-            // Auto-drop (@default=true).
+            // Auto-drop (@default=false).
             if (!empty($options['tempdrop'])) {
                 $this->temp = $path;
             }
@@ -621,9 +621,9 @@ class File extends Path implements Stringable, \IteratorAggregate
      *
      * @param  bool       $autodrop
      * @param  array|null $options
-     * @return static
+     * @return froq\file\{File|Image}
      */
-    public static function fromTemp(bool $autodrop = true, array $options = null): static
+    public static function fromTemp(bool $autodrop = true, array $options = null): File|Image
     {
         // Temporary file options.
         $options['temp']     = true;
