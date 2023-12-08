@@ -277,7 +277,7 @@ abstract class Path
     {
         clearstatcache(true, $path);
 
-        return @$this->rmrf($path, $exec)($path) ?: throw PathException::error();
+        return @$this->rmrf($exec)($path) ?: throw PathException::error();
     }
 
     /**
@@ -286,7 +286,7 @@ abstract class Path
      * Note: Option `$exec` for only Unix systems to bypass `rm` command limit
      * when the count of files too large inside.
      */
-    private function rmrf(string $route, bool $exec): \Closure
+    private function rmrf(bool $exec): \Closure
     {
         return $exec ?
             // Fastest so far.
@@ -298,28 +298,24 @@ abstract class Path
                     );
 
                     // @tome: No need for $exec here (recursion!).
-                    return $this->dropDirectory($root);
+                    return $this->dropDirectory($root, false);
                 } catch (\Throwable) {
                     return false;
                 }
             } :
             // Use glob.
             function (string $root): bool {
-                $ret = false;
+                $ret = true;
 
                 foreach (glob($root . '/*', GLOB_NOSORT) as $pat) {
                     if (is_file($pat) || is_link($pat)) {
                         $ret = $this->dropFile($pat);
                     } elseif (is_dir($pat)) {
-                        $ret = $this->dropDirectory($pat);
-                    }
-
-                    if (!$ret) {
-                        return false;
+                        $ret = $this->dropDirectory($pat, false);
                     }
                 }
 
-                return rmdir($root);
+                return $ret && rmdir($root);
             }
         ;
     }
