@@ -139,9 +139,9 @@ class Finder
     {
         $ret = new \XArray();
 
-        /** @var GlobIterator<SplFileInfo> */
-        foreach ($this->glob($pattern, $flags) as $fileInfo) {
-            $ret[] = $fileInfo;
+        /** @var SplFileInfo $info */
+        foreach ($this->glob($pattern, $flags) as $info) {
+            $ret[] = $info;
         }
 
         return $ret;

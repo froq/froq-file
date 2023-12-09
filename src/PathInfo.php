@@ -6,7 +6,7 @@
 namespace froq\file;
 
 /**
- * A re-written `SplFileInfo` class for directories / files.
+ * A re-written `SplFileInfo` class for directory / file paths.
  *
  * @package froq\file
  * @class   froq\file\PathInfo

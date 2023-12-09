@@ -38,7 +38,7 @@ class Mime
             }
         } catch (\Throwable) {}
 
-        // Try by extension.
+        // Try with file extension.
         if ($type === null && ($extension = file_extension($file))) {
             $type = self::getTypeByExtension($extension);
         }

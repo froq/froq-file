@@ -208,6 +208,7 @@ class Stat
     }
 
     /**
+     * @link https://en.wikipedia.org/wiki/Stat_(system_call)
      * @internal
      */
     private function info(int|string $key): int
