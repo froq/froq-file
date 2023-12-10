@@ -13,30 +13,37 @@ namespace froq\file;
  * @author  Kerem Güneş
  * @since   6.0, 7.0
  */
-class PathInfo implements \Stringable
+class PathInfo implements \Stringable, \ArrayAccess
 {
     /** Path name. */
-    private string $path;
+    public readonly string $path;
 
     /** Resolved info. */
-    private array $info;
+    public readonly array $info;
 
     /**
      * Constructor.
      *
-     * @param  string $path
+     * @param  string|Path|PathInfo $path
      * @throws froq\file\PathInfoException
      */
-    public function __construct(string $path)
+    public function __construct(string|Path|PathInfo $path)
     {
-        if (str_contains($path, "\0")) {
-            throw PathInfoException::forInvalidPath('Path contains NULL-bytes');
-        } elseif (trim($path) === '') {
-            throw PathInfoException::forInvalidPath('Path is empty');
-        }
+        if (is_string($path)) {
+            // Validate.
+            if (str_empty($path)) {
+                throw PathInfoException::forInvalidPath('Path is empty');
+            } elseif (str_contains($path, "\0")) {
+                throw PathInfoException::forInvalidPath('Path contains NULL-bytes');
+            }
 
-        $this->info = get_path_info($path);
-        $this->path = $this->info['path'];
+            $this->info = get_path_info($path);
+            $this->path = $this->info['path'];
+        } else {
+            // Already validated.
+            $this->info = $path->info;
+            $this->path = $path->path;
+        }
     }
 
     /**
@@ -68,23 +75,23 @@ class PathInfo implements \Stringable
     }
 
     /**
-     * Get directory info.
+     * Get directory info, if no more upper-directory return null
      *
-     * @return froq\file\PathInfo
+     * @return froq\file\PathInfo|null
      */
     public function getDirectoryInfo(): PathInfo|null
     {
-        return $this->getDirname() ? new PathInfo($this->getDirname()) : null;
+        return $this->info['dirname'] ? new PathInfo($this->info['dirname']) : null;
     }
 
     /**
-     * Get directory.
+     * Get directory, if no more upper-directory return null.
      *
      * @return string|null
      */
     public function getDirectory(): string|null
     {
-        return $this->getDirname();
+        return $this->info['dirname'];
     }
 
     /**
@@ -94,8 +101,8 @@ class PathInfo implements \Stringable
      */
     public function getRootDirectory(): string|null
     {
-        if (($depth = substr_count($this->path, DIRECTORY_SEPARATOR)) > 1) {
-            return dirname($this->path, $depth - 1);
+        if (($level = substr_count($this->path, DIRECTORY_SEPARATOR)) > 1) {
+            return dirname($this->path, $level - 1);
         }
 
         return null;
@@ -108,7 +115,7 @@ class PathInfo implements \Stringable
      */
     public function getParentDirectory(): string|null
     {
-        if (($dirname = dirname($this->path)) !== '') {
+        if (($dirname = dirname($this->path, 1)) !== '') {
             return ($dirname !== $this->path) ? $dirname : null;
         }
 
@@ -382,7 +389,7 @@ class PathInfo implements \Stringable
      */
     public function isHidden(): bool
     {
-        return $this->getBasename()[0] === '.';
+        return ($this->info['basename'][0] ?? '') === '.';
     }
 
     /**
@@ -448,6 +455,48 @@ class PathInfo implements \Stringable
     public function getDirInfo()
     {
         return $this->getDirectoryInfo();
+    }
+
+    /**
+     * @inheritDoc ArrayAccess
+     */
+    public function offsetExists(mixed $key): bool
+    {
+        return $this->info($key) !== null;
+    }
+
+    /**
+     * @inheritDoc ArrayAccess
+     */
+    public function offsetGet(mixed $key): mixed
+    {
+        return $this->info($key);
+    }
+
+    /**
+     * @inheritDoc ArrayAccess
+     * @throws     ReadonlyError
+     */
+    public function offsetSet(mixed $key, mixed $_): never
+    {
+        throw new \ReadonlyError($this);
+    }
+
+    /**
+     * @inheritDoc ArrayAccess
+     * @throws     ReadonlyError
+     */
+    public function offsetUnset(mixed $key): never
+    {
+        throw new \ReadonlyError($this);
+    }
+
+    /**
+     * @internal
+     */
+    private function info(string $key): string|null
+    {
+        return $this->info[$key] ?? null;
     }
 
     /**

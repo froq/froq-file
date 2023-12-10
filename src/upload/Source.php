@@ -114,7 +114,7 @@ abstract class Source implements Stringable
      */
     public function getSourceFile(): string
     {
-        return $this->file->getPath();
+        return $this->file->path->name;
     }
 
     /**
@@ -339,8 +339,13 @@ abstract class Source implements Stringable
     private function extractFileData(array $file, bool $simple): array
     {
         if ($simple) {
-            $ret = [$file['error'] ?? null, $file['file'] ?? $file['tmp_name'] ?? null];
-        } else{
+            $ret = [
+                // From $_FILES global.
+                $file['error'] ?? null,
+                // Either "file" or "tmp_name" must given.
+                $file['file'] ?? $file['tmp_name'] ?? null,
+            ];
+        } else {
             $ret = array_select($file, ['name', 'size', 'mime', 'extension']);
         }
 

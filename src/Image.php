@@ -85,7 +85,7 @@ class Image extends File
         @file_write($temp, $string, flags: LOCK_EX) ?? throw ImageException::error();
 
         $that = new Image($temp, $options);
-        $that->temp = $temp;
+        $that->temp = $temp; // Parent's.
         $that->info = $info;
 
         // For size() etc.
@@ -101,7 +101,7 @@ class Image extends File
      */
     private function information(): array
     {
-        $ret = @getimagesize($this->getPath()) ?: throw ImageException::error();
+        $ret = @getimagesize($this->path->name) ?: throw ImageException::error();
 
         // Add type, with and height as named.
         [$ret['type'], $ret['width'], $ret['height']] = array_select($ret, [2, 0, 1]);

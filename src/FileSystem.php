@@ -33,6 +33,22 @@ class FileSystem
     }
 
     /**
+     * Get a path.
+     *
+     * @param  string $path
+     * @return froq\file\Path
+     * @throws froq\file\FileSystemException
+     */
+    public static function getPath(string $path): Path
+    {
+        try {
+            return new Path($path);
+        } catch (PathException $e) {
+            throw new FileSystemException($e);
+        }
+    }
+
+    /**
      * Get a path info.
      *
      * @param  string $path

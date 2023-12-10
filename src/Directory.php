@@ -13,7 +13,7 @@ namespace froq\file;
  * @author  Kerem Güneş
  * @since   7.0
  */
-class Directory extends Path implements \Countable, \IteratorAggregate
+class Directory extends PathObject implements \Countable, \IteratorAggregate
 {
     /** Default mode. */
     public const MODE = 0755;
@@ -36,6 +36,10 @@ class Directory extends Path implements \Countable, \IteratorAggregate
             throw DirectoryException::exception($e);
         }
 
+        if ($this->path->isFile()) {
+            throw DirectoryException::forCannotUseAFile();
+        }
+
         if ($options) {
             $this->sort = $options['sort'] ?? true;
 
@@ -54,11 +58,11 @@ class Directory extends Path implements \Countable, \IteratorAggregate
      */
     public function open(): self
     {
-        if (is_file($this->getPath())) {
+        if ($this->path->isFile()) {
             throw DirectoryException::forCannotOpenAFile();
         }
 
-        $resource = @opendir($this->getPath()) ?: throw DirectoryException::error();
+        $resource = @opendir($this->path->name) ?: throw DirectoryException::error();
 
         $this->stream = new Stream($resource);
 
@@ -150,30 +154,6 @@ class Directory extends Path implements \Countable, \IteratorAggregate
         $this->valid() || $this->open();
 
         @rewinddir($this->stream->resource());
-    }
-
-    /**
-     * Get root directory.
-     *
-     * @return froq\file\Directory|null
-     */
-    public function getRootDirectory(): Directory|null
-    {
-        $path = $this->getPathInfo()->getRootDirectory();
-
-        return ($path !== null) ? new Directory($path, ['sort' => $this->sort]) : null;
-    }
-
-    /**
-     * Get parent directory.
-     *
-     * @return froq\file\Directory|null
-     */
-    public function getParentDirectory(): Directory|null
-    {
-        $path = $this->getPathInfo()->getParentDirectory();
-
-        return ($path !== null) ? new Directory($path, ['sort' => $this->sort]) : null;
     }
 
     /**
@@ -341,6 +321,6 @@ class Directory extends Path implements \Countable, \IteratorAggregate
      */
     private function fullpath(string $entry): string
     {
-        return $this->getPath() . DIRECTORY_SEPARATOR . $entry;
+        return $this->path->name . DIRECTORY_SEPARATOR . $entry;
     }
 }

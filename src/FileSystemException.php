@@ -91,6 +91,7 @@ class FileSystemException extends \froq\common\Exception
             }
         }
 
+        // Sub-exception.
         return static::class;
     }
 }

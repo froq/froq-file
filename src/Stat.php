@@ -13,25 +13,26 @@ namespace froq\file;
  * @author  Kerem Güneş
  * @since   7.0
  */
-class Stat
+class Stat implements \ArrayAccess
 {
     /** Stat path. */
-    private string $path;
+    public readonly string $path;
 
     /** Stat info. */
-    private array $info;
+    public readonly array $info;
 
     /**
      * Constructor.
      *
-     * @param  string $path
+     * @param  string|Path|PathInfo $path
      * @throws froq\file\StatException
      */
-    public function __construct(string $path)
+    public function __construct(string|Path|PathInfo $path)
     {
         try {
             $info = new PathInfo($path);
-            $this->path = $info->getPath();
+
+            $this->path = $info->path;
         } catch (\Throwable $e) {
             throw StatException::exception($e);
         }
@@ -205,6 +206,40 @@ class Stat
     public function isDir()
     {
         return $this->isDirectory();
+    }
+
+    /**
+     * @inheritDoc ArrayAccess
+     */
+    public function offsetExists(mixed $key): bool
+    {
+        return $this->info($key) !== -1;
+    }
+
+    /**
+     * @inheritDoc ArrayAccess
+     */
+    public function offsetGet(mixed $key): mixed
+    {
+        return $this->info($key);
+    }
+
+    /**
+     * @inheritDoc ArrayAccess
+     * @throws     ReadonlyError
+     */
+    public function offsetSet(mixed $key, mixed $_): never
+    {
+        throw new \ReadonlyError($this);
+    }
+
+    /**
+     * @inheritDoc ArrayAccess
+     * @throws     ReadonlyError
+     */
+    public function offsetUnset(mixed $key): never
+    {
+        throw new \ReadonlyError($this);
     }
 
     /**

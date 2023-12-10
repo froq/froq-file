@@ -16,7 +16,7 @@ use froq\common\interface\Stringable;
  * @author  Kerem Güneş
  * @since   7.0
  */
-class File extends Path implements Stringable, \IteratorAggregate
+class File extends PathObject implements Stringable, \IteratorAggregate
 {
     /** Default mode. */
     public const MODE = 0644;
@@ -57,6 +57,10 @@ class File extends Path implements Stringable, \IteratorAggregate
             parent::__construct($path);
         } catch (\Throwable $e) {
             throw FileException::exception($e);
+        }
+
+        if ($this->path->isDirectory()) {
+            throw FileException::forCannotUseADirectory();
         }
 
         if ($options) {
@@ -113,8 +117,8 @@ class File extends Path implements Stringable, \IteratorAggregate
      */
     public function getMime(): string|null
     {
-        return $this->mime ??= @file_mime($this->getPath()) ??
-            Mime::getTypeByExtension((string) ($this->extension ?: @file_extension($this->getPath())));
+        return $this->mime ??= $this->path->getMime() ??
+            Mime::getTypeByExtension((string) ($this->extension ?: $this->path->getExtension()));
     }
 
     /**
@@ -137,8 +141,8 @@ class File extends Path implements Stringable, \IteratorAggregate
      */
     public function getExtension(): string|null
     {
-        return $this->extension ??= @file_extension($this->getPath()) ??
-            Mime::getExtensionByType((string) ($this->mime ?: @file_mime($this->getPath())));
+        return $this->extension ??= $this->path->getExtension() ??
+            Mime::getExtensionByType((string) ($this->mime ?: $this->path->getMime()));
     }
 
     /**
@@ -150,11 +154,11 @@ class File extends Path implements Stringable, \IteratorAggregate
      */
     public function open(string $mode = 'rb'): self
     {
-        if (is_dir($this->getPath())) {
+        if ($this->path->isDirectory()) {
             throw FileException::forCannotOpenADirectory();
         }
 
-        $resource = @fopen($this->getPath(), $mode) ?: throw FileException::error();
+        $resource = @fopen($this->path->name, $mode) ?: throw FileException::error();
 
         $this->stream = new Stream($resource, $this->temp);
 
@@ -478,7 +482,7 @@ class File extends Path implements Stringable, \IteratorAggregate
         $file = new File($from);
         $file->open('rb')->lock(LOCK_EX);
 
-        $this->setContents($this->getPath(), $file->toString());
+        $this->setContents($this->path->name, $file->toString());
 
         $file->unlock();
 
@@ -509,7 +513,7 @@ class File extends Path implements Stringable, \IteratorAggregate
         // Apply mode.
         $file->mode($mode);
 
-        return $file->getPath();
+        return $file->path->name;
     }
 
     /**
@@ -539,7 +543,7 @@ class File extends Path implements Stringable, \IteratorAggregate
         // Drop old.
         $this->delete();
 
-        return $file->getPath();
+        return $file->path->name;
     }
 
     /**
@@ -604,16 +608,6 @@ class File extends Path implements Stringable, \IteratorAggregate
 
             yield $lineInd => $line;
         }
-    }
-
-    /**
-     * Get directory.
-     *
-     * @return froq\file\Directory
-     */
-    public function getDirectory(): Directory
-    {
-        return new Directory(dirname($this->getPath()));
     }
 
     /**

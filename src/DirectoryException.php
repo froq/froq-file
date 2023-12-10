@@ -11,5 +11,5 @@ namespace froq\file;
  * @author  Kerem Güneş
  * @since   7.0
  */
-class DirectoryException extends PathException
+class DirectoryException extends PathObjectException
 {}
