@@ -157,7 +157,7 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
     }
 
     /**
-     * Check whether if this directory has subdirectories.
+     * Check if this directory has (sub)directories.
      *
      * @param  callable|null $filter
      * @return bool
@@ -175,7 +175,7 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
     }
 
     /**
-     * Get all subdirectories of this directory if any.
+     * Get all (sub)directories of this directory if any.
      *
      * @param  callable|null $filter
      * @return bool|null     $sort
@@ -196,7 +196,7 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
     }
 
     /**
-     * Get all subdirectory names of this directory if any.
+     * Get all (sub)directory names of this directory if any.
      *
      * @param  callable|null $filter
      * @return bool|null     $sort
@@ -217,7 +217,7 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
     }
 
     /**
-     * Check whether if this directory has files.
+     * Check if this directory has files.
      *
      * @param  callable|null $filter
      * @return bool
@@ -239,7 +239,7 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
      *
      * @param  callable|null $filter
      * @return bool|null     $sort
-     * @return ArrayIterator<froq\file\Directory>
+     * @return ArrayIterator<froq\file\File>
      * @causes froq\file\DirectoryException
      */
     public function getFiles(callable $filter = null, bool $sort = null): \ArrayIterator
@@ -269,6 +269,70 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
 
         foreach ($this->read($filter, $sort) as $path) {
             if (is_file($path)) {
+                $ret[] = $path;
+            }
+        }
+
+        return $ret;
+    }
+
+    /**
+     * Check if this directory has links.
+     *
+     * @param  callable|null $filter
+     * @return bool
+     * @causes froq\file\DirectoryException
+     */
+    public function hasLinks(callable $filter = null): bool
+    {
+        foreach ($this->read($filter, false) as $path) {
+            if (is_link($path)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get all links of this directory if any.
+     *
+     * @param  callable|null $filter
+     * @return bool|null     $sort
+     * @return ArrayIterator<froq\file\Directory|froq\file\File>
+     * @causes froq\file\DirectoryException
+     */
+    public function getLinks(callable $filter = null, bool $sort = null): \ArrayIterator
+    {
+        $ret = new \ArrayIterator();
+
+        foreach ($this->read($filter, $sort) as $path) {
+            if (is_link($path)) {
+                if (is_dir($path)) {
+                    $ret[] = new Directory($path);
+                } elseif (is_file($path)) {
+                    $ret[] = new File($path);
+                }
+            }
+        }
+
+        return $ret;
+    }
+
+    /**
+     * Get all link names of this directory if any.
+     *
+     * @param  callable|null $filter
+     * @return bool|null     $sort
+     * @return ArrayIterator<string>
+     * @causes froq\file\DirectoryException
+     */
+    public function getLinkNames(callable $filter = null, bool $sort = null): \ArrayIterator
+    {
+        $ret = new \ArrayIterator();
+
+        foreach ($this->read($filter, $sort) as $path) {
+            if (is_link($path)) {
                 $ret[] = $path;
             }
         }
@@ -321,6 +385,8 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
      */
     private function fullpath(string $entry): string
     {
-        return $this->path->name . DIRECTORY_SEPARATOR . $entry;
+        return FileSystem::normalizePath(
+            $this->path->name . DIRECTORY_SEPARATOR . $entry
+        );
     }
 }
