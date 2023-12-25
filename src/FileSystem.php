@@ -183,7 +183,7 @@ class FileSystem
      */
     public static function writeFile(string $file, string $data, int $flags = 0, bool $append = false): int
     {
-        return @file_write($file, $data, $flags)
+        return @file_write($file, $data, $flags, $append)
             ?? throw FileSystemException::error();
     }
 
