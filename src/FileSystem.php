@@ -177,27 +177,13 @@ class FileSystem
      * @param  string $file
      * @param  string $data
      * @param  int    $flags
+     * @param  bool   $append
      * @return int
      * @throws froq\file\FileSystemException
      */
-    public static function writeFile(string $file, string $data, int $flags = 0): int
+    public static function writeFile(string $file, string $data, int $flags = 0, bool $append = false): int
     {
         return @file_write($file, $data, $flags)
-            ?? throw FileSystemException::error();
-    }
-
-    /**
-     * Append a file.
-     *
-     * @param  string $file
-     * @param  string $data
-     * @param  int    $flags
-     * @return int
-     * @throws froq\file\FileSystemException
-     */
-    public static function appendFile(string $file, string $data, int $flags = 0): int
-    {
-        return @file_write($file, $data, $flags |= FILE_APPEND)
             ?? throw FileSystemException::error();
     }
 
