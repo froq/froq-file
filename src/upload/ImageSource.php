@@ -45,8 +45,10 @@ class ImageSource extends Source
     {
         // Init with default options.
         parent::__construct($file, array_options($options, [
-            'jpegQuality'   => -1, 'webpQuality' => -1, // All default.
-            'pngQuality'    => -1, 'pngFilters'  => -1, // All default.
+            'jpegQuality'   => -1,
+            'webpQuality'   => -1,
+            'pngQuality'    => -1,
+            'pngFilters'    => -1,
             'tryImagick'    => false,  // Try using Imagick if exists.
             'useImagick'    => false,  // Direct command to use Imagick (causes error if not exists).
             'stripImage'    => false,  // Valid for only Imagick.
