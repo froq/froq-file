@@ -42,12 +42,12 @@ class File extends PathObject implements Stringable, \IteratorAggregate
      */
     public function __construct(string $path, array $options = null)
     {
-        // Temporary files.
+        // Tempfile (@default=false).
         if (!empty($options['temp'])) {
             $options['open'] ??= 'a+b'; // Ready for write.
             $path = @tmpnam() ?? throw FileException::error();
 
-            // Auto-drop (@default=false).
+            // Autodrop (@default=false).
             if (!empty($options['tempdrop'])) {
                 $this->temp = $path;
             }
@@ -613,15 +613,15 @@ class File extends PathObject implements Stringable, \IteratorAggregate
     /**
      * Create a temp file.
      *
-     * @param  bool       $autodrop
+     * @param  bool       $drop
      * @param  array|null $options
      * @return froq\file\{File|Image}
      */
-    public static function fromTemp(bool $autodrop = true, array $options = null): File|Image
+    public static function fromTemp(bool $drop = true, array $options = null): File|Image
     {
-        // Temporary file options.
+        // For constructor.
         $options['temp']     = true;
-        $options['tempdrop'] = $autodrop;
+        $options['tempdrop'] = $drop;
 
         return new static('', $options);
     }
