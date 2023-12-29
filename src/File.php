@@ -18,7 +18,7 @@ use froq\common\interface\Stringable;
  */
 class File extends PathObject implements Stringable, \IteratorAggregate
 {
-    /** Default mode. */
+    /** Default make mode. */
     public const MODE = 0644;
 
     /** Stream handle. */

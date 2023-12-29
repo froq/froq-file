@@ -15,7 +15,7 @@ namespace froq\file;
  */
 class Directory extends PathObject implements \Countable, \IteratorAggregate
 {
-    /** Default mode. */
+    /** Default make mode. */
     public const MODE = 0755;
 
     /** Stream handle. */

@@ -12,6 +12,7 @@ namespace froq\file;
  * @class   froq\file\PathObject
  * @author  Kerem Güneş
  * @since   7.0, 7.1
+ * @internal
  */
 abstract class PathObject
 {
