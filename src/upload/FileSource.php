@@ -30,6 +30,15 @@ class FileSource extends Source
             return $target;
         }
 
+        // Option overwrite=true issue.
+        if (is_file($target) && copy($source, $tmp = tmpnam())) {
+            if (copy($source, $tmp) && copy($tmp, $target)) {
+                unlink($tmp); // Drop temp file.
+                $this->applyMode($target);
+                return $target;
+            }
+        }
+
         throw FileSourceException::error();
     }
 

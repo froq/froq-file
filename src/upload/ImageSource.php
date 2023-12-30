@@ -483,10 +483,10 @@ class ImageSource extends Source
     public function getInfo(): array
     {
         if (empty($this->info)) {
-            $this->info = getimagesize($this->getSourceFile());
+            $this->info = getimagesize($this->getSourceFile()) ?: [];
         } elseif ($this->resized) {
             // Update using resized image as info source.
-            $this->info = getimagesizefromstring($this->toString());
+            $this->info = getimagesizefromstring($this->toString()) ?: [];
         }
 
         if (empty($this->info)) {

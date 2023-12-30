@@ -596,7 +596,7 @@ class File extends PathObject implements Stringable, \IteratorAggregate
     {
         $file = [
             'file' => $this->path->getName(), 'name' => $this->path->getBasename(),
-            'size' => $this->size(), 'mime' => $this->getMime(), 'extension' => $this->getExtension()
+            'size' => null, 'mime' => $this->getMime(), 'extension' => $this->getExtension()
         ];
 
         return ($this instanceof Image) ? new ImageSource($file, $options) : new FileSource($file, $options);
