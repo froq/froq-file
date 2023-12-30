@@ -24,7 +24,7 @@ class Image extends File
      * @throws froq\file\ImageException
      * @override
      */
-    public function __construct(string $path, array $options = null)
+    public function __construct(string|Path $path, array $options = null)
     {
         try {
             parent::__construct($path, $options);

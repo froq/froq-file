@@ -16,22 +16,26 @@ namespace froq\file;
  */
 abstract class PathObject
 {
-    /** Path object. */
+    /** Path instance. */
     public readonly Path $path;
 
     /**
      * Constructor.
      *
-     * @param  string $path
+     * @param  string|Path $path
      * @throws froq\file\PathObjectException
      */
-    public function __construct(string $path)
+    public function __construct(string|Path $path)
     {
-        try {
-            $this->path = new Path($path);
-        } catch (\Throwable $e) {
-            throw PathObjectException::exception($e);
+        if (is_string($path)) {
+            try {
+                $path = new Path($path);
+            } catch (\Throwable $e) {
+                throw PathObjectException::exception($e);
+            }
         }
+
+        $this->path = $path;
     }
 
     /**
@@ -143,6 +147,14 @@ abstract class PathObject
         } catch (\Throwable $e) {
             throw new PathObjectException($e);
         }
+    }
+
+    /**
+     * @alias create()
+     */
+    public function make(int $mode = null): bool
+    {
+        return $this->create($mode);
     }
 
     /**

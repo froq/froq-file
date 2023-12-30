@@ -67,12 +67,12 @@ class FileSystem
     /**
      * Open a directory.
      *
-     * @param  string     $path
-     * @param  array|null $options
+     * @param  string|Path $path
+     * @param  array|null  $options
      * @return froq\file\Directory
      * @throws froq\file\FileSystemException
      */
-    public static function openDirectory(string $path, array $options = null): Directory
+    public static function openDirectory(string|Path $path, array $options = null): Directory
     {
         try {
             $ret = new Directory($path, $options);
@@ -85,12 +85,12 @@ class FileSystem
     /**
      * Open a file.
      *
-     * @param  string     $path
-     * @param  array|null $options
+     * @param  string|Path $path
+     * @param  array|null  $options
      * @return froq\file\File
      * @throws froq\file\FileSystemException
      */
-    public static function openFile(string $path, array $options = null): File
+    public static function openFile(string|Path $path, array $options = null): File
     {
         try {
             $ret = new File($path, $options);
@@ -188,25 +188,132 @@ class FileSystem
     }
 
     /**
+     * Get splitted paths as a tree.
+     *
+     * Example: `getPathTree('/tmp/foo')` => `['/', '/tmp', '/tmp/foo']`.
+     *
+     * @param  string $path
+     * @param  bool   $normalize
+     * @param  bool   $convert
+     * @param  bool   $_simple @internal
+     * @return array<string|Path>
+     */
+    public static function getPathTree(string $path, bool $normalize = true, bool $convert = false,
+        bool $_simple = false): array
+    {
+        $paths = self::splitPaths($path, $normalize);
+
+        // Internal calls.
+        if ($_simple) return $paths;
+
+        // Search "/" and "~" (home) chars.
+        $pfx = ($path !== DIRECTORY_SEPARATOR)
+            && strpfx($path, [DIRECTORY_SEPARATOR, '~']);
+
+        $ret = [];
+
+        if ($paths) {
+            foreach ($paths as $i => $path) {
+                if ($i === 0) {
+                    $ret[] = $path;
+                } else {
+                    $prev  = $ret[$i - 1]; // Append as parent.
+                    $ret[] = join(DIRECTORY_SEPARATOR, [$prev, $path]);
+                }
+            }
+
+            if ($pfx) {
+                 if ($ret[0] === '') {
+                    // Put "/" into first.
+                    $ret[0] = DIRECTORY_SEPARATOR;
+                } elseif ($ret[0] !== '' && $ret[0] !== '~') {
+                    // Append "/" to all (if normalized).
+                    $ret = map($ret, fn($p) => DIRECTORY_SEPARATOR . $p);
+                }
+            }
+
+            // Convert all paths to Path instances.
+            $convert && $ret = map($ret, fn($p) => new Path($p));
+        }
+
+        return $ret;
+    }
+
+    /**
+     * Count paths returning size of parts, or return -1 if path is empty.
+     *
+     * Note: This method must be used `normalize: false` option for non-resolved results.
+     * For example, countPaths('x') = count(cwd-path-parts) + 1, countPaths('x', false) = 1.
+     *
+     * @param  string $path
+     * @param  bool   $normalize
+     * @return int
+     */
+    public static function countPaths(string $path, bool $normalize = true): int
+    {
+        $tree = self::getPathTree($path, $normalize, _simple: true);
+
+        return $tree ? count($tree) : -1; // Empty path.
+    }
+
+    /**
      * Split paths.
      *
      * @param  string $path
-     * @return array
+     * @param  bool   $normalize
+     * @return array<string>
      */
-    public static function splitPaths(string $path): array
+    public static function splitPaths(string $path, bool $normalize = true): array
     {
-        return split(DIRECTORY_SEPARATOR, $path);
+        if ($path === '' || $path === DIRECTORY_SEPARATOR) {
+            return !$path ? [] : ['']; // 2nd is root.
+        }
+
+        $path = $normalize ? self::normalizePath($path) : $path;
+
+        // Cos of normalize.
+        if ($path === null) {
+            return [];
+        }
+
+        // Keep ticking root part.
+        if (strpfx($path, DIRECTORY_SEPARATOR)) {
+            $path = '@@@' . $path;
+        }
+
+        $paths = split(DIRECTORY_SEPARATOR, $path);
+
+        // Restore root part.
+        if ($paths && $paths[0] === '@@@') {
+            $paths[0] = '';
+        }
+
+        return $paths;
     }
 
     /**
      * Join paths.
      *
-     * @param  string ...$paths
+     * @param  array<string> $paths
+     * @param  bool          $normalize
      * @return string
      */
-    public static function joinPaths(string ...$paths): string
+    public static function joinPaths(array $paths, bool $normalize = true): string
     {
-        return join(DIRECTORY_SEPARATOR, map($paths, fn($p) => trim($p, DIRECTORY_SEPARATOR)));
+        if ($paths === []) {
+            return '';
+        }
+
+        $path = join(DIRECTORY_SEPARATOR, $paths);
+
+        $path = $normalize ? self::normalizePath($path) : $path;
+
+        // Cos of normalize.
+        if ($path === null) {
+            return '';
+        }
+
+        return $path;
     }
 
     /**

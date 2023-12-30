@@ -28,7 +28,7 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
      * @throws froq\file\DirectoryException
      * @override
      */
-    public function __construct(string $path, array $options = null)
+    public function __construct(string|Path $path, array $options = null)
     {
         try {
             parent::__construct($path);
@@ -362,6 +362,57 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
     public function getChildrenNames(...$args)
     {
         return $this->getDirectoryNames(...$args);
+    }
+
+    /**
+     * Glob this directory.
+     *
+     * @param  string $pattern
+     * @param  int    $flags
+     * @return GlobIterator<SplFileInfo>
+     * @throws froq\file\DirectoryException
+     */
+    public function glob(string $pattern, int $flags = 0): \GlobIterator
+    {
+        try {
+            return (new Finder($this->path->name))->glob($pattern, $flags);
+        } catch (\Throwable $e) {
+            throw new DirectoryException($e);
+        }
+    }
+
+    /**
+     * Find entries in this directory.
+     *
+     * @param  string $pattern
+     * @param  int    $flags
+     * @return RegexIterator<SplFileInfo>
+     * @throws froq\file\DirectoryException
+     */
+    public function find(string $pattern, int $flags = 0): \RegexIterator
+    {
+        try {
+            return (new Finder($this->path->name))->find($pattern, $flags);
+        } catch (\Throwable $e) {
+            throw new DirectoryException($e);
+        }
+    }
+
+    /**
+     * Find entries in this directory recursively.
+     *
+     * @param  string $pattern
+     * @param  int    $flags
+     * @return RegexIterator<SplFileInfo>
+     * @throws froq\file\DirectoryException
+     */
+    public function findAll(string $pattern, int $flags = 0): \RegexIterator
+    {
+        try {
+            return (new Finder($this->path->name))->findAll($pattern, $flags);
+        } catch (\Throwable $e) {
+            throw new DirectoryException($e);
+        }
     }
 
     /**

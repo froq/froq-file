@@ -6,6 +6,7 @@
 namespace froq\file;
 
 use froq\file\mime\Mime;
+use froq\file\upload\{FileSource, ImageSource};
 use froq\common\interface\Stringable;
 
 /**
@@ -40,7 +41,7 @@ class File extends PathObject implements Stringable, \IteratorAggregate
      * @throws froq\file\FileException
      * @override
      */
-    public function __construct(string $path, array $options = null)
+    public function __construct(string|Path $path, array $options = null)
     {
         // Tempfile (@default=false).
         if (!empty($options['temp'])) {
@@ -583,6 +584,22 @@ class File extends PathObject implements Stringable, \IteratorAggregate
     public function toDataUrl(): string
     {
         return 'data:' . $this->getMime() . ';base64,' . $this->toBase64();
+    }
+
+    /**
+     * Get this file as an uploaded file (either `FileSource` or `ImageSource`) source.
+     *
+     * @param  array|null $options
+     * @return froq\file\upload\{FileSource|ImageSource}
+     */
+    public function toSource(array $options = null): FileSource|ImageSource
+    {
+        $file = [
+            'file' => $this->path->getName(), 'name' => $this->path->getBasename(),
+            'size' => $this->size(), 'mime' => $this->getMime(), 'extension' => $this->getExtension()
+        ];
+
+        return ($this instanceof Image) ? new ImageSource($file, $options) : new FileSource($file, $options);
     }
 
     /**

@@ -10,7 +10,7 @@ use froq\common\interface\Stringable;
 use froq\util\Util;
 
 /**
- * Base source class for uploads.
+ * Base class for working with uploaded files / images.
  *
  * @package froq\file\upload
  * @class   froq\file\upload\Source
@@ -35,17 +35,19 @@ abstract class Source implements Stringable
         'maxFileSize'       => null,  // In binary mode: for 2 megabytes 2048, 2048k or 2m.
         'clear'             => true,  // To free resources after saving/moving file etc.
         'clearSource'       => false, // To delete sources after saving/moving files etc.
+        'slug'              => true,  // To slugify file name & appendix.
+        'slugLower'         => true,  // To lowerize slugified file name & appendix.
         'overwrite'         => false, // To prevent existing file overwrite.
     ];
 
     /**
      * Constructor.
      *
-     * @param  string|array $file
+     * @param  array|string $file
      * @param  array|null   $options
      * @throws froq\file\upload\{FileSourceException|ImageSourceException}
      */
-    public function __construct(string|array $file, array $options = null)
+    public function __construct(array|string $file, array $options = null)
     {
         // When only file given.
         is_string($file) && $file = ['file' => $file];
@@ -222,8 +224,8 @@ abstract class Source implements Stringable
     /**
      * Prepare name.
      *
-     * Note: If given name contains non-ascii characters, all will be replaced
-     * with ascii characters, also cut to 255 length.
+     * Note: If given name contains non-ascii characters, all will be replaced with ascii
+     * characters when "slug" option is true (as default), also cut to 255 length.
      *
      * @param  string      $name
      * @param  string|null $appendix
@@ -231,19 +233,20 @@ abstract class Source implements Stringable
      */
     protected function prepareName(string $name, string $appendix = null): string
     {
-        $name     = trim($name);
-        $appendix = trim($appendix ?? '');
+        [$name, $namex] = array_map('trim', [$name, (string) $appendix]);
+        [$slug, $lower] = array_select($this->options, ['slug', 'slugLower']);
 
         if ($name !== '') {
-            $name = slug($name);
+            $slug && $name = slug($name, lower: $lower);
             if (strlen($name) > 255) {
                 $name = strcut($name, 255);
             }
         }
 
         // Eg: abc-crop.jpg.
-        if ($appendix !== '') {
-            $name .= '-' . slug($appendix);
+        if ($namex !== '') {
+            $slug && $namex = slug($namex, lower: $lower);
+            $name .= '-' . $namex;
         }
 
         return trim($name, '-');

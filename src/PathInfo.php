@@ -55,6 +55,16 @@ class PathInfo implements \Stringable, \ArrayAccess
     }
 
     /**
+     * Get an info field if exists, or return null if absent.
+     *
+     * @magic
+     */
+    public function __get(string $key): mixed
+    {
+        return $this->info($key);
+    }
+
+    /**
      * Get path.
      *
      * @return string
