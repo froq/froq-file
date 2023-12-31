@@ -71,7 +71,7 @@ abstract class Source implements Stringable
         $this->options = array_options($options, $this->options);
 
         // Extract name & extension from given file.
-        if ($name && preg_match('~(.+)\.(\w+)$~', $name, $match)) {
+        if ($name && preg_match('~[/\\]?(.+)\.(\w+)$~', $name, $match)) {
             [$name, $extension] = array_slice($match, 1);
         }
 
