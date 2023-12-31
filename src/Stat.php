@@ -19,25 +19,26 @@ class Stat implements \ArrayAccess
     public readonly string $path;
 
     /** Stat info. */
-    public readonly array $info;
+    private array $info;
 
     /**
      * Constructor.
      *
      * @param  string|Path|PathInfo $path
      * @throws froq\file\StatException
+     * @causes froq\file\StatException
      */
     public function __construct(string|Path|PathInfo $path)
     {
         try {
-            $info = new PathInfo($path);
+            $pathInfo = new PathInfo($path);
 
-            $this->path = $info->path;
+            $this->path = $pathInfo->path;
         } catch (\Throwable $e) {
             throw StatException::exception($e);
         }
 
-        $this->info = @file_stat($this->path) ?? throw StatException::error();
+        $this->info = $this->stat();
     }
 
     /**
@@ -138,6 +139,20 @@ class Stat implements \ArrayAccess
     public function getPerms(): int
     {
         return $this->info('mode');
+    }
+
+    /**
+     * Get perms info.
+     *
+     * @return array
+     */
+    public function getPermsInfo(): array
+    {
+        return [
+            'read' => $this->isReadable(),
+            'write' => $this->isWritable(),
+            'execute' => $this->isExecutable()
+        ];
     }
 
     /**
@@ -243,11 +258,47 @@ class Stat implements \ArrayAccess
     }
 
     /**
+     * Clear stat cache.
+     *
+     * @return self
+     */
+    public function clear(): self
+    {
+        clearstatcache(true, $this->path);
+
+        return $this;
+    }
+
+    /**
+     * Reset stat info.
+     *
+     * @return self
+     * @causes froq\file\StatException
+     */
+    public function reset(): self
+    {
+        $this->info = $this->stat();
+
+        return $this;
+    }
+
+    /**
+     * Get an info field.
+     *
      * @link https://en.wikipedia.org/wiki/Stat_(system_call)
-     * @internal
      */
     private function info(int|string $key): int
     {
         return $this->info[$key] ?? -1;
+    }
+
+    /**
+     * Get stat info.
+     *
+     * @throws froq\file\StatException
+     */
+    private function stat(): array
+    {
+        return @file_stat($this->path) ?? throw StatException::error();
     }
 }

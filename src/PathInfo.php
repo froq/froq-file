@@ -57,6 +57,7 @@ class PathInfo implements \Stringable, \ArrayAccess
     /**
      * Get an info field if exists, or return null if absent.
      *
+     * @causes KeyError
      * @magic
      */
     public function __get(string $key): mixed
@@ -303,23 +304,40 @@ class PathInfo implements \Stringable, \ArrayAccess
     }
 
     /**
-     * Get stat.
+     * Get perms info.
      *
      * @return array|null
      */
-    public function getStat(): array|null
+    public function getPermsInfo(): array|null
     {
-        return $this->stat();
+        return $this->exists() ? [
+            'read' => $this->isReadable(),
+            'write' => $this->isWritable(),
+            'execute' => $this->isExecutable()
+        ] : null;
+    }
+
+    /**
+     * Get stat.
+     *
+     * @param  bool $clear
+     * @return array|null
+     */
+    public function getStat(bool $clear = true): array|null
+    {
+        return $this->stat(null, $clear);
     }
 
     /**
      * Clear stat.
      *
-     * @return void
+     * @return self
      */
-    public function clearStat(): void
+    public function clearStat(): self
     {
         clearstatcache(true, $this->path);
+
+        return $this;
     }
 
     /**
@@ -472,15 +490,16 @@ class PathInfo implements \Stringable, \ArrayAccess
      */
     public function offsetExists(mixed $key): bool
     {
-        return $this->info($key) !== null;
+        return $this->info($key, false) !== null;
     }
 
     /**
      * @inheritDoc ArrayAccess
+     * @causes     KeyError
      */
     public function offsetGet(mixed $key): mixed
     {
-        return $this->info($key);
+        return $this->info($key, true);
     }
 
     /**
@@ -502,19 +521,40 @@ class PathInfo implements \Stringable, \ArrayAccess
     }
 
     /**
-     * @internal
+     * Get an info field.
+     *
+     * @throws KeyError
      */
-    private function info(string $key): string|null
+    private function info(string $key, bool $throw = true): string|null
     {
-        return $this->info[$key] ?? null;
+        static $camelCaseKeys = [
+            'realPath' => 'realpath', 'dirName'  => 'dirname',
+            'fileName' => 'filename', 'baseName' => 'basename'
+        ];
+
+        // Lookup for lower-case key.
+        $key = $camelCaseKeys[$key] ?? $key;
+
+        if (is_array_key($this->info, $key)) {
+            return $this->info[$key];
+        }
+
+        if ($throw) {
+            throw new PathInfoException(
+                $message = format('Undefined info key %q', $key),
+                cause: new \KeyError($message)
+            );
+        }
+
+        return null;
     }
 
     /**
-     * @internal
+     * Get stat info.
      */
-    private function stat(int|string $key = null): int|array|null
+    private function stat(int|string $key = null, bool $clear = true): int|array|null
     {
-        $stat = @file_stat($this->path);
+        $stat = @file_stat($this->path, $clear, check: false);
 
         return $key ? $stat[$key] ?? null : $stat;
     }

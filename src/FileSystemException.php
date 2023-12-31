@@ -6,7 +6,7 @@
 namespace froq\file;
 
 use froq\common\interface\Thrownable;
-use TraceStack, Throwable;
+use Throwable, TraceStack;
 
 /**
  * @package froq\file
@@ -19,17 +19,19 @@ class FileSystemException extends \froq\common\Exception
     /**
      * Extract internal error and create an exception.
      */
-    public static function error(): static
+    public static function error(Throwable $e = null, Throwable $cause = null): static
     {
-        if ($message = error_message(extract: true)) {
+        $message = $e?->getMessage();
+
+        if ($message ??= error_message(extract: true)) {
             switch (true) {
-                case str_contains($message, 'No such file'):
-                    $cause = new error\NoFileError(reduce: true);
+                case str_has($message, 'No such file', true):
+                    $cause = new error\NoFileError(cause: $cause, reduce: true);
                     break;
-                case str_contains($message, 'Permission'):
-                    $cause = new error\NoPermissionError(reduce: true);
+                case str_has($message, 'Permission', true):
+                    $cause = new error\NoPermissionError(cause: $cause, reduce: true);
                     break;
-                case str_contains($message, 'not a valid mode'):
+                case str_has($message, 'not a valid mode', true):
                     // Prettify mode error message.
                     $message = format(
                         'Failed to open stream: %q is not a valid mode',
@@ -51,13 +53,13 @@ class FileSystemException extends \froq\common\Exception
             $message = 'Unknown error, probably invalid open mode';
         }
 
-        return new $exception($message ?? 'Unknown error', cause: $cause ?? null, reduce: true);
+        return new $exception($message ?? 'Unknown error', cause: $cause, reduce: true);
     }
 
     /**
      * Use message & cause of given Throwable and create an exception.
      */
-    public static function exception(Throwable $e, $cause = null): static
+    public static function exception(Throwable $e, Throwable $cause = null): static
     {
         $exception = self::getExceptionClass();
 
