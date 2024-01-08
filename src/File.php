@@ -605,7 +605,7 @@ class File extends PathObject implements Stringable, \IteratorAggregate
     /**
      * @inheritDoc IteratorAggregate
      */
-    public function getIterator(): \Iterator
+    public function getIterator(): \Generator|\Iterator
     {
         // Open if not opened, or rewind only if opened.
         $this->valid() ? $this->rewind() : $this->open();
@@ -663,6 +663,22 @@ class File extends PathObject implements Stringable, \IteratorAggregate
         $that->open('a+b');
 
         return $that;
+    }
+
+    /**
+     * Create a file from given file by reading it.
+     *
+     * @param  string     $file
+     * @param  array|null $options
+     * @return froq\file\File
+     * @throws froq\file\FileException
+     */
+    public static function fromFileString(string $file, array $options = null): File
+    {
+        return self::fromString(
+            @file_read($file) ?: throw FileException::error(),
+            $options
+        );
     }
 
     /**

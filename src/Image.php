@@ -95,6 +95,23 @@ class Image extends File
     }
 
     /**
+     * Create an image from given file by reading it.
+     *
+     * @param  string     $file
+     * @param  array|null $options
+     * @return froq\file\Image
+     * @throws froq\file\ImageException
+     * @override
+     */
+    public static function fromFileString(string $file, array $options = null): Image
+    {
+        return self::fromString(
+            @file_read($file) ?: throw ImageException::error(),
+            $options
+        );
+    }
+
+    /**
      * Resolve image information.
      *
      * @throws froq\file\ImageException

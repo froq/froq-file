@@ -150,6 +150,59 @@ abstract class PathObject
     }
 
     /**
+     * Check if path is readable.
+     *
+     * @param  bool $clear
+     * @return bool
+     */
+    public function isReadable(bool $clear = false): bool
+    {
+        return $this->path->isReadable($clear);
+    }
+
+    /**
+     * Check if path is writable.
+     *
+     * @param  bool $clear
+     * @return bool
+     */
+    public function isWritable(bool $clear = false): bool
+    {
+        return $this->path->isWritable($clear);
+    }
+
+    /**
+     * Check if path is executable.
+     *
+     * @param  bool $clear
+     * @return bool
+     */
+    public function isExecutable(bool $clear = false): bool
+    {
+        return $this->path->isExecutable($clear);
+    }
+
+    /**
+     * Check if path is in temporary directory.
+     *
+     * @return bool
+     */
+    public function isTemporary(): bool
+    {
+        return $this->path->isTemporary();
+    }
+
+    /**
+     * Check if path is hidden.
+     *
+     * @return bool
+     */
+    public function isHidden(): bool
+    {
+        return $this->path->isHidden();
+    }
+
+    /**
      * @alias create()
      */
     public function make(int $mode = null): bool

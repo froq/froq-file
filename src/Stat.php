@@ -156,71 +156,77 @@ class Stat implements \ArrayAccess
     }
 
     /**
-     * Check whether path is a directory.
+     * Check if path is a directory.
      *
+     * @param  bool $clear
      * @return bool
      */
-    public function isDirectory(): bool
+    public function isDirectory(bool $clear = false): bool
     {
-        return @is_dir($this->path);
+        return $this->check('dir', $clear);
     }
 
     /**
-     * Check whether path is a file.
+     * Check if path is a file.
      *
+     * @param  bool $clear
      * @return bool
      */
-    public function isFile(): bool
+    public function isFile(bool $clear = false): bool
     {
-        return @is_file($this->path);
+        return $this->check('file', $clear);
     }
 
     /**
-     * Check whether path is a link.
+     * Check if path is a link.
      *
+     * @param  bool $clear
      * @return bool
      */
-    public function isLink(): bool
+    public function isLink(bool $clear = false): bool
     {
-        return @is_link($this->path);
+        return $this->check('link', $clear);
     }
 
     /**
      * Check whether path is readable.
      *
+     * @param  bool $clear
      * @return bool
      */
-    public function isReadable(): bool
+    public function isReadable(bool $clear = false): bool
     {
-        return @is_readable($this->path);
+        return $this->check('readable', $clear);
     }
 
     /**
      * Check whether path is writable.
      *
+     * @param  bool $clear
      * @return bool
      */
-    public function isWritable(): bool
+    public function isWritable(bool $clear = false): bool
     {
-        return @is_writable($this->path);
+        return $this->check('writable', $clear);
     }
 
     /**
      * Check whether path is executable.
      *
+     * @param  bool $clear
      * @return bool
      */
-    public function isExecutable(): bool
+    public function isExecutable(bool $clear = false): bool
     {
-        return @is_executable($this->path);
+        return $this->check('executable', $clear);
     }
 
     /**
      * @alias isDirectory()
      */
-    public function isDir()
+    public function isDir($clear = false)
     {
-        return $this->isDirectory();
+        return $this->isDirectory($clear);
     }
 
     /**
@@ -300,5 +306,15 @@ class Stat implements \ArrayAccess
     private function stat(): array
     {
         return @file_stat($this->path) ?? throw StatException::error();
+    }
+
+    /**
+     * Check file state by given function.
+     */
+    private function check(string $func, bool $clear): bool
+    {
+        $clear && clearstatcache(true, $this->path);
+
+        return @('is_' . $func)($this->path);
     }
 }
