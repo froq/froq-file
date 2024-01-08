@@ -676,7 +676,7 @@ class File extends PathObject implements Stringable, \IteratorAggregate
     public static function fromFileString(string $file, array $options = null): File
     {
         return self::fromString(
-            @file_read($file) ?: throw FileException::error(),
+            @file_read($file) ?? throw FileException::error(),
             $options
         );
     }

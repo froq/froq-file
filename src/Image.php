@@ -106,7 +106,7 @@ class Image extends File
     public static function fromFileString(string $file, array $options = null): Image
     {
         return self::fromString(
-            @file_read($file) ?: throw ImageException::error(),
+            @file_read($file) ?? throw ImageException::error(),
             $options
         );
     }
