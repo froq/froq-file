@@ -195,16 +195,11 @@ class FileSystem
      * @param  string $path
      * @param  bool   $normalize
      * @param  bool   $convert
-     * @param  bool   $_simple @internal
      * @return array<string|Path>
      */
-    public static function getPathTree(string $path, bool $normalize = true, bool $convert = false,
-        bool $_simple = false): array
+    public static function getPathTree(string $path, bool $normalize = true, bool $convert = false): array
     {
         $paths = self::splitPaths($path, $normalize);
-
-        // Internal calls.
-        if ($_simple) return $paths;
 
         // Search "/" and "~" (home) chars.
         $pfx = ($path !== DIRECTORY_SEPARATOR)
@@ -251,9 +246,9 @@ class FileSystem
      */
     public static function countPaths(string $path, bool $normalize = true): int
     {
-        $tree = self::getPathTree($path, $normalize, _simple: true);
+        $paths = self::splitPaths($path, $normalize);
 
-        return $tree ? count($tree) : -1; // Empty path.
+        return $paths ? count($paths) : -1; // Empty path.
     }
 
     /**
