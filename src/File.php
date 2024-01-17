@@ -483,7 +483,7 @@ class File extends PathObject implements Stringable, \IteratorAggregate
         $file = new File($from);
         $file->open('rb')->lock(LOCK_EX);
 
-        $this->setContents($this->path->name, $file->toString());
+        $this->setContents($file->toString());
 
         $file->unlock();
 
@@ -595,7 +595,7 @@ class File extends PathObject implements Stringable, \IteratorAggregate
     public function toSource(array $options = null): FileSource|ImageSource
     {
         $file = [
-            'file' => $this->path->getName(), 'name' => $this->path->getBasename(),
+            'file' => $this->path->getName(), 'name' => $this->path->getBaseName(),
             'size' => null, 'mime' => $this->getMime(), 'extension' => $this->getExtension()
         ];
 

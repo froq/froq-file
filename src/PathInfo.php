@@ -57,7 +57,7 @@ class PathInfo implements \Stringable, \ArrayAccess
     /**
      * Get an info field if exists, or return null if absent.
      *
-     * @causes KeyError
+     * @causes froq\file\PathInfoException
      * @magic
      */
     public function __get(string $key): mixed
@@ -164,31 +164,31 @@ class PathInfo implements \Stringable, \ArrayAccess
     }
 
     /**
-     * Get dirname.
+     * Get dir name.
      *
      * @return string|null
      */
-    public function getDirname(): string|null
+    public function getDirName(): string|null
     {
         return $this->info['dirname'];
     }
 
     /**
-     * Get basename.
+     * Get base name.
      *
      * @return string|null
      */
-    public function getBasename(): string|null
+    public function getBaseName(): string|null
     {
         return $this->info['basename'];
     }
 
     /**
-     * Get filename.
+     * Get file name.
      *
      * @return string|null
      */
-    public function getFilename(): string|null
+    public function getFileName(): string|null
     {
         return $this->info['filename'];
     }
@@ -511,7 +511,7 @@ class PathInfo implements \Stringable, \ArrayAccess
 
     /**
      * @inheritDoc ArrayAccess
-     * @causes     KeyError
+     * @causes     froq\file\PathInfoException
      */
     public function offsetGet(mixed $key): mixed
     {
@@ -539,7 +539,7 @@ class PathInfo implements \Stringable, \ArrayAccess
     /**
      * Get an info field.
      *
-     * @throws KeyError
+     * @throws froq\file\PathInfoException
      */
     private function info(string $key, bool $throw = true): string|null
     {

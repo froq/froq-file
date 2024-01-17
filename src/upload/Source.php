@@ -70,12 +70,14 @@ abstract class Source implements Stringable
 
         $this->options = array_options($options, $this->options);
 
-        // Extract name & extension from given file.
+        // Separate name & extension of given (path/file/base) name.
         if ($name && preg_match('~[/\\\]?(.+)\.(\w+)$~', $name, $match)) {
-            [$name, $extension] = array_slice($match, 1);
+            [$name, $suffix] = array_slice($match, 1);
+            $extension ??= $suffix;
+            unset($suffix);
         }
 
-        // Set target name to UUID as default if none given.
+        // If none given, set target name to UUID as default.
         $name = $name ? $this->prepareName($name) : uuid(true);
 
         $size      ??= $this->file->size();

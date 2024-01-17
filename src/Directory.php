@@ -45,7 +45,7 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
 
             // Auto-open.
             if (!empty($options['open'])) {
-                $this->open($options['open']);
+                $this->open();
             }
         }
     }
