@@ -86,7 +86,7 @@ class PathInfo implements \Stringable, \ArrayAccess
     }
 
     /**
-     * Get directory info, return null if no more upper-directory.
+     * Get directory info.
      *
      * @return froq\file\PathInfo|null
      */
@@ -96,7 +96,7 @@ class PathInfo implements \Stringable, \ArrayAccess
     }
 
     /**
-     * Get directory, if no more upper-directory return null.
+     * Get directory.
      *
      * @return string|null
      */

@@ -381,12 +381,12 @@ class File extends PathObject implements Stringable, \IteratorAggregate
     /**
      * Lock.
      *
-     * @param  int      $operation
+     * @param  int       $operation
      * @param  int|null &$wouldBlock
      * @return bool
      * @causes froq\file\FileException
      */
-    public function lock(int $operation, int &$wouldBlock = null): bool
+    public function lock(int $operation = LOCK_EX, int &$wouldBlock = null): bool
     {
         return @flock($this->resource(), $operation, $wouldBlock);
     }
@@ -481,9 +481,11 @@ class File extends PathObject implements Stringable, \IteratorAggregate
     public function copy(string $from): self
     {
         $file = new File($from);
-        $file->open('rb')->lock(LOCK_EX);
+        $file->open('rb')->lock();
 
+        $this->lock();
         $this->setContents($file->toString());
+        $this->unlock();
 
         $file->unlock();
 
@@ -507,7 +509,7 @@ class File extends PathObject implements Stringable, \IteratorAggregate
             throw FileException::forCannotOverwriteFile($to);
         }
 
-        $file->open('wb')->lock(LOCK_EX);
+        $file->open('wb')->lock();
         $file->setContents($this->toString());
         $file->unlock();
 
@@ -534,7 +536,7 @@ class File extends PathObject implements Stringable, \IteratorAggregate
             throw FileException::forCannotOverwriteFile($to);
         }
 
-        $file->open('wb')->lock(LOCK_EX);
+        $file->open('wb')->lock();
         $file->setContents($this->toString());
         $file->unlock();
 
