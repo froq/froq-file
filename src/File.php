@@ -602,11 +602,15 @@ class File extends PathObject implements Stringable, \IteratorAggregate
             'size' => null, 'mime' => $this->getMime(), 'extension' => $this->getExtension()
         ];
 
-        $type = array_pluck($options, '@type');
+        $type = null;
 
-        // Internal, but better check anyway.
-        if ($type && $type !== 'file' && $type !== 'image') {
-            throw FileException::forInvalidTypeOption($type);
+        if ($options) {
+            $type = array_pluck($options, '@type');
+
+            // Internal, but better check anyway.
+            if ($type && $type !== 'file' && $type !== 'image') {
+                throw FileException::forInvalidTypeOption($type);
+            }
         }
 
         return ($type === 'image' || $this instanceof Image)
