@@ -12,4 +12,9 @@ namespace froq\file;
  * @since   7.0
  */
 class FileException extends PathObjectException
-{}
+{
+    public static function forInvalidTypeOption(mixed $type): static
+    {
+        return new static("Option @type must be 'file' or 'image', %q given", $type);
+    }
+}

@@ -118,7 +118,7 @@ abstract class Source implements Stringable
      */
     public function getSourceFile(): string
     {
-        return $this->file->path->name;
+        return $this->file->getPathName();
     }
 
     /**

@@ -591,6 +591,7 @@ class File extends PathObject implements Stringable, \IteratorAggregate
      *
      * @param  array|null $options
      * @return froq\file\upload\{FileSource|ImageSource}
+     * @throws froq\file\FileException
      */
     public function toSource(array $options = null): FileSource|ImageSource
     {
@@ -599,7 +600,41 @@ class File extends PathObject implements Stringable, \IteratorAggregate
             'size' => null, 'mime' => $this->getMime(), 'extension' => $this->getExtension()
         ];
 
-        return ($this instanceof Image) ? new ImageSource($file, $options) : new FileSource($file, $options);
+        $type = array_pluck($options, '@type');
+
+        // Internal, but better check anyway.
+        if ($type && $type !== 'file' && $type !== 'image') {
+            throw FileException::forInvalidTypeOption($type);
+        }
+
+        return ($type === 'image' || $this instanceof Image)
+            ? new ImageSource($file, $options) : new FileSource($file, $options);
+    }
+
+    /**
+     * Get this file as an uploaded file (`FileSource`) source.
+     *
+     * @param  array|null $options
+     * @return froq\file\upload\FileSource
+     */
+    public function toFileSource(array $options = null): FileSource
+    {
+        $options['@type'] = 'file';
+
+        return $this->toSource($options);
+    }
+
+    /**
+     * Get this file as an uploaded file (`ImageSource`) source.
+     *
+     * @param  array|null $options
+     * @return froq\file\upload\ImageSource
+     */
+    public function toImageSource(array $options = null): ImageSource
+    {
+        $options['@type'] = 'image';
+
+        return $this->toSource($options);
     }
 
     /**

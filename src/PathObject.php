@@ -41,7 +41,7 @@ abstract class PathObject
     /**
      * Get path.
      *
-     * @return string
+     * @return froq\file\Path
      */
     public function getPath(): Path
     {
@@ -56,6 +56,16 @@ abstract class PathObject
     public function getPathInfo(): PathInfo
     {
         return new PathInfo($this->path);
+    }
+
+    /**
+     * Get path name.
+     *
+     * @return string
+     */
+    public function getPathName(): string
+    {
+        return $this->path->name;
     }
 
     /**
