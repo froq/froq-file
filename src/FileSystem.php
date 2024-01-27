@@ -319,7 +319,7 @@ class FileSystem
      */
     public static function resolvePath(string $path): string|null
     {
-        return get_real_path($path, check: true, real: true);
+        return get_real_path($path, check: true, real: true) ?: null;
     }
 
     /**
@@ -330,6 +330,6 @@ class FileSystem
      */
     public static function normalizePath(string $path): string|null
     {
-        return get_real_path($path, check: null, real: false);
+        return get_real_path($path, check: null, real: false) ?: null;
     }
 }
