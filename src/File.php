@@ -646,7 +646,7 @@ class File extends PathObject implements Stringable, \IteratorAggregate
     /**
      * @inheritDoc IteratorAggregate
      */
-    public function getIterator(): \Generator|\Iterator
+    public function getIterator(): \Generator|\Traversable
     {
         // Open if not opened, or rewind only if opened.
         $this->valid() ? $this->rewind() : $this->open();

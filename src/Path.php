@@ -65,7 +65,7 @@ class Path extends PathInfo implements \Countable
      * option `$useRealPath` is true and no real-path resolved.
      *
      * @param  bool $convert
-     * @return array<string|Path>|null
+     * @return array<string|froq\file\Path>|null
      */
     public function getTree(bool $convert = false): array|null
     {
@@ -77,6 +77,18 @@ class Path extends PathInfo implements \Countable
         }
 
         return FileSystem::getPathTree($path, false, $convert);
+    }
+
+    /**
+     * Get this path's tree as string or Path instance, or return null if this
+     * option `$useRealPath` is true and no real-path resolved.
+     *
+     * @param  bool $convert
+     * @return froq\file\PathList<froq\file\Path>|null
+     */
+    public function getTreeList(bool $convert = false): PathList|null
+    {
+        return ($paths = $this->getTree($convert)) ? new PathList($paths) : null;
     }
 
     /**
@@ -176,7 +188,7 @@ class Path extends PathInfo implements \Countable
     {
         $parts || throw PathException::forNoPartsGiven();
 
-        $path = FileSystem::joinPaths($parts);
+        $path = FileSystem::joinPaths($parts, false);
 
         return new Path($path);
     }

@@ -94,10 +94,10 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
      *
      * @param  callable|null $filter
      * @param  bool|null     $sort
-     * @return ArrayIterator<string>
+     * @return froq\file\DirectoryList<string>
      * @causes froq\file\DirectoryException
      */
-    public function read(callable $filter = null, bool $sort = null): \ArrayIterator
+    public function read(callable $filter = null, bool $sort = null): DirectoryList
     {
         $this->valid() || $this->open();
 
@@ -121,7 +121,7 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
 
         // No sort.
         if (!$sort) {
-            return $tmp;
+            return new DirectoryList($tmp);
         }
 
         // Because they are not sorted.
@@ -133,7 +133,7 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
             return ($x - $y) ?: strcasecmp($a, $b);
         });
 
-        $ret = new \ArrayIterator();
+        $ret = new DirectoryList();
 
         // Fix keys after sort.
         foreach ($tmp as $path) {
@@ -179,12 +179,12 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
      *
      * @param  callable|null $filter
      * @return bool|null     $sort
-     * @return ArrayIterator<froq\file\Directory>
+     * @return froq\file\DirectoryList<froq\file\Directory>
      * @causes froq\file\DirectoryException
      */
-    public function getDirectories(callable $filter = null, bool $sort = null): \ArrayIterator
+    public function getDirectories(callable $filter = null, bool $sort = null): DirectoryList
     {
-        $ret = new \ArrayIterator();
+        $ret = new DirectoryList();
 
         foreach ($this->read($filter, $sort) as $path) {
             if (is_dir($path)) {
@@ -200,12 +200,12 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
      *
      * @param  callable|null $filter
      * @return bool|null     $sort
-     * @return ArrayIterator<string>
+     * @return froq\file\DirectoryList<string>
      * @causes froq\file\DirectoryException
      */
-    public function getDirectoryNames(callable $filter = null, bool $sort = null): \ArrayIterator
+    public function getDirectoryNames(callable $filter = null, bool $sort = null): DirectoryList
     {
-        $ret = new \ArrayIterator();
+        $ret = new DirectoryList();
 
         foreach ($this->read($filter, $sort) as $path) {
             if (is_dir($path)) {
@@ -239,12 +239,12 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
      *
      * @param  callable|null $filter
      * @return bool|null     $sort
-     * @return ArrayIterator<froq\file\File>
+     * @return froq\file\FileList<froq\file\File>
      * @causes froq\file\DirectoryException
      */
-    public function getFiles(callable $filter = null, bool $sort = null): \ArrayIterator
+    public function getFiles(callable $filter = null, bool $sort = null): FileList
     {
-        $ret = new \ArrayIterator();
+        $ret = new FileList();
 
         foreach ($this->read($filter, $sort) as $path) {
             if (is_file($path)) {
@@ -260,12 +260,12 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
      *
      * @param  callable|null $filter
      * @return bool|null     $sort
-     * @return ArrayIterator<string>
+     * @return froq\file\FileList<string>
      * @causes froq\file\DirectoryException
      */
-    public function getFileNames(callable $filter = null, bool $sort = null): \ArrayIterator
+    public function getFileNames(callable $filter = null, bool $sort = null): FileList
     {
-        $ret = new \ArrayIterator();
+        $ret = new FileList();
 
         foreach ($this->read($filter, $sort) as $path) {
             if (is_file($path)) {
@@ -299,12 +299,12 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
      *
      * @param  callable|null $filter
      * @return bool|null     $sort
-     * @return ArrayIterator<froq\file\Directory|froq\file\File>
+     * @return froq\file\LinkList<froq\file\Directory|froq\file\File>
      * @causes froq\file\DirectoryException
      */
-    public function getLinks(callable $filter = null, bool $sort = null): \ArrayIterator
+    public function getLinks(callable $filter = null, bool $sort = null): LinkList
     {
-        $ret = new \ArrayIterator();
+        $ret = new LinkList();
 
         foreach ($this->read($filter, $sort) as $path) {
             if (is_link($path)) {
@@ -324,12 +324,12 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
      *
      * @param  callable|null $filter
      * @return bool|null     $sort
-     * @return ArrayIterator<string>
+     * @return froq\file\LinkList<string>
      * @causes froq\file\DirectoryException
      */
-    public function getLinkNames(callable $filter = null, bool $sort = null): \ArrayIterator
+    public function getLinkNames(callable $filter = null, bool $sort = null): LinkList
     {
-        $ret = new \ArrayIterator();
+        $ret = new LinkList();
 
         foreach ($this->read($filter, $sort) as $path) {
             if (is_link($path)) {
@@ -338,6 +338,137 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
         }
 
         return $ret;
+    }
+
+    /**
+     * Check if this directory has a (sub)directory.
+     *
+     * @param  string $basename
+     * @return bool
+     */
+    public function hasChild(string $basename): bool
+    {
+        $path = Path::of($this->path->name, $basename);
+
+        return $path->isDirectory() && ($path->dirname === $this->path->name);
+    }
+
+    /**
+     * Get a (sub)directory of this directory if any.
+     *
+     * @param  string     $basename
+     * @param  array|null $options
+     * @return froq\file\Directory|null
+     */
+    public function getChild(string $basename, array $options = null): Directory|null
+    {
+        $path = Path::of($this->path->name, $basename);
+
+        return $path->isDirectory() && ($path->dirname === $this->path->name)
+             ? $path->toDirectory($options) : null;
+    }
+
+    /**
+     * Check if this directory has a file.
+     *
+     * @param  string $basename
+     * @return bool
+     */
+    public function hasFile(string $basename): bool
+    {
+        $path = Path::of($this->path->name, $basename);
+
+        return $path->isFile() && ($path->dirname === $this->path->name);
+    }
+
+    /**
+     * Get a file of this directory if any.
+     *
+     * @param  string     $basename
+     * @param  array|null $options
+     * @return froq\file\File|null
+     */
+    public function getFile(string $basename, array $options = null): File|null
+    {
+        $path = Path::of($this->path->name, $basename);
+
+        return $path->isFile() && ($path->dirname === $this->path->name)
+             ? $path->toFile($options) : null;
+    }
+
+    /**
+     * Check if this directory has a link.
+     *
+     * @param  string $basename
+     * @return bool
+     */
+    public function hasLink(string $basename): bool
+    {
+        $path = Path::of($this->path->name, $basename);
+
+        return $path->isLink();
+    }
+
+    /**
+     * Get a link of this directory if any.
+     *
+     * @param  string     $basename
+     * @param  array|null $options
+     * @return froq\file\{Directory|File}|null
+     */
+    public function getLink(string $basename, array $options = null): Directory|File|null
+    {
+        $path = Path::of($this->path->name, $basename);
+
+        return $path->isLink() ? match (true) {
+            $path->isDirectory() => $path->toDirectory($options),
+            $path->isFile()      => $path->toFile($options),
+            default              => null
+        } : null;
+    }
+
+    /**
+     * Check if this directory has a sub-path.
+     *
+     * @param  string $pathname
+     * @return bool
+     */
+    public function hasSubPath(string $pathname): bool
+    {
+        $path = Path::of($this->path->name, $pathname);
+
+        return $path->exists();
+    }
+
+    /**
+     * Get a sub-path of this directory if any.
+     *
+     * @param  string $pathname
+     * @param  bool   $useRealPath
+     * @return froq\file\Path|null
+     */
+    public function getSubPath(string $pathname, bool $useRealPath = false): Path|null
+    {
+        $path = Path::of($this->path->name, $pathname);
+        $path->useRealPath = $useRealPath;
+
+        return $path->exists() ? $path : null;
+    }
+
+    /**
+     * @alias PathInfo.getParentDirectory()
+     */
+    public function hasParent(): bool
+    {
+        return $this->path->getParentDirectory() !== null;
+    }
+
+    /**
+     * @alias PathObject.getParentDirectory()
+     */
+    public function getParent(bool $sort = null): Directory|null
+    {
+        return $this->getParentDirectory($sort);
     }
 
     /**
@@ -362,6 +493,20 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
     public function getChildrenNames(...$args)
     {
         return $this->getDirectoryNames(...$args);
+    }
+
+    /**
+     * Get list of paths in this directory.
+     *
+     * @param  callable|null $filter
+     * @param  bool|null     $sort
+     * @return froq\file\PathList
+     */
+    public function list(callable $filter = null, bool $sort = null): PathList
+    {
+        return new PathList($this->read($filter, $sort)->map(
+            fn($path) => new Path($path)
+        ));
     }
 
     /**
@@ -426,7 +571,7 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
     /**
      * @inheritDoc IteratorAggregate
      */
-    public function getIterator(): \Iterator
+    public function getIterator(): \Traversable
     {
         return $this->read(sort: true);
     }
@@ -436,8 +581,6 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
      */
     private function fullpath(string $entry): string
     {
-        return FileSystem::normalizePath(
-            $this->path->name . DIRECTORY_SEPARATOR . $entry
-        );
+        return FileSystem::joinPaths([$this->path->name, $entry], false);
     }
 }

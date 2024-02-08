@@ -67,8 +67,8 @@ class FileSystem
     /**
      * Open a directory.
      *
-     * @param  string|Path $path
-     * @param  array|null  $options
+     * @param  string|froq\file\Path $path
+     * @param  array|null            $options
      * @return froq\file\Directory
      * @throws froq\file\FileSystemException
      */
@@ -85,8 +85,8 @@ class FileSystem
     /**
      * Open a file.
      *
-     * @param  string|Path $path
-     * @param  array|null  $options
+     * @param  string|froq\file\Path $path
+     * @param  array|null            $options
      * @return froq\file\File
      * @throws froq\file\FileSystemException
      */
@@ -195,11 +195,16 @@ class FileSystem
      * @param  string $path
      * @param  bool   $normalize
      * @param  bool   $convert
-     * @return array<string|Path>
+     * @return array<string|froq\file\Path>
      */
     public static function getPathTree(string $path, bool $normalize = true, bool $convert = false): array
     {
         $paths = self::splitPaths($path, $normalize);
+
+        // Root.
+        if ($paths === ['']) {
+            $paths = [DIRECTORY_SEPARATOR];
+        }
 
         // Search "/" and "~" (home) chars.
         $pfx = ($path !== DIRECTORY_SEPARATOR)
@@ -303,12 +308,28 @@ class FileSystem
 
         $path = $normalize ? self::normalizePath($path) : $path;
 
+        // Root (drop from left).
+        if (!$normalize && strpfx($path, '//')) {
+            $path = strsub($path, 1);
+        }
+
         // Cos of normalize.
         if ($path === null) {
             return '';
         }
 
         return $path;
+    }
+
+    /**
+     * Join path (safe).
+     *
+     * @param  string ...$paths
+     * @return string|null
+     */
+    public static function joinPath(string ...$paths): string|null
+    {
+        return $paths ? self::joinPaths($paths) : null;
     }
 
     /**
