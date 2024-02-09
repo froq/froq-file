@@ -17,7 +17,7 @@ use froq\common\interface\Stringable;
  * @author  Kerem Güneş
  * @since   7.0
  */
-class File extends PathObject implements Stringable, \IteratorAggregate
+class File extends PathObject implements Stringable, \Countable, \IteratorAggregate
 {
     /** Default make mode. */
     public const MODE = 0644;
@@ -26,7 +26,7 @@ class File extends PathObject implements Stringable, \IteratorAggregate
     private ?Stream $stream = null;
 
     /** Line for iterations. */
-    private ?int $line = null;
+    private ?array $line = null;
 
     /** Temp file to remove. */
     protected ?string $temp = null;
@@ -78,12 +78,13 @@ class File extends PathObject implements Stringable, \IteratorAggregate
     /**
      * Set line for iteration.
      *
-     * @param  int $line
+     * @param  int      $start
+     * @param  int|null $stop
      * @return self
      */
-    public function setLine(int $line): self
+    public function setLine(int $start, int $stop = null): self
     {
-        $this->line = $line;
+        $this->line = [$start, $stop];
 
         return $this;
     }
@@ -91,9 +92,9 @@ class File extends PathObject implements Stringable, \IteratorAggregate
     /**
      * Get current line.
      *
-     * @return int|null
+     * @return array|null
      */
-    public function getLine(): int|null
+    public function getLine(): array|null
     {
         return $this->line;
     }
@@ -644,27 +645,57 @@ class File extends PathObject implements Stringable, \IteratorAggregate
     }
 
     /**
+     * @inheritDoc Countable
+     */
+    public function count(): int
+    {
+        // Rewind if opened, or open if not.
+        $this->valid() ? $this->rewind() : $this->open();
+
+        $lineCount = 0;
+
+        while (!$this->eof()) {
+            $lineCount += 1;
+
+            $this->readLine();
+        }
+
+        $this->rewind();
+
+        return $lineCount;
+    }
+
+    /**
      * @inheritDoc IteratorAggregate
      */
     public function getIterator(): \Generator|\Traversable
     {
-        // Open if not opened, or rewind only if opened.
+        // Rewind if opened, or open if not.
         $this->valid() ? $this->rewind() : $this->open();
 
-        $linePos = +$this->line;
-        $lineInd = 0;
+        $lineIndex = 0;
+        $startLine = $this->line[0] ?? 0;
+        $stopLine  = $this->line[1] ?? PHP_INT_MAX;
 
-        while (null !== ($line = $this->readLine())) {
-            $lineInd++;
+        while (!$this->eof()) {
+            $lineIndex += 1;
 
-            // Update current line.
-            $this->line = $lineInd;
+            // Update start & stop.
+            $this->line[0] = $lineIndex;
+            $this->line[1] ??= null;
 
-            if ($lineInd < $linePos) {
+            if ($lineIndex < $startLine) {
+                // Consume uppers.
+                $this->readLine();
+
                 continue;
             }
 
-            yield $lineInd => $line;
+            if ($lineIndex >= $stopLine) {
+                break;
+            }
+
+            yield $lineIndex => $this->readLine();
         }
     }
 
