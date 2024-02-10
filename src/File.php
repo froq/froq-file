@@ -60,7 +60,7 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
             throw FileException::exception($e);
         }
 
-        if ($this->path->isDirectory()) {
+        if ($this->path->isDirectory() || strsfx($path, DIRECTORY_SEPARATOR)) {
             throw FileException::forCannotUseADirectory();
         }
 
@@ -294,10 +294,11 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
      * Read until.
      *
      * @param  string $search
+     * @param  bool   $include
      * @return string|null
      * @causes froq\file\FileException
      */
-    public function readUntil(string $search): string|null
+    public function readUntil(string $search, bool $include = false): string|null
     {
         $res = $this->resource();
         $ret = null;
@@ -316,6 +317,10 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
 
         // Fix pointer.
         $pos && @fseek($res, $pos);
+
+        if ($include) {
+            $ret .= $search;
+        }
 
         return $ret;
     }
@@ -439,7 +444,7 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
     }
 
     /**
-     * Get EOF state.
+     * Get EOF.
      *
      * @return bool
      * @causes froq\file\FileException
@@ -558,7 +563,7 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
      */
     public function delete(): bool
     {
-        return $this->remove(true);
+        return $this->exists() ? $this->remove(true) : false;
     }
 
     /**

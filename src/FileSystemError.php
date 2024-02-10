@@ -15,9 +15,10 @@ class FileSystemError extends \froq\common\Error
 {
     /** Error codes. */
     public const INVALID_PATH    = 1,
-                 NO_FILE         = 2,
-                 NO_PERMISSION   = 3,
-                 NOT_A_DIRECTORY = 4,
-                 NOT_A_FILE      = 5,
-                 NOT_A_LINK      = 6;
+                 INVALID_URL     = 2,
+                 NO_FILE         = 3,
+                 NO_PERMISSION   = 4,
+                 NOT_A_DIRECTORY = 5,
+                 NOT_A_FILE      = 6,
+                 NOT_A_LINK      = 7;
 }
