@@ -60,7 +60,7 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
             throw FileException::exception($e);
         }
 
-        if ($this->path->isDirectory() || strsfx($path, DIRECTORY_SEPARATOR)) {
+        if ($this->path->isDirectory() || strsfx((string) $path, DIRECTORY_SEPARATOR)) {
             throw FileException::forCannotUseADirectory();
         }
 
