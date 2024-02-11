@@ -68,7 +68,7 @@ class RemoteFile implements Stringable
 
             // Normalize header names.
             if (!empty($options['headers'])) {
-                $options['headers'] = array_lower_keys($options['headers']);
+                $options['headers'] = array_lower_keys((array) $options['headers']);
             }
 
             // No GZip decoding.
@@ -77,9 +77,7 @@ class RemoteFile implements Stringable
             }
 
             // Filter self options only.
-            $options = array_filter_keys($options, fn(int|string $key): bool => (
-                array_key_exists($key, $this->options)
-            ));
+            $options = array_include($options, array_keys($this->options));
 
             $this->options = array_replace_recursive($this->options, $options);
         }
@@ -99,7 +97,7 @@ class RemoteFile implements Stringable
             $context = stream_context_create([
                 'http' => [
                     'method' => $this->request->method,
-                    'header' => http_build_headers($this->request->headers, CASE_LOWER)
+                    'header' => http_build_headers((array) $this->request->headers, CASE_LOWER)
                 ]
             ]);
 
