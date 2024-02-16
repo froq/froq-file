@@ -133,7 +133,7 @@ class Finder
      * @param  string $pattern
      * @param  int    $flags
      * @param  bool   $map
-     * @return XArray<SplFileInfo>
+     * @return XArray<SplFileInfo|string>
      */
     public function xglob(string $pattern, int $flags = 0, bool $map = true): \XArray
     {
