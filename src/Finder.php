@@ -106,7 +106,7 @@ class Finder
     }
 
     /**
-     * Find files/directories recursively by given pattern using glob utils.
+     * Glob self root with given pattern.
      *
      * @param  string $pattern
      * @param  int    $flags
@@ -116,6 +116,7 @@ class Finder
     public function glob(string $pattern, int $flags = 0): \GlobIterator
     {
         $root = $this->prepareRoot();
+        $pattern = $this->preparePattern($pattern);
 
         try {
             $iterator = new \GlobIterator($root . $pattern, $flags);
@@ -127,22 +128,22 @@ class Finder
     }
 
     /**
-     * Find files/directories recursively by given pattern using glob utils
-     * but returning XArray.
+     * X-Glob self root with given pattern (accepts GLOB_BRACE etc. flags).
      *
      * @param  string $pattern
      * @param  int    $flags
+     * @param  bool   $map
      * @return XArray<SplFileInfo>
-     * @causes froq\file\FinderException
      */
-    public function xglob(string $pattern, int $flags = 0): \XArray
+    public function xglob(string $pattern, int $flags = 0, bool $map = true): \XArray
     {
-        $ret = new \XArray();
+        $root = $this->prepareRoot();
+        $pattern = $this->preparePattern($pattern);
 
-        /** @var SplFileInfo $info */
-        foreach ($this->glob($pattern, $flags) as $info) {
-            $ret[] = $info;
-        }
+        $ret = xglob($root . $pattern, $flags);
+
+        // Map all as SplFileInfo.
+        $map && $ret->map(fn($path) => new \SplFileInfo($path));
 
         return $ret;
     }
@@ -171,5 +172,23 @@ class Finder
         }
 
         return $root;
+    }
+
+    /**
+     * Prepare pattern.
+     *
+     * @param  string $pattern
+     * @return string
+     * @throws froq\file\FinderException
+     */
+    protected function preparePattern(string $pattern): string
+    {
+        $pattern = ltrim($pattern, DIRECTORY_SEPARATOR);
+
+        if ($pattern === '') {
+            throw new FinderException('Empty pattern');
+        }
+
+        return $pattern;
     }
 }

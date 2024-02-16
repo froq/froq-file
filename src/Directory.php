@@ -510,23 +510,6 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
     }
 
     /**
-     * Glob this directory.
-     *
-     * @param  string $pattern
-     * @param  int    $flags
-     * @return GlobIterator<SplFileInfo>
-     * @throws froq\file\DirectoryException
-     */
-    public function glob(string $pattern, int $flags = 0): \GlobIterator
-    {
-        try {
-            return (new Finder($this->path->name))->glob($pattern, $flags);
-        } catch (\Throwable $e) {
-            throw new DirectoryException($e);
-        }
-    }
-
-    /**
      * Find entries in this directory.
      *
      * @param  string $pattern
@@ -555,6 +538,41 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
     {
         try {
             return (new Finder($this->path->name))->findAll($pattern, $flags);
+        } catch (\Throwable $e) {
+            throw new DirectoryException($e);
+        }
+    }
+
+    /**
+     * Glob this directory.
+     *
+     * @param  string $pattern
+     * @param  int    $flags
+     * @return GlobIterator<SplFileInfo>
+     * @throws froq\file\DirectoryException
+     */
+    public function glob(string $pattern, int $flags = 0): \GlobIterator
+    {
+        try {
+            return (new Finder($this->path->name))->glob($pattern, $flags);
+        } catch (\Throwable $e) {
+            throw new DirectoryException($e);
+        }
+    }
+
+    /**
+     * X-Glob this directory.
+     *
+     * @param  string $pattern
+     * @param  int    $flags
+     * @param  bool   $map
+     * @return XArray<SplFileInfo>
+     * @throws froq\file\DirectoryException
+     */
+    public function xglob(string $pattern, int $flags = 0, bool $map = true): \XArray
+    {
+        try {
+            return (new Finder($this->path->name))->xglob($pattern, $flags, $map);
         } catch (\Throwable $e) {
             throw new DirectoryException($e);
         }
