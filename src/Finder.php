@@ -183,7 +183,10 @@ class Finder
      */
     protected function preparePattern(string $pattern): string
     {
-        $pattern = ltrim($pattern, DIRECTORY_SEPARATOR);
+        // Drop "//" stuff from pattern.
+        if ($this->root && $this->root[-1] === DIRECTORY_SEPARATOR) {
+            $pattern = ltrim($pattern, DIRECTORY_SEPARATOR);
+        }
 
         if ($pattern === '') {
             throw new FinderException('Empty pattern');
