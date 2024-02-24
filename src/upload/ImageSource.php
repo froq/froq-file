@@ -50,7 +50,7 @@ class ImageSource extends Source
     public function __construct(string|array $file, array $options = null)
     {
         // For this class' capability. @default
-        $options['allowedMimes'] = join(',', static::MIMES);
+        $options['allowedMimes'] ??= join(',', static::MIMES);
 
         // Init with default options.
         parent::__construct($file, array_options($options, [

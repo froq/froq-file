@@ -98,11 +98,34 @@ class PathInfo implements \Stringable, \ArrayAccess
     /**
      * Get directory.
      *
+     * @param  int|null $level Negatives: -1 for root, -2 for parent.
      * @return string|null
      */
-    public function getDirectory(): string|null
+    public function getDirectory(int $level = null): string|null
     {
-        return $this->info['dirname'];
+        $dirname = $this->info['dirname'];
+
+        if ($dirname !== null) {
+            if ($level !== null) {
+                $count = substr_count($this->path, DIRECTORY_SEPARATOR);
+
+                // Prevents invalid levels too.
+                if ($count >= 1 && $level <= $count) {
+                    // Root & Parent.
+                    if ($level === -1) { //
+                        $level = PHP_INT_MAX;
+                    } elseif ($level === -2) {
+                        $level = 2;
+                    }
+
+                    $dirname = dirname($this->path, $level);
+                } else {
+                    $dirname = null;
+                }
+            }
+        }
+
+        return $dirname;
     }
 
     /**
@@ -112,11 +135,7 @@ class PathInfo implements \Stringable, \ArrayAccess
      */
     public function getRootDirectory(): string|null
     {
-        if (($level = substr_count($this->path, DIRECTORY_SEPARATOR)) > 1) {
-            return dirname($this->path, $level - 1);
-        }
-
-        return null;
+        return $this->getDirectory(-1);
     }
 
     /**
@@ -126,11 +145,7 @@ class PathInfo implements \Stringable, \ArrayAccess
      */
     public function getParentDirectory(): string|null
     {
-        if (($dirname = dirname($this->path, 1)) !== '') {
-            return ($dirname !== $this->path) ? $dirname : null;
-        }
-
-       return null;
+        return $this->getDirectory(-2);
     }
 
     /**

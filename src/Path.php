@@ -174,7 +174,14 @@ class Path extends PathInfo implements \Countable
      */
     public function count(): int
     {
-        return count((array) $this->split());
+        $path = $this->useRealPath ? $this->realpath : $this->path;
+
+        // Null realpath.
+        if ($path === null) {
+            return -1;
+        }
+
+        return FileSystem::countPaths($path, false);
     }
 
     /**

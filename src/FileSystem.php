@@ -251,9 +251,13 @@ class FileSystem
      */
     public static function countPaths(string $path, bool $normalize = true): int
     {
-        $paths = self::splitPaths($path, $normalize);
+        if ($path === '' || $path === DIRECTORY_SEPARATOR) {
+            return !$path ? -1 : 1; // 2nd is root.
+        }
 
-        return $paths ? count($paths) : -1; // Empty path.
+        $path = $normalize ? self::normalizePath($path) : $path;
+
+        return substr_count($path, DIRECTORY_SEPARATOR) + 1; // +1 for root.
     }
 
     /**
