@@ -36,7 +36,6 @@ abstract class Source implements Stringable
         'clear'             => true,  // To free resources after saving/moving file etc.
         'clearSource'       => false, // To delete sources after saving/moving files etc.
         'slug'              => true,  // To slugify file name & appendix.
-        'slugLower'         => true,  // To lowerize slugified file name & appendix.
         'overwrite'         => false, // To prevent existing file overwrite.
     ];
 
@@ -172,7 +171,7 @@ abstract class Source implements Stringable
     }
 
     /**
-     * Check whether given size allowed by options.
+     * Check if given size allowed by options.
      *
      * @param  int       $size
      * @param  int|null &$max
@@ -190,7 +189,7 @@ abstract class Source implements Stringable
     }
 
     /**
-     * Check whether given mime allowed by options.
+     * Check if given mime allowed by options.
      *
      * @param  string $mime
      * @return bool
@@ -207,7 +206,7 @@ abstract class Source implements Stringable
     }
 
     /**
-     * Check whether an extension allowed.
+     * Check if an extension allowed.
      *
      * @param  string $extension
      * @return bool
@@ -224,6 +223,34 @@ abstract class Source implements Stringable
     }
 
     /**
+     * Check if source is an uploaded file.
+     *
+     * @return bool
+     */
+    public function isUploadedFile(): bool
+    {
+        return is_uploaded_file($this->getSourceFile());
+    }
+
+    /**
+     * Move source to given destination and return new file path or null if error.
+     *
+     * @return string|null
+     */
+    public function moveUploadedFile(string $destination, string $appendix = null, int $mode = File::MODE): string|null
+    {
+        $destination = $this->prepareTarget($destination, $appendix);
+
+        if (move_uploaded_file($this->getSourceFile(), $destination)) {
+            $this->applyMode($destination, $mode);
+
+            return $destination;
+        }
+
+        return null;
+    }
+
+    /**
      * Prepare name.
      *
      * Note: If given name contains non-ascii characters, all will be replaced with ascii
@@ -236,10 +263,16 @@ abstract class Source implements Stringable
     protected function prepareName(string $name, string $appendix = null): string
     {
         [$name, $namex] = array_map('trim', [$name, (string) $appendix]);
-        [$slug, $lower] = array_select($this->options, ['slug', 'slugLower']);
+
+        // Slug options with defaults.
+        if ($slug = $this->options['slug']) {
+            static $defArgs;
+            $defArgs ??= reflect('slug')->getParameterDefaults(skip: 0);
+            $slugArgs = array_select((array) $slug, $defArgs, combine: true);
+        }
 
         if ($name !== '') {
-            $slug && $name = slug($name, lower: $lower);
+            $slug && $name = slug($name, ...$slugArgs);
             if (strlen($name) > 255) {
                 $name = strcut($name, 255);
             }
@@ -247,7 +280,7 @@ abstract class Source implements Stringable
 
         // Eg: abc-crop.jpg.
         if ($namex !== '') {
-            $slug && $namex = slug($namex, lower: $lower);
+            $slug && $namex = slug($namex, ...$slugArgs);
             $name .= '-' . $namex;
         }
 
@@ -290,7 +323,7 @@ abstract class Source implements Stringable
             );
         }
 
-        // Assign target as well, for save(), move().
+        // Assign target as well, for save/move etc.
         $this->target = $directory . DIRECTORY_SEPARATOR
                       . $this->prepareName($name, $appendix)
                       . ($extension ? '.' . $extension : '');

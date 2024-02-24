@@ -23,6 +23,12 @@ class ImageSource extends Source
         IMAGETYPE_PNG,  IMAGETYPE_GIF
     ];
 
+    /** Supported image types. */
+    public const MIMES = [
+        'image/jpeg', 'image/webp',
+        'image/png',  'image/gif'
+    ];
+
     /** Source instance. */
     private GdImage|Imagick|null $sourceImage = null;
 
@@ -43,6 +49,9 @@ class ImageSource extends Source
      */
     public function __construct(string|array $file, array $options = null)
     {
+        // For this class' capability. @default
+        $options['allowedMimes'] = join(',', static::MIMES);
+
         // Init with default options.
         parent::__construct($file, array_options($options, [
             'jpegQuality'   => -1,
@@ -492,7 +501,7 @@ class ImageSource extends Source
         if (empty($this->info)) {
             throw new ImageSourceException('Failed to get source info [error: @error]');
         }
-        if (empty($this->info[2]) || !in_array($this->info[2], self::TYPES, true)) {
+        if (empty($this->info[2]) || !in_array($this->info[2], static::TYPES, true)) {
             throw new ImageSourceException('Invalid image type [valids: JPEG,WEBP,PNG,GIF]');
         }
 
