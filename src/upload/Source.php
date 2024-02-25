@@ -235,6 +235,9 @@ abstract class Source implements Stringable
     /**
      * Move source to given destination and return new file path or null if error.
      *
+     * @param  string      $to
+     * @param  string|null $appendix
+     * @param  int         $mode
      * @return string|null
      */
     public function moveUploadedFile(string $to, string $appendix = null, int $mode = File::MODE): string|null
