@@ -237,14 +237,34 @@ abstract class Source implements Stringable
      *
      * @return string|null
      */
-    public function moveUploadedFile(string $destination, string $appendix = null, int $mode = File::MODE): string|null
+    public function moveUploadedFile(string $to, string $appendix = null, int $mode = File::MODE): string|null
     {
-        $destination = $this->prepareTarget($destination, $appendix);
+        $source = $this->getSourceFile();
 
-        if (move_uploaded_file($this->getSourceFile(), $destination)) {
-            $this->applyMode($destination, $mode);
+        if (is_uploaded_file($source)) {
+            $target = $this->prepareTarget($to, $appendix);
 
-            return $destination;
+            if (move_uploaded_file($source, $target)) {
+                $this->applyMode($target, $mode);
+
+                return $target;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Remove an uploaded file.
+     *
+     * @return bool|null
+     */
+    public function removeUploadedFile(): bool|null
+    {
+        $source = $this->getSourceFile();
+
+        if (is_uploaded_file($source)) {
+            return unlink($source);
         }
 
         return null;
