@@ -13,6 +13,11 @@ namespace froq\file;
  */
 class ImageException extends FileException
 {
+    public static function forInvalidImageFile(string $message): static
+    {
+        return new static($message);
+    }
+
     public static function forInvalidImageData(): static
     {
         // Same error as imagecreatefromstring() gives.

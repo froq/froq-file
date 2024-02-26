@@ -118,7 +118,20 @@ class Image extends File
      */
     private function information(): array
     {
-        $ret = @getimagesize($this->path->name) ?: throw ImageException::error();
+        $ret = @getimagesize($this->path->name);
+
+        if (!$ret) {
+            switch (true) {
+                case !$this->path->isFile():
+                    throw ImageException::forInvalidImageFile('File not exists');
+                case !$this->path->isReadable():
+                    throw ImageException::forInvalidImageFile('File is not readable');
+                case !$this->path->isImage():
+                    throw ImageException::forInvalidImageFile('File is not an image file');
+                default:
+                    throw ImageException::error();
+            }
+        }
 
         // Add type, with and height as named.
         [$ret['type'], $ret['width'], $ret['height']] = array_select($ret, [2, 0, 1]);

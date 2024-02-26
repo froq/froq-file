@@ -5,6 +5,7 @@
  */
 namespace froq\file\upload;
 
+use froq\file\{Image, ImageException};
 use GdImage, Imagick, ImagickException;
 
 /**
@@ -492,14 +493,24 @@ class ImageSource extends Source
     public function getInfo(): array
     {
         if (empty($this->info)) {
-            $this->info = getimagesize($this->getSourceFile()) ?: [];
+            $this->info = @getimagesize($this->getSourceFile()) ?: [];
         } elseif ($this->resized) {
             // Update using resized image as info source.
-            $this->info = getimagesizefromstring($this->toString()) ?: [];
+            $this->info = @getimagesizefromstring($this->toString()) ?: [];
         }
 
         if (empty($this->info)) {
-            throw new ImageSourceException('Failed to get source info [error: @error]');
+            // Some last error still null.
+            if (!$error = error_message()) {
+                try {
+                    $image = new Image($this->getSourceFile());
+                    $image->info();
+                } catch (ImageException $e) {
+                    $error = $e->getMessage();
+                }
+            }
+
+            throw new ImageSourceException('Failed to get source info [error: %s]', $error ?: 'Unknown');
         }
         if (empty($this->info[2]) || !in_array($this->info[2], static::TYPES, true)) {
             throw new ImageSourceException('Invalid image type [valids: JPEG,WEBP,PNG,GIF]');

@@ -452,6 +452,16 @@ class PathInfo implements \Stringable, \ArrayAccess
     }
 
     /**
+     * Check if path is an image file.
+     *
+     * @return bool
+     */
+    public function isImage(): bool
+    {
+        return (bool) stristr((string) $this->getMime(), 'image/');
+    }
+
+    /**
      * Check if path is available for read/write operations.
      *
      * @return bool
