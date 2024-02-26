@@ -98,7 +98,7 @@ class ImageSource extends Source
         $adjust     = (bool) ($options['adjust'] ?? false);
         $proportion = (bool) ($options['proportion'] ?? true);
 
-        [$origWidth, $origHeight, $type] = $this->getInfo();
+        [$origWidth, $origHeight, $type] = $this->info();
 
         // Use original width/height if given ones excessive.
         if ($adjust !== false) {
@@ -204,7 +204,7 @@ class ImageSource extends Source
         // @default=false
         $proportion = (bool) ($options['proportion'] ?? false);
 
-        [$origWidth, $origHeight, $type] = $this->getInfo();
+        [$origWidth, $origHeight, $type] = $this->info();
 
         // Squares.
         $height = $height ?: $width;
@@ -284,7 +284,7 @@ class ImageSource extends Source
             throw new ImageSourceException('Either width or height must be greater than 0');
         }
 
-        [$origWidth, $origHeight] = $this->getInfo();
+        [$origWidth, $origHeight] = $this->info();
 
         // Squares.
         $height = $height ?: $width;
@@ -490,7 +490,7 @@ class ImageSource extends Source
      * @return void
      * @throws froq\file\upload\ImageSourceException
      */
-    public function getInfo(): array
+    public function info(): array
     {
         if (empty($this->info)) {
             $this->info = @getimagesize($this->getSourceFile()) ?: [];
@@ -549,7 +549,7 @@ class ImageSource extends Source
      */
     public function getDimensions(): array
     {
-        return array_slice($this->getInfo(), 0, 2);
+        return array_slice($this->info(), 0, 2);
     }
 
     /**

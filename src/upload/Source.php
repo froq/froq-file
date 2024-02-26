@@ -131,6 +131,16 @@ abstract class Source implements Stringable
     }
 
     /**
+     * Get source file info.
+     *
+     * @return array
+     */
+    public function getInfo(): array
+    {
+        return $this->fileInfo;
+    }
+
+    /**
      * Get given or generated name.
      *
      * @return string

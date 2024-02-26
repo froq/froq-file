@@ -61,6 +61,16 @@ class Image extends File
     }
 
     /**
+     * Get image MIME type.
+     *
+     * @return string
+     */
+    public function mime(): string|null
+    {
+        return $this->getMime();
+    }
+
+    /**
      * Create an image from given string.
      *
      * @param  string     $string
@@ -118,6 +128,11 @@ class Image extends File
      */
     private function information(): array
     {
+        // Faster if this image has already mime (eg. given).
+        if (isset($this->mime) && strstr($this->mime, 'image/') === false) {
+            throw ImageException::forInvalidImageFile('File is not an image file');
+        }
+
         $ret = @getimagesize($this->path->name);
 
         if (!$ret) {
