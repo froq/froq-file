@@ -26,26 +26,46 @@ class SourceError extends \froq\file\FileSystemError
                  DIRECTORY_EMPTY              = 10,
                  DIRECTORY_ERROR              = 11;
 
-    /** Message map by code. */
-    public const MESSAGES = [
-        1 => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
-        2 => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form',
-        3 => 'The uploaded file was only partially uploaded',
-        4 => 'No file was uploaded',
-        6 => 'Missing a temporary folder',
-        7 => 'Failed to write file to disk',
-        8 => 'A PHP extension stopped the file upload'
-    ];
+    /** PHP Error codes.
+     * @see https://www.php.net/manual/en/features.file-upload.errors.php */
+    public const E_OK         = UPLOAD_ERR_OK,
+                 E_INI_SIZE   = UPLOAD_ERR_INI_SIZE,
+                 E_FORM_SIZE  = UPLOAD_ERR_FORM_SIZE,
+                 E_PARTIAL    = UPLOAD_ERR_PARTIAL,
+                 E_NO_FILE    = UPLOAD_ERR_NO_FILE,
+                 E_NO_TMP_DIR = UPLOAD_ERR_NO_TMP_DIR,
+                 E_CANT_WRITE = UPLOAD_ERR_CANT_WRITE,
+                 E_EXTENSION  = UPLOAD_ERR_EXTENSION;
+
 
     /**
      * Convert given code to message.
      *
      * @param  int $code
      * @return string
-     * @since  6.0
      */
-    public static function toMessage(int $code): string
+    public static function codeToMessage(int $code): string
     {
-        return self::MESSAGES[$code] ?? 'Unknown error';
+        return match ($code) {
+            default            => 'Unknown error', // 0 won't work.
+            self::E_INI_SIZE   => 'Uploaded file exceeds upload_max_filesize directive in php.ini',
+            self::E_FORM_SIZE  => 'Uploaded file exceeds MAX_FILE_SIZE directive in HTML form',
+            self::E_PARTIAL    => 'Uploaded file was only partially uploaded',
+            self::E_NO_FILE    => 'No file was uploaded',
+            self::E_NO_TMP_DIR => 'Missing a temporary folder',
+            self::E_CANT_WRITE => 'Failed to write file to disk',
+            self::E_EXTENSION  => 'A PHP extension stopped the file upload',
+        };
+    }
+
+    /**
+     * Create for given code.
+     *
+     * @param  int $code
+     * @return static
+     */
+    public static function forCode(int $code): static
+    {
+        return new static(self::codeToMessage($code), code: $code);
     }
 }

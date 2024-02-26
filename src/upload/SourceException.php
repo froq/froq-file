@@ -18,7 +18,7 @@ class SourceException extends \froq\file\FileSystemException
         $exception = self::getExceptionClass();
 
         return new $exception(
-            $message = SourceError::toMessage($error),
+            $message = SourceError::codeToMessage($error),
             cause: new SourceError($message, code: $error, reduce: true),
             code: SourceError::INTERNAL
         );
