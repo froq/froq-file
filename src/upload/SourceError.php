@@ -37,6 +37,23 @@ class SourceError extends \froq\file\FileSystemError
                  E_CANT_WRITE = UPLOAD_ERR_CANT_WRITE,
                  E_EXTENSION  = UPLOAD_ERR_EXTENSION;
 
+    /**
+     * @override
+     */
+    public function __construct(string|int $message = null, int $code = null, mixed ...$arguments)
+    {
+        if (is_int($message)) {
+            [$code, $message] = [$message, null];
+        }
+
+        if (!$message && $code) {
+            $message = self::codeToMessage($code);
+        }
+
+        $arguments['state'] = ['code' => self::codeToConstant($code)];
+
+        parent::__construct($message, null, $code, ...$arguments);
+    }
 
     /**
      * Convert given code to message.
@@ -55,6 +72,27 @@ class SourceError extends \froq\file\FileSystemError
             self::E_NO_TMP_DIR => 'Missing a temporary folder',
             self::E_CANT_WRITE => 'Failed to write file to disk',
             self::E_EXTENSION  => 'A PHP extension stopped the file upload',
+        };
+    }
+
+    /**
+     * Convert given code to constant.
+     *
+     * @param  int $code
+     * @return string|null
+     */
+    public static function codeToConstant(int $code): string|null
+    {
+        return match ($code) {
+            default            => null,
+            self::E_OK         => 'E_OK',
+            self::E_INI_SIZE   => 'E_INI_SIZE',
+            self::E_FORM_SIZE  => 'E_FORM_SIZE',
+            self::E_PARTIAL    => 'E_PARTIAL',
+            self::E_NO_FILE    => 'E_NO_FILE',
+            self::E_NO_TMP_DIR => 'E_NO_TMP_DIR',
+            self::E_CANT_WRITE => 'E_CANT_WRITE',
+            self::E_EXTENSION  => 'E_EXTENSION',
         };
     }
 
