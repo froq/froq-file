@@ -595,6 +595,17 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
     }
 
     /**
+     * Get contents as hashed.
+     *
+     * @param  string $algo
+     * @return string
+     */
+    public function toHash(string $algo = 'md5'): string
+    {
+        return hash($algo, $this->toString());
+    }
+
+    /**
      * Get this file as an uploaded file (either `FileSource` or `ImageSource`) source.
      *
      * @param  array|null $options

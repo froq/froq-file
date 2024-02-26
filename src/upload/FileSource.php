@@ -77,4 +77,15 @@ class FileSource extends Source
     {
         return (string) file_get_contents($this->getSourceFile());
     }
+
+    /**
+     * Get contents as hashed.
+     *
+     * @param  string $algo
+     * @return string
+     */
+    public function toHash(string $algo = 'md5'): string
+    {
+        return hash($algo, $this->toString());
+    }
 }

@@ -475,6 +475,17 @@ class ImageSource extends Source
     }
 
     /**
+     * Get contents as hashed.
+     *
+     * @param  string $algo
+     * @return string
+     */
+    public function toHash(string $algo = 'md5'): string
+    {
+        return hash($algo, $this->toString());
+    }
+
+    /**
      * Display processed image as binary string.
      *
      * @return void

@@ -359,6 +359,17 @@ class RemoteFile implements Stringable
     }
 
     /**
+     * Get contents as hashed.
+     *
+     * @param  string $algo
+     * @return string
+     */
+    public function toHash(string $algo = 'md5'): string
+    {
+        return hash($algo, $this->toString());
+    }
+
+    /**
      * Save all read data from remote & write to temp file, return a File instance.
      *
      * Note: This method will overwrite to given path if exists.
