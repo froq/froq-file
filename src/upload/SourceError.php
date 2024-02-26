@@ -59,12 +59,13 @@ class SourceError extends \froq\file\FileSystemError
      * Convert given code to message.
      *
      * @param  int $code
-     * @return string
+     * @return string|null
      */
-    public static function codeToMessage(int $code): string
+    public static function codeToMessage(int $code): string|null
     {
         return match ($code) {
             default            => 'Unknown error', // 0 won't work.
+            self::E_OK         => null,
             self::E_INI_SIZE   => 'Uploaded file exceeds upload_max_filesize directive in php.ini',
             self::E_FORM_SIZE  => 'Uploaded file exceeds MAX_FILE_SIZE directive in HTML form',
             self::E_PARTIAL    => 'Uploaded file was only partially uploaded',
