@@ -15,7 +15,7 @@ class ImageException extends FileException
 {
     public static function forInvalidImageFile(string $message): static
     {
-        return new static($message);
+        return new static($message, cause: new error\InvalidImageError(reduce: true));
     }
 
     public static function forInvalidImageData(): static

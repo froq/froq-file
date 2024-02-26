@@ -14,11 +14,12 @@ namespace froq\file;
 class FileSystemError extends \froq\common\Error
 {
     /** Error codes. */
-    public const INVALID_PATH    = 1,
-                 INVALID_URL     = 2,
-                 NO_FILE         = 3,
-                 NO_PERMISSION   = 4,
-                 NOT_A_DIRECTORY = 5,
-                 NOT_A_FILE      = 6,
-                 NOT_A_LINK      = 7;
+    public const NO_FILE         = 1,
+                 NO_PERMISSION   = 2,
+                 NOT_A_DIRECTORY = 3,
+                 NOT_A_FILE      = 4,
+                 NOT_A_LINK      = 5,
+                 INVALID_IMAGE   = 10,
+                 INVALID_PATH    = 11,
+                 INVALID_URL     = 12;
 }
