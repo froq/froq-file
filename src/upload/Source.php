@@ -83,21 +83,7 @@ abstract class Source implements Stringable
         $mime      ??= $this->file->getMime();
         $extension ??= $this->file->getExtension();
 
-        if (!$this->isAllowedSize((int) $size, $max)) {
-            throw SourceException::forMaxFileSize(
-                (string) $this->options['maxFileSize'], $max
-            );
-        }
-        if (!$this->isAllowedMime((string) $mime)) {
-            throw SourceException::forNotAllowedMime(
-                (string) $this->options['allowedMimes'], $mime
-            );
-        }
-        if (!$this->isAllowedExtension((string) $extension)) {
-            throw SourceException::forNotAllowedExtension(
-                (string) $this->options['allowedExtensions'], $extension
-            );
-        }
+        $this->securityCheck((int) $size, (string) $mime, (string) $extension);
 
         $this->fileInfo = compact('name', 'size', 'mime', 'extension');
     }
@@ -249,12 +235,15 @@ abstract class Source implements Stringable
      * @param  string|null $appendix
      * @param  int         $mode
      * @return string|null
+     * @causes froq\file\upload\{FileSourceException|ImageSourceException}
      */
     public function moveUploadedFile(string $to, string $appendix = null, int $mode = File::MODE): string|null
     {
         $source = $this->getSourceFile();
 
         if (is_uploaded_file($source)) {
+            $this->securityCheck($this->getSize(), $this->getMime(), $this->getExtension());
+
             $target = $this->prepareTarget($to, $appendix);
 
             if (move_uploaded_file($source, $target)) {
@@ -362,6 +351,34 @@ abstract class Source implements Stringable
                       . ($extension ? '.' . $extension : '');
 
         return $this->target;
+    }
+
+    /**
+     * Check security for size, mime, extension.
+     *
+     * @param  int    $size
+     * @param  string $mime
+     * @param  string $extension
+     * @return void
+     * @throws froq\file\upload\{FileSourceException|ImageSourceException}
+     */
+    protected function securityCheck(int $size, string $mime, string $extension): void
+    {
+        if (!$this->isAllowedSize($size, $max)) {
+            throw SourceException::forMaxFileSize(
+                (string) $this->options['maxFileSize'], $max
+            );
+        }
+        if (!$this->isAllowedMime($mime)) {
+            throw SourceException::forNotAllowedMime(
+                (string) $this->options['allowedMimes'], $mime
+            );
+        }
+        if (!$this->isAllowedExtension($extension)) {
+            throw SourceException::forNotAllowedExtension(
+                (string) $this->options['allowedExtensions'], $extension
+            );
+        }
     }
 
     /**
