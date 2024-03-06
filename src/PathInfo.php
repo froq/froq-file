@@ -98,7 +98,7 @@ class PathInfo implements \Stringable, \ArrayAccess
     /**
      * Get directory.
      *
-     * @param  int|null $level Negatives: -1 for root, -2 for parent.
+     * @param  int|null $level
      * @return string|null
      */
     public function getDirectory(int $level = null): string|null
@@ -112,7 +112,7 @@ class PathInfo implements \Stringable, \ArrayAccess
                 // Prevents invalid levels too.
                 if ($count >= 1 && $level <= $count) {
                     // Root & Parent.
-                    if ($level === -1) { //
+                    if ($level === -1) {
                         $level = PHP_INT_MAX;
                     } elseif ($level === -2) {
                         $level = 2;
