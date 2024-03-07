@@ -468,7 +468,7 @@ class PathInfo implements \Stringable, \ArrayAccess
      */
     public function isAvailable(): bool
     {
-        return $this->isAvailableFor('read|write');
+        return $this->isAvailableFor(['read', 'write']);
     }
 
     /**
