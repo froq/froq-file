@@ -219,7 +219,7 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
      * @return int|null
      * @causes froq\file\FileException
      */
-    public function writeLine(string $data, string $eol = PHP_EOL): int|null
+    public function writeLine(string $data, string $eol = "\n"): int|null
     {
         return $this->write($data . $eol);
     }
@@ -234,6 +234,65 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
     public function writeAll(string $data): int|null
     {
         return $this->write($data, reset: true);
+    }
+
+    /**
+     * Write CSV.
+     *
+     * @param  array  $data
+     * @param  string $separator
+     * @param  string $enclosure
+     * @param  string $escape
+     * @param  string $eol
+     * @return int|null
+     */
+    public function writeCsv(array $data, string $separator = ',', string $enclosure = '"', string $escape = '\\',
+        string $eol = "\n"): int|null
+    {
+        $res = $this->resource();
+        $ret = false;
+
+        if (!$data) {
+            return 0;
+        }
+
+        // Format row array ([..] => [[..]]).
+        if (!isset($data[0]) || !is_array($data[0])) {
+            $data = [$data];
+        }
+
+        foreach ($data as $rows) {
+            $size = @fputcsv($res, $rows, $separator, $enclosure, $escape, $eol);
+            if ($size === false) {
+                return null;
+            }
+            $ret += $size;
+        }
+
+        return ($ret !== false) ? $ret : null;
+    }
+
+    /**
+     * Write CSV head.
+     *
+     * @param  array  $columns
+     * @param  string $separator
+     * @param  string $enclosure
+     * @param  string $escape
+     * @param  string $eol
+     * @param  string $bom
+     * @return int|null
+     */
+    public function writeCsvHead(array $columns, string $separator = ',', string $enclosure = '"', string $escape = '\\',
+        string $eol = "\n", string $bom = "\xEF\xBB\xBF"): int|null
+    {
+        $ret = $this->writeCsv([$bom], $separator, $enclosure, $escape, '');
+
+        if ($ret !== null) {
+            $ret = $this->writeCsv([$columns], $separator, $enclosure, $escape, $eol);
+        }
+
+        return $ret;
     }
 
     /**
@@ -290,6 +349,27 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
         $ret = @fgetcsv($this->resource(), null, $separator, $enclosure, $escape);
 
         return ($ret !== false) ? $ret : null;
+    }
+
+    /**
+     * Read CSV head.
+     *
+     * @param  string $separator
+     * @param  string $enclosure
+     * @param  string $escape
+     * @param  string $bom
+     * @return array|null
+     */
+    public function readCsvHead(string $separator = ',', string $enclosure = '"', string $escape = '\\',
+        string $bom = "\xEF\xBB\xBF"): array|null
+    {
+        $ret = $this->readCsv($separator, $enclosure, $escape);
+
+        if (isset($ret[0])) {
+            $ret[0] = ltrim($ret[0], $bom);
+        }
+
+        return $ret;
     }
 
     /**
