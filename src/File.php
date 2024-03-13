@@ -278,6 +278,21 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
     }
 
     /**
+     * Read CSV.
+     *
+     * @param  string $separator
+     * @param  string $enclosure
+     * @param  string $escape
+     * @return array|null
+     */
+    public function readCsv(string $separator = ',', string $enclosure = '"', string $escape = '\\'): array|null
+    {
+        $ret = @fgetcsv($this->resource(), null, $separator, $enclosure, $escape);
+
+        return ($ret !== false) ? $ret : null;
+    }
+
+    /**
      * Read char.
      *
      * @return string|null

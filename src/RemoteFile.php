@@ -206,6 +206,21 @@ class RemoteFile implements Stringable
     }
 
     /**
+     * Read CSV.
+     *
+     * @param  string $separator
+     * @param  string $enclosure
+     * @param  string $escape
+     * @return array|null
+     */
+    public function readCsv(string $separator = ',', string $enclosure = '"', string $escape = '\\'): array|null
+    {
+        $ret = @fgetcsv($this->resource(), null, $separator, $enclosure, $escape);
+
+        return ($ret !== false) ? $ret : null;
+    }
+
+    /**
      * Read until.
      *
      * @param  string $search
