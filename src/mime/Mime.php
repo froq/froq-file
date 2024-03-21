@@ -17,6 +17,14 @@ namespace froq\file\mime;
 class Mime
 {
     /**
+     * @alias Mimes.all()
+     */
+    public static function all(): array
+    {
+        return Mimes::all();
+    }
+
+    /**
      * Get type.
      *
      * @param  string $file

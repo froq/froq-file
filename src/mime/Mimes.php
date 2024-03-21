@@ -20,12 +20,12 @@ class Mimes extends \StaticClass
     private static array $all;
 
     /**
-     * Get/include all MIMEs.
+     * Get all MIMEs.
      *
      * @return array
      */
     public static function all(): array
     {
-        return self::$all ??= include 'all.php';
+        return self::$all ??= require __DIR__ . '/all.php';
     }
 }
