@@ -205,9 +205,6 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
             throw FileException::error();
         }
 
-        // Synchronize changes.
-        @fsync($res);
-
         return ($ret !== false) ? $ret : null;
     }
 
@@ -432,6 +429,28 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
     }
 
     /**
+     * Sync.
+     *
+     * @return bool
+     * @causes froq\file\FileException
+     */
+    public function sync(): bool
+    {
+        return @fsync($this->resource());
+    }
+
+    /**
+     * Sync data.
+     *
+     * @return bool
+     * @causes froq\file\FileException
+     */
+    public function syncData(): bool
+    {
+        return @fdatasync($this->resource());
+    }
+
+    /**
      * Empty (truncate).
      *
      * @return bool
@@ -581,14 +600,14 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
      */
     public function copy(string $from): self
     {
-        $file = new File($from);
-        $file->open('rb')->lock();
+        $that = new File($from);
+        $that->open('rb')->lock();
 
         $this->lock();
-        $this->setContents($file->toString());
+        $this->setContents($that->toString());
         $this->unlock();
 
-        $file->unlock();
+        $that->unlock();
 
         return $this;
     }
@@ -605,19 +624,19 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
      */
     public function save(string $to, bool $force = false, int $mode = self::MODE): string
     {
-        $file = new File($to);
-        if (!$force && $file->exists()) {
+        $that = new File($to);
+        if (!$force && $that->exists()) {
             throw FileException::forCannotOverwriteFile($to);
         }
 
-        $file->open('wb')->lock();
-        $file->setContents($this->toString());
-        $file->unlock();
+        $that->open('wb')->lock();
+        $that->setContents($this->toString());
+        $that->unlock();
 
         // Apply mode.
-        $file->mode($mode);
+        $that->mode($mode);
 
-        return $file->path->name;
+        return $that->path->name;
     }
 
     /**
@@ -632,22 +651,22 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
      */
     public function move(string $to, bool $force = false, int $mode = self::MODE): string
     {
-        $file = new File($to);
-        if (!$force && $file->exists()) {
+        $that = new File($to);
+        if (!$force && $that->exists()) {
             throw FileException::forCannotOverwriteFile($to);
         }
 
-        $file->open('wb')->lock();
-        $file->setContents($this->toString());
-        $file->unlock();
+        $that->open('wb')->lock();
+        $that->setContents($this->toString());
+        $that->unlock();
 
         // Apply mode.
-        $file->mode($mode);
+        $that->mode($mode);
 
         // Drop old.
         $this->delete();
 
-        return $file->path->name;
+        return $that->path->name;
     }
 
     /**
@@ -658,7 +677,7 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
      */
     public function delete(): bool
     {
-        return $this->exists() ? $this->remove(true) : false;
+        return $this->exists() && $this->remove(true);
     }
 
     /**
@@ -815,9 +834,9 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
      *
      * @param  bool       $drop
      * @param  array|null $options
-     * @return froq\file\{File|Image}
+     * @return static
      */
-    public static function fromTemp(bool $drop = true, array $options = null): File|Image
+    public static function fromTemp(bool $drop = true, array $options = null): static
     {
         // For constructor.
         $options['temp']     = true;
