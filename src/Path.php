@@ -25,7 +25,7 @@ class Path extends PathInfo implements \Countable
      * Constructor.
      *
      * @param  string $path
-     * @param  bool   $useRealPath For part methods (for now).
+     * @param  bool   $useRealPath For part methods (@fornow).
      * @throws froq\file\PathException
      */
     public function __construct(string $path, bool $useRealPath = false)
@@ -114,11 +114,11 @@ class Path extends PathInfo implements \Countable
      * Join given paths with this path and return new path, or return null if this
      * option `$useRealPath` is true and no real-path resolved.
      *
-     * @param  array<string> $parts
-     * @param  bool          $normalize
+     * @param  array<string>|string $parts
+     * @param  bool                 $normalize
      * @return string|null
      */
-    public function join(array $parts, bool $normalize = true): string|null
+    public function join(array|string $parts, bool $normalize = true): string|null
     {
         $path = $this->useRealPath ? $this->realpath : $this->path;
 
@@ -127,7 +127,21 @@ class Path extends PathInfo implements \Countable
             return null;
         }
 
-        return FileSystem::joinPaths([$path, ...$parts], $normalize);
+        return FileSystem::joinPaths([$path, ...(array) $parts], $normalize);
+    }
+
+    /**
+     * Append given parts & return new Path instance.
+     *
+     * @param  array<string>|string  $parts
+     * @param  bool                  $normalize
+     * @return froq\file|Path|null
+     */
+    public function append(array|string $parts, bool $normalize = true): Path|null
+    {
+        $path = $this->join($parts, $normalize);
+
+        return $path ? new Path($path) : null;
     }
 
     /**
