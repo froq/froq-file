@@ -63,6 +63,7 @@ class ImageSource extends Source
             'useImagick'    => false,  // Direct command to use Imagick (causes error if not exists).
             'stripImage'    => false,  // Valid for only Imagick.
             'stripImageIcc' => false,  // Valid for only Imagick.
+            'forceWebp'     => false,  // Force output / output files as WEBP.
             'background'    => 'none', // Availables: 'none' for transparency, 'black', 'white'.
         ]));
     }
@@ -139,8 +140,10 @@ class ImageSource extends Source
         } else {
             $background = null;
 
-            if ($this->options['background'] === 'none'
-                && in_array($type, [IMAGETYPE_WEBP, IMAGETYPE_PNG, IMAGETYPE_GIF], true)) {
+            if ($this->options['background'] === 'none' && (
+                $this->options['forceWebp'] ||
+                in_array($type, [IMAGETYPE_WEBP, IMAGETYPE_PNG, IMAGETYPE_GIF])
+            )) {
                 // Transparent.
                 $background = imagecolorallocatealpha($this->targetImage, 255, 255, 255, 127);
                 imagealphablending($this->targetImage, false);
@@ -236,8 +239,10 @@ class ImageSource extends Source
         } else {
             $background = null;
 
-            if ($this->options['background'] === 'none'
-                && in_array($type, [IMAGETYPE_WEBP, IMAGETYPE_PNG, IMAGETYPE_GIF], true)) {
+            if ($this->options['background'] === 'none' && (
+                $this->options['forceWebp'] ||
+                in_array($type, [IMAGETYPE_WEBP, IMAGETYPE_PNG, IMAGETYPE_GIF])
+            )) {
                 // Transparent.
                 $background = imagecolorallocatealpha($this->targetImage, 255, 255, 255, 127);
                 imagealphablending($this->targetImage, false);
@@ -675,6 +680,12 @@ class ImageSource extends Source
             'resize(), resizeThumbnail(), crop(), cropThumbnail(), chop(), rotate()'
         );
 
+        if ($this->options['forceWebp']) {
+            ob_start();
+            imagewebp($image, null, $this->options['webpQuality']);
+            return ob_get_clean();
+        }
+
         $type = $this->info['type'];
 
         if ($image instanceof Imagick) {
@@ -728,6 +739,11 @@ class ImageSource extends Source
         );
 
         $file = trim($file) ?: throw new ImageSourceException('Empty target file');
+
+        if ($this->options['forceWebp']) {
+            imagewebp($image, $file, $this->options['webpQuality']);
+            return $file;
+        }
 
         $type = $this->info['type'];
 
