@@ -782,11 +782,12 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
         // Rewind if opened, or open if not.
         $this->valid() ? $this->rewind() : $this->open();
 
-        $lineCount = 0;
+        $lineCount = -1;
 
         while (!$this->eof()) {
             $lineCount += 1;
 
+            // Consume lines.
             $this->readLine();
         }
 
@@ -803,6 +804,8 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
         // Rewind if opened, or open if not.
         $this->valid() ? $this->rewind() : $this->open();
 
+        $initialLineState = $this->line;
+
         $lineIndex = 0;
         $startLine = $this->line[0] ?? 0;
         $stopLine  = $this->line[1] ?? PHP_INT_MAX;
@@ -817,7 +820,6 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
             if ($lineIndex < $startLine) {
                 // Consume uppers.
                 $this->readLine();
-
                 continue;
             }
 
@@ -825,8 +827,18 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
                 break;
             }
 
-            yield $lineIndex => $this->readLine();
+            $line = $this->readLine();
+
+            // Real EOL.
+            if ($line === null) {
+                break;
+            }
+
+            yield $lineIndex => $line;
         }
+
+        // Reset line state.
+        $this->line = $initialLineState;
     }
 
     /**
