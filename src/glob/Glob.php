@@ -111,7 +111,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
             $func($item) && $iterator[] = $item;
         }
 
-        return $this->update($iterator);
+        return $this->updateIterator($iterator);
     }
 
     /**
@@ -128,7 +128,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
             $iterator[] = $func($item);
         }
 
-        return $this->update($iterator);
+        return $this->updateIterator($iterator);
     }
 
     /**
@@ -156,7 +156,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
             $iterator[] = $this->get($i);
         }
 
-        return $this->update($iterator);
+        return $this->updateIterator($iterator);
     }
 
     /**
@@ -176,7 +176,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
             $iterator[] = $item;
         }
 
-        return $this->update($iterator);
+        return $this->updateIterator($iterator);
     }
 
     /**
@@ -268,7 +268,7 @@ class Glob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
      * Method for modifier methods such as `sort()` etc.
      * to create and update (overwrite) internal iterator.
      */
-    private function update(\ArrayIterator $iterator): self
+    private function updateIterator(\ArrayIterator $iterator): self
     {
         $this->iterator = new \AppendIterator();
         $this->iterator->append($iterator);
