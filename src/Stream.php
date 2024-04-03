@@ -21,6 +21,9 @@ class Stream
     /** Temp file to remove. */
     private string|null $tempfile;
 
+    /** Initial metadata. */
+    private array $metadata;
+
     /**
      * Constructor.
      *
@@ -39,6 +42,7 @@ class Stream
 
         $this->resource = $resource;
         $this->tempfile = $tempfile;
+        $this->metadata = $this->metadata();
     }
 
     /**
