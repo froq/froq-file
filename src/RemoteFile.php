@@ -64,11 +64,6 @@ class RemoteFile implements Stringable
         $this->url = $url;
 
         if ($options) {
-            // Auto-open.
-            if (!empty($options['open'])) {
-                $this->open();
-            }
-
             if (!empty($options['method'])) {
                 $options['method'] = strtoupper((string) $options['method']);
             }
@@ -83,10 +78,12 @@ class RemoteFile implements Stringable
                 $options['headers']['accept-encoding'] = null;
             }
 
-            // Filter self options only.
-            $options = array_include($options, array_keys($this->options));
+            $this->options = array_options($options, $this->options);
 
-            $this->options = array_replace_recursive($this->options, $options);
+            // Auto-open.
+            if (!empty($options['open'])) {
+                $this->open();
+            }
         }
     }
 
