@@ -25,12 +25,15 @@ class RemoteFile implements Stringable
     private array $options = [
         'timeout' => 3,
         'block'   => true,
-        'gzip'    => true, // For readAll().
-        'headers' => [     // Default headers.
+        'gzip'    => true,  // For readAll().
+        'method'  => 'GET', // Default method.
+        'headers' => [      // Default headers.
             'accept'          => '*/*',
             'accept-encoding' => 'gzip',
             'user-agent'      => 'Froq Remote File (+http://github.com/froq/froq-file)',
-        ]
+        ],
+        // Request body (if given).
+        'body' => null, 'bodyEncode' => true,
     ];
 
     /** URL address. */
@@ -66,6 +69,10 @@ class RemoteFile implements Stringable
                 $this->open();
             }
 
+            if (!empty($options['method'])) {
+                $options['method'] = strtoupper((string) $options['method']);
+            }
+
             // Normalize header names.
             if (!empty($options['headers'])) {
                 $options['headers'] = array_lower_keys((array) $options['headers']);
@@ -94,38 +101,65 @@ class RemoteFile implements Stringable
         try {
             $this->request = $this->request();
 
+            $content = null;
+
+            if (isset($this->options['body'])) {
+                $body = $this->options['body'];
+
+                if ($this->options['bodyEncode']) {
+                    if (str_contains((string) $this->request->headers['content-type'], 'json')) {
+                        $content = json_serialize($body);
+                    } elseif (is_array($body) || is_object($body)) {
+                        $content = http_build_query($body);
+                    }
+                }
+
+                $content ??= $body;
+
+                $this->request->headers['content-type'] ??= 'application/x-www-form-urlencoded';
+
+                // Update (fix) request method.
+                if ($this->request->method === 'GET') {
+                    $this->request->method = 'POST';
+                }
+            }
+
             $context = stream_context_create([
                 'http' => [
-                    'method' => $this->request->method,
-                    'header' => http_build_headers((array) $this->request->headers, CASE_LOWER)
+                    'method'  => $this->request->method,
+                    'header'  => http_build_headers($this->request->headers),
+                    'content' => $content
                 ]
             ]);
 
-            $resource = @fopen($this->url, 'rb', false, $context) ?: throw RemoteFileException::error();
+            $resource = @fopen($this->url, 'rb', context: $context);
+
+            if (!$resource) {
+                $error = error_message($code, extract: true);
+                throw new RemoteFileException($error, code: $code, request: $this->request);
+            }
 
             stream_set_timeout($resource, (int) $this->options['timeout']);
             stream_set_blocking($resource, (bool) $this->options['block']);
 
             $this->stream = new Stream($resource);
 
-            $response = $this->response($this->stream->meta()['wrapper_data']);
+            $this->response = $this->response($this->stream->meta()['wrapper_data']);
 
             // Throw HTTP errors.
-            if ($response->status >= 400) {
-                throw RemoteFileException::forResponse($response);
+            if ($this->response->status >= 400) {
+                throw RemoteFileException::forResponseError($this->request, $this->response);
             }
-
-            $this->response = $response;
         } catch (\Throwable $e) {
+            $status  = $e->getCode();
             $message = trim($e->getMessage());
-            $status = $e->getCode();
 
             if (preg_match('~HTTP/[\d\.]+ [^\r\n]+~', $message, $match)) {
-                $status = http_parse_response_line($match[0])['status'] ?? 0;
+                $status = http_parse_response_line($match[0])['status'] ?? $status;
             }
 
-            $e = $e instanceof RemoteFileException ? $e : new RemoteFileException($e);
-            $e->setMessage($message)->setCode($status);
+            $e = ($e instanceof RemoteFileException) ? $e : new RemoteFileException($e);
+            $e->setCode($status)->setMessage($message);
 
             throw $e;
         }
@@ -412,7 +446,8 @@ class RemoteFile implements Stringable
     private function request(): object
     {
         return object(
-            method: 'GET', url: $this->url,
+            url: $this->url,
+            method: $this->options['method'],
             headers: $this->options['headers']
         );
     }

@@ -13,21 +13,23 @@ namespace froq\file;
  */
 class RemoteFileException extends FileSystemException
 {
+    public readonly object|null $request;
     public readonly object|null $response;
 
     public function __construct(mixed ...$arguments)
     {
+        $this->request  = array_pluck($arguments, 'request');
         $this->response = array_pluck($arguments, 'response');
 
         parent::__construct(...$arguments);
     }
 
-    public static function forResponse(object $response): static
+    public static function forResponseError(object $request, object $response): static
     {
 
         return new static(
             'HTTP request failed! %s', $response->headers[0],
-            code: $response->status, response: $response
+            code: $response->status, request: $request, response: $response
         );
     }
 
