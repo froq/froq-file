@@ -458,7 +458,7 @@ class PathInfo implements \Stringable, \ArrayAccess
      */
     public function isImage(): bool
     {
-        return (bool) stristr((string) $this->getMime(), 'image/');
+        return str_starts_with((string) $this->getMime(), 'image/');
     }
 
     /**

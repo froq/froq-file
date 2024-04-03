@@ -39,6 +39,34 @@ abstract class PathObject
     }
 
     /**
+     * Proxy method for some methods of path object.
+     *
+     * @param  string $method
+     * @param  array  $methodArgs
+     * @return mixed
+     * @throws Error
+     * @method getDirName, getBaseName, getFileName, getRealPath, getLinkTarget, getLinkInfo,
+     *         getSize, getCTime, getATime, getMTime, getInode, getGroup, getOwner, getPerms, getPermsInfo,
+     *         getStat, clearStat, isDir, isDirectory, isFile, isLink, isReadable, isWritable, isExecutable,
+     *         isTemporary, isHidden, isImage, isAvailable, isAvailableFor
+     */
+    public function __call(string $method, array $methodArgs = []): mixed
+    {
+        static $methods = [
+            'getDirName', 'getBaseName', 'getFileName', 'getRealPath', 'getLinkTarget', 'getLinkInfo',
+            'getSize', 'getCTime', 'getATime', 'getMTime', 'getInode', 'getGroup', 'getOwner', 'getPerms', 'getPermsInfo',
+            'getStat', 'clearStat', 'isDir', 'isDirectory', 'isFile', 'isLink', 'isReadable', 'isWritable', 'isExecutable',
+            'isTemporary', 'isHidden', 'isImage', 'isAvailable', 'isAvailableFor'
+        ];
+
+        if (in_array($method, $methods, true)) {
+            return $this->path->$method(...$methodArgs);
+        }
+
+        throw new \Error(format('Call to undefined method %S::%s()', static::class, $method));
+    }
+
+    /**
      * Get path.
      *
      * @return froq\file\Path
@@ -157,59 +185,6 @@ abstract class PathObject
         } catch (\Throwable $e) {
             throw new PathObjectException($e);
         }
-    }
-
-    /**
-     * Check if path is readable.
-     *
-     * @param  bool $clear
-     * @return bool
-     */
-    public function isReadable(bool $clear = false): bool
-    {
-        return $this->path->isReadable($clear);
-    }
-
-    /**
-     * Check if path is writable.
-     *
-     * @param  bool $clear
-     * @return bool
-     */
-    public function isWritable(bool $clear = false): bool
-    {
-        return $this->path->isWritable($clear);
-    }
-
-    /**
-     * Check if path is executable.
-     *
-     * @param  bool $clear
-     * @return bool
-     */
-    public function isExecutable(bool $clear = false): bool
-    {
-        return $this->path->isExecutable($clear);
-    }
-
-    /**
-     * Check if path is in temporary directory.
-     *
-     * @return bool
-     */
-    public function isTemporary(): bool
-    {
-        return $this->path->isTemporary();
-    }
-
-    /**
-     * Check if path is hidden.
-     *
-     * @return bool
-     */
-    public function isHidden(): bool
-    {
-        return $this->path->isHidden();
     }
 
     /**
