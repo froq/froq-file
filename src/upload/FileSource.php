@@ -79,6 +79,26 @@ class FileSource extends Source
     }
 
     /**
+     * Get contents Base64 encoded.
+     *
+     * @return string
+     */
+    public function toBase64(): string
+    {
+        return base64_encode($this->toString());
+    }
+
+    /**
+     * Get contents Data URL.
+     *
+     * @return string
+     */
+    public function toDataUrl(): string
+    {
+        return 'data:' . $this->getMime() . ';base64,' . $this->toBase64();
+    }
+
+    /**
      * Get contents as hashed.
      *
      * @param  string $algo
