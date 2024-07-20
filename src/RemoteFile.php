@@ -104,7 +104,7 @@ class RemoteFile implements Stringable
                 $body = $this->options['body'];
 
                 if ($this->options['bodyEncode']) {
-                    if (str_contains((string) $this->request->headers['content-type'], 'json')) {
+                    if (str_contains((string) ($this->request->headers['content-type'] ?? ''), 'json')) {
                         $content = json_serialize($body);
                     } elseif (is_array($body) || is_object($body)) {
                         $content = http_build_query($body);
