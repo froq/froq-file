@@ -141,10 +141,11 @@ class Finder
         $root = $this->prepareRoot();
         $pattern = $this->preparePattern($pattern);
 
+        /** @var XArray */
         $ret = xglob($root . $pattern, $flags);
 
         // Use paths as keys.
-        if ($ret && !$list) {
+        if (!$list) {
             $tmp = xarray();
             foreach ($ret as $path) {
                 $tmp[$path] = $path;

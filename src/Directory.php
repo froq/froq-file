@@ -566,13 +566,14 @@ class Directory extends PathObject implements \Countable, \IteratorAggregate
      * @param  string $pattern
      * @param  int    $flags
      * @param  bool   $map
-     * @return XArray<SplFileInfo>
+     * @param  bool   $list
+     * @return XArray<SplFileInfo|string>
      * @throws froq\file\DirectoryException
      */
-    public function xglob(string $pattern, int $flags = 0, bool $map = true): \XArray
+    public function xglob(string $pattern, int $flags = 0, bool $map = true, bool $list = null): \XArray
     {
         try {
-            return (new Finder($this->path->name))->xglob($pattern, $flags, $map);
+            return (new Finder($this->path->name))->xglob($pattern, $flags, $map, $list);
         } catch (\Throwable $e) {
             throw new DirectoryException($e);
         }
