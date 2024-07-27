@@ -133,14 +133,24 @@ class Finder
      * @param  string $pattern
      * @param  int    $flags
      * @param  bool   $map
+     * @param  bool   $list
      * @return XArray<SplFileInfo|string>
      */
-    public function xglob(string $pattern, int $flags = 0, bool $map = true): \XArray
+    public function xglob(string $pattern, int $flags = 0, bool $map = true, bool $list = true): \XArray
     {
         $root = $this->prepareRoot();
         $pattern = $this->preparePattern($pattern);
 
         $ret = xglob($root . $pattern, $flags);
+
+        // Use paths as keys.
+        if ($ret && !$list) {
+            $tmp = xarray();
+            foreach ($ret as $path) {
+                $tmp[$path] = $path;
+            }
+            [$ret, $tmp] = [$tmp, null];
+        }
 
         // Map all as SplFileInfo.
         $map && $ret->map(fn($path) => new \SplFileInfo($path));
