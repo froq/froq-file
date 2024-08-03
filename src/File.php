@@ -842,6 +842,40 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
     }
 
     /**
+     * Include.
+     *
+     * @param  string $file
+     * @param  bool   $once
+     * @return mixed
+     * @throws froq\file\FileException
+     */
+    public function include(bool $once = false): mixed
+    {
+        $path = $this->getPathName();
+
+        $this->exists() || throw FileException::forNoFile($path);
+
+        return $once ? include_once $path : include $path;
+    }
+
+    /**
+     * Require.
+     *
+     * @param  string $file
+     * @param  bool   $once
+     * @return mixed
+     * @throws froq\file\FileException
+     */
+    public function require(bool $once = false): mixed
+    {
+        $path = $this->getPathName();
+
+        $this->exists() || throw FileException::forNoFile($path);
+
+        return $once ? require_once $path : require $path;
+    }
+
+    /**
      * Create a temp file.
      *
      * @param  bool       $drop

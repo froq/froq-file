@@ -21,22 +21,24 @@ class Finder
     /**
      * Constructor.
      *
-     * @param string|null $root
+     * @param string|Path|PathInfo|null $root
      */
-    public function __construct(string $root = null)
+    public function __construct(string|Path|PathInfo $root = null)
     {
-        $this->root = $root;
+        if ($root !== null) {
+            $this->setRoot($root);
+        }
     }
 
     /**
      * Set root.
      *
-     * @param  string $root
+     * @param  string|Path|PathInfo $root
      * @return self
      */
-    public function setRoot(string $root): self
+    public function setRoot(string|Path|PathInfo $root): self
     {
-        $this->root = $root;
+        $this->root = (string) $root;
 
         return $this;
     }
@@ -130,13 +132,13 @@ class Finder
     /**
      * X-Glob self root with given pattern (accepts GLOB_BRACE etc. flags).
      *
-     * @param  string $pattern
-     * @param  int    $flags
-     * @param  bool   $map
-     * @param  bool   $list
-     * @return XArray<SplFileInfo|string>
+     * @param  string      $pattern
+     * @param  int         $flags
+     * @param  bool|string $map
+     * @param  bool        $list
+     * @return XArray<SplFileInfo|object|string>
      */
-    public function xglob(string $pattern, int $flags = 0, bool $map = true, bool $list = true): \XArray
+    public function xglob(string $pattern, int $flags = 0, bool|string $map = true, bool $list = true): \XArray
     {
         $root = $this->prepareRoot();
         $pattern = $this->preparePattern($pattern);
@@ -153,8 +155,14 @@ class Finder
             [$ret, $tmp] = [$tmp, null];
         }
 
-        // Map all as SplFileInfo.
-        $map && $ret->map(fn($path) => new \SplFileInfo($path));
+        // Map to SplFileInfo or given class.
+        if ($map !== false) {
+            $class = 'SplFileInfo';
+            if (is_string($map)) {
+                $class = $map;
+            }
+            $ret->map(fn($path) => new $class($path));
+        }
 
         return $ret;
     }
