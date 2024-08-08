@@ -53,10 +53,11 @@ abstract class PathObject
     public function __call(string $method, array $methodArgs = []): mixed
     {
         static $methods = [
-            'getDirName', 'getBaseName', 'getFileName', 'getRealPath', 'getLinkTarget', 'getLinkInfo',
-            'getSize', 'getCTime', 'getATime', 'getMTime', 'getInode', 'getGroup', 'getOwner', 'getPerms', 'getPermsInfo',
-            'getStat', 'clearStat', 'isDir', 'isDirectory', 'isFile', 'isLink', 'isReadable', 'isWritable', 'isExecutable',
-            'isTemporary', 'isHidden', 'isImage', 'isAvailable', 'isAvailableFor'
+            'getDirName', 'getBaseName', 'getFileName', 'getDirname', 'getBasename', 'getFilename',
+            'getRealPath', 'getLinkTarget', 'getLinkInfo', 'getSize', 'getCTime', 'getATime', 'getMTime',
+            'getInode', 'getGroup', 'getOwner', 'getPerms', 'getPermsInfo', 'getStat', 'clearStat',
+            'isDir', 'isDirectory', 'isFile', 'isLink', 'isReadable', 'isWritable', 'isExecutable',
+            'isTemporary', 'isHidden', 'isImage', 'isAvailable', 'isAvailableFor',
         ];
 
         if (in_array($method, $methods, true)) {
@@ -94,6 +95,26 @@ abstract class PathObject
     public function getPathName(): string
     {
         return $this->path->name;
+    }
+
+    /**
+     * Get name.
+     *
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->path->name;
+    }
+
+    /**
+     * Get directory name.
+     *
+     * @return string|null
+     */
+    public function getDirectoryName(): string|null
+    {
+        return $this->path->dirname;
     }
 
     /**
