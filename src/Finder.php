@@ -177,7 +177,7 @@ class Finder
      */
     protected function prepareRoot(bool $check = false): string
     {
-        $root = (string) $this->getRoot();
+        $root = (string) $this->root;
 
         if (trim($root) !== '') {
             // Must be a valid/present path if given.
@@ -185,7 +185,7 @@ class Finder
                 throw new FinderException('Root directory not exists: %q', $root);
             }
 
-            $root = chop($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+            $root = rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
         } elseif ($check) {
             throw new FinderException('Root is empty yet, call setRoot()');
         }
@@ -202,8 +202,10 @@ class Finder
      */
     protected function preparePattern(string $pattern): string
     {
+        $root = (string) $this->root;
+
         // Drop "//" stuff from pattern.
-        if ($this->root && $this->root[-1] === DIRECTORY_SEPARATOR) {
+        if ($root && $root[-1] === DIRECTORY_SEPARATOR) {
             $pattern = ltrim($pattern, DIRECTORY_SEPARATOR);
         }
 
