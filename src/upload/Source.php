@@ -195,7 +195,7 @@ abstract class Source implements Stringable
         $mimes = (string) $this->options['allowedMimes'];
 
         return (
-                $mimes === '*' // All.
+               ($mimes === '*') // All.
             || ($mimes[0] === '~' && preg_test($mimes, $mime)) // RegExp.
             || in_array($mime, preg_split('~\s*,\s*~', $mimes, flags: 1), true)
         );
@@ -212,7 +212,7 @@ abstract class Source implements Stringable
         $extensions = (string) $this->options['allowedExtensions'];
 
         return (
-                $extensions === '*' // All.
+               ($extensions === '*') // All.
             || ($extensions[0] === '~' && preg_test($extensions, $extension)) // RegExp.
             || in_array($extension, preg_split('~\s*,\s*~', $extensions, flags: 1), true)
         );
@@ -225,7 +225,9 @@ abstract class Source implements Stringable
      */
     public function isUploadedFile(): bool
     {
-        return is_uploaded_file($this->getSourceFile());
+        $source = $this->getSourceFile();
+
+        return is_uploaded_file($source);
     }
 
     /**
