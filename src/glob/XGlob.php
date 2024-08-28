@@ -6,6 +6,7 @@
 namespace froq\file\glob;
 
 use froq\common\interface\Arrayable;
+use froq\file\Finder;
 
 /**
  * X-Glob class for files & directories.
@@ -26,17 +27,28 @@ class XGlob implements Arrayable, \Countable, \IteratorAggregate, \ArrayAccess
      * @param  string      $pattern
      * @param  int         $flags
      * @param  bool        $map
+     * @param  bool        $list
      * @throws froq\file\glob\XGlobException
      */
-    public function __construct(string $pattern, int $flags = 0, bool $map = true)
+    public function __construct(string $pattern, int $flags = 0, bool $map = true, bool $list = true)
     {
         $this->iterator = new \XArray();
 
         try {
-            $finder = new \froq\file\Finder();
-            $this->iterator->update($finder->xglob($pattern, $flags, $map), false);
+            $root = getcwd() . DIRECTORY_SEPARATOR;
+            if (str_contains($pattern, DIRECTORY_SEPARATOR)) {
+                $root = dirname($pattern);
+                $pattern = strsub($pattern, strlen($root));
+            }
+
+            $finder = new Finder($root);
+
+            $this->iterator->update(
+                $finder->xglob($pattern, $flags, $map, $list),
+                merge: false
+            );
         } catch (\Throwable $e) {
-            throw new XGlobException($e, extract: true);
+            throw new XGlobException($e);
         }
     }
 

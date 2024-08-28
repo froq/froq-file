@@ -157,10 +157,9 @@ class Finder
 
         // Map to SplFileInfo or given class.
         if ($map !== false) {
-            $class = 'SplFileInfo';
-            if (is_string($map)) {
-                $class = $map;
-            }
+            // Mapping file must be a valid class.
+            $class = is_true($map) ? 'SplFileInfo' : $map;
+
             $ret->map(fn($path) => new $class($path));
         }
 
@@ -177,9 +176,9 @@ class Finder
      */
     protected function prepareRoot(bool $check = false): string
     {
-        $root = (string) $this->root;
+        $root = trim((string) $this->root);
 
-        if (trim($root) !== '') {
+        if ($root !== '') {
             // Must be a valid/present path if given.
             if (($path = realpath($root)) === false) {
                 throw new FinderException('Root directory not exists: %q', $root);
@@ -202,10 +201,13 @@ class Finder
      */
     protected function preparePattern(string $pattern): string
     {
-        $root = (string) $this->root;
+        $root = trim((string) $this->root);
 
         // Drop "//" stuff from pattern.
-        if ($root && $root[-1] === DIRECTORY_SEPARATOR) {
+        if ($root !== '' && (
+            str_ends_with($root, DIRECTORY_SEPARATOR) ||
+            str_starts_with($pattern, DIRECTORY_SEPARATOR)
+        )) {
             $pattern = ltrim($pattern, DIRECTORY_SEPARATOR);
         }
 
