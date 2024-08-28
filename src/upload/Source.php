@@ -390,10 +390,10 @@ abstract class Source implements Stringable
      * @return void
      * @throws froq\file\upload\{FileSourceException|ImageSourceException}
      */
-    protected function overwriteCheck(string $path): void
+    protected function overwriteCheck(string $target): void
     {
-        if (!$this->options['overwrite'] && file_exists($path)) {
-            throw SourceException::forCannotOverwriteFile($path);
+        if (!$this->options['overwrite'] && file_exists($target)) {
+            throw SourceException::forCannotOverwriteFile($target);
         }
     }
 

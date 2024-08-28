@@ -25,20 +25,10 @@ class FileSource extends Source
 
         $this->overwriteCheck($target);
 
-        if (copy($source, $target)) {
+        if (file_copy($source, $target)) {
             $this->applyMode($target);
             return $target;
         }
-
-        // @cancel
-        // // Option overwrite=true issue (somehow..).
-        // if (is_file($target) && copy($source, $tmp = tmpnam())) {
-        //     if (unlink($target) && copy($tmp, $target)) {
-        //         unlink($tmp); // Drop temp file.
-        //         $this->applyMode($target);
-        //         return $target;
-        //     }
-        // }
 
         throw FileSourceException::error();
     }
@@ -53,7 +43,7 @@ class FileSource extends Source
 
         $this->overwriteCheck($target);
 
-        if (rename($source, $target)) {
+        if (file_move($source, $target)) {
             $this->applyMode($target);
             return $target;
         }
