@@ -432,11 +432,11 @@ class PathInfo implements \Stringable, \ArrayAccess
     }
 
     /**
-     * Check if path is in temporary directory.
+     * Check if path is in temp directory.
      *
      * @return bool
      */
-    public function isTemporary(): bool
+    public function isTemp(): bool
     {
         return is_tmpdir($this->path) || is_tmpnam($this->path);
     }

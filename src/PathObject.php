@@ -48,7 +48,7 @@ abstract class PathObject
      * @method getDirName, getBaseName, getFileName, getRealPath, getLinkTarget, getLinkInfo,
      *         getSize, getCTime, getATime, getMTime, getInode, getGroup, getOwner, getPerms, getPermsInfo,
      *         getStat, clearStat, isDir, isDirectory, isFile, isLink, isReadable, isWritable, isExecutable,
-     *         isTemporary, isHidden, isImage, isAvailable, isAvailableFor
+     *         isTemp, isHidden, isImage, isAvailable, isAvailableFor
      */
     public function __call(string $method, array $methodArgs = []): mixed
     {
@@ -57,14 +57,14 @@ abstract class PathObject
             'getRealPath', 'getLinkTarget', 'getLinkInfo', 'getSize', 'getCTime', 'getATime', 'getMTime',
             'getInode', 'getGroup', 'getOwner', 'getPerms', 'getPermsInfo', 'getStat', 'clearStat',
             'isDir', 'isDirectory', 'isFile', 'isLink', 'isReadable', 'isWritable', 'isExecutable',
-            'isTemporary', 'isHidden', 'isImage', 'isAvailable', 'isAvailableFor',
+            'isTemp', 'isHidden', 'isImage', 'isAvailable', 'isAvailableFor',
         ];
 
         if (in_array($method, $methods, true)) {
             return $this->path->$method(...$methodArgs);
         }
 
-        throw new \Error(format('Call to undefined method %S::%s()', static::class, $method));
+        throw new \CallError('Call to undefined method %S::%s()', [static::class, $method]);
     }
 
     /**

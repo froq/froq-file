@@ -46,10 +46,11 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
         // Tempfile (@default=false).
         if (!empty($options['temp'])) {
             $options['open'] ??= 'a+b'; // Ready for write.
-            $path = @tmpnam() ?? throw FileException::error();
+            $prefix = $options['tempPrefix'] ?? (string) $path;
+            $path = @tmpnam($prefix) ?? throw FileException::error();
 
-            // Autodrop (@default=false).
-            if (!empty($options['tempdrop'])) {
+            // Auto-drop (@default=false).
+            if (!empty($options['tempDrop'])) {
                 $this->temp = $path;
             }
         }
@@ -873,22 +874,6 @@ class File extends PathObject implements Stringable, \Countable, \IteratorAggreg
         $this->exists() || throw FileException::forNoFile($path);
 
         return $once ? require_once $path : require $path;
-    }
-
-    /**
-     * Create a temp file.
-     *
-     * @param  bool       $drop
-     * @param  array|null $options
-     * @return static
-     */
-    public static function fromTemp(bool $drop = true, array $options = null): static
-    {
-        // For constructor.
-        $options['temp']     = true;
-        $options['tempdrop'] = $drop;
-
-        return new static('', $options);
     }
 
     /**

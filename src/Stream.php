@@ -114,8 +114,8 @@ class Stream
 
         if (isset($this->resource)) {
             if ($this->type() === 'dir') {
-                $ret = true;
                 @closedir($this->resource);
+                $ret = true;
             } else {
                 $ret = @fclose($this->resource);
             }
