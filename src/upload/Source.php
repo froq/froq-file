@@ -5,7 +5,7 @@
  */
 namespace froq\file\upload;
 
-use froq\file\{File, FileException};
+use froq\file\{File, FileException, Path};
 use froq\common\interface\Stringable;
 use froq\util\Util;
 
@@ -48,20 +48,17 @@ abstract class Source implements Stringable
      */
     public function __construct(array|string $file, array $options = null)
     {
-        // When only file given.
-        is_string($file) && $file = ['file' => $file];
-
-        [$error, $sfile] = $this->extractFileData($file, true);
+        $source = new SourceFile($file);
 
         // Extract if these stuff given (see below).
-        [$name, $size, $mime, $extension] = $this->extractFileData($file, false);
+        [$name, $size, $mime, $extension] = $source->select(['name', 'size', 'mime', 'extension']);
 
         // Check $_FILES error & validate source file.
-        $error && throw SourceException::forError((int) $error);
-        $sfile || throw SourceException::forPath();
+        $source->error && throw SourceException::forError((int) $source->error);
+        $source->file || throw SourceException::forPath();
 
         try {
-            $this->file = new File($sfile);
+            $this->file = new File($source->path);
             $this->file->open();
         } catch (FileException $e) {
             throw SourceException::exception($e, cause: $e);
@@ -73,7 +70,6 @@ abstract class Source implements Stringable
         if ($name && preg_match('~[/\\\]?(.+)\.(\w+)$~', $name, $match)) {
             [$name, $suffix] = array_slice($match, 1);
             $extension ??= $suffix;
-            unset($suffix);
         }
 
         // If none given, set target name to UUID as default.
@@ -114,6 +110,16 @@ abstract class Source implements Stringable
     public function getTargetFile(): string|null
     {
         return $this->target ?? null;
+    }
+
+    /**
+     * Get source file path.
+     *
+     * @return froq\file\Path
+     */
+    public function getPath(): Path
+    {
+        return $this->file->getPath();
     }
 
     /**
@@ -324,12 +330,12 @@ abstract class Source implements Stringable
      */
     protected function prepareTarget(string $path, string $appendix = null): string
     {
-        $fileInfo   = $this->fileInfo;
-        $pathInfo   = get_path_info($path);
+        $fileInfo  = $this->fileInfo;
+        $pathInfo  = get_path_info($path);
 
-        $directory  = $pathInfo['dirname']   ?: '';
-        $name       = $pathInfo['filename']  ?: $fileInfo['name'];
-        $extension  = $pathInfo['extension'] ?: $fileInfo['extension'];
+        $directory = $pathInfo['dirname']   ?: '';
+        $name      = $pathInfo['filename']  ?: $fileInfo['name'];
+        $extension = $pathInfo['extension'] ?: $fileInfo['extension'];
 
         // Directory given (uses UUID as name).
         if (strsfx($path, DIRECTORY_SEPARATOR)) {
@@ -421,25 +427,6 @@ abstract class Source implements Stringable
     protected function applyMode(string $file, int $mode = File::MODE): bool
     {
         return @chmod($file, $mode);
-    }
-
-    /**
-     * @internal
-     */
-    private function extractFileData(array $file, bool $simple): array
-    {
-        if ($simple) {
-            $ret = [
-                // From $_FILES global.
-                $file['error'] ?? null,
-                // Either "file" or "tmp_name" must given.
-                $file['file'] ?? $file['tmp_name'] ?? null,
-            ];
-        } else {
-            $ret = array_select($file, ['name', 'size', 'mime', 'extension']);
-        }
-
-        return array_apply($ret, fn($v) => $v !== '' && $v !== null ? $v : null);
     }
 
     /**
