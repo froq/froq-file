@@ -5,6 +5,8 @@
  */
 namespace froq\file;
 
+use froq\util\Util;
+
 /**
  * Stat class for directories / files.
  *
@@ -69,6 +71,16 @@ class Stat implements \ArrayAccess
     public function getSize(): int
     {
         return $this->info('size');
+    }
+
+    /**
+     * Get size info as formatted.
+     *
+     * @return string
+     */
+    public function getSizeInfo(): string
+    {
+        return Util::formatBytes($this->getSize());
     }
 
     /**

@@ -5,6 +5,8 @@
  */
 namespace froq\file;
 
+use froq\util\Util;
+
 /**
  * A re-written `SplFileInfo` class for directories / files.
  *
@@ -246,6 +248,16 @@ class PathInfo implements \Stringable, \ArrayAccess
     public function getSize(): int|null
     {
         return $this->stat('size');
+    }
+
+    /**
+     * Get size info as formatted.
+     *
+     * @return string|null
+     */
+    public function getSizeInfo(): string|null
+    {
+        return $this->exists() ? Util::formatBytes($this->getSize()) : null;
     }
 
     /**
