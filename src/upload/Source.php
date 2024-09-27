@@ -8,6 +8,7 @@ namespace froq\file\upload;
 use froq\file\{File, FileException, Path};
 use froq\common\interface\Stringable;
 use froq\util\Util;
+use Uuid;
 
 /**
  * Base class for working with uploaded files / images.
@@ -28,6 +29,9 @@ abstract class Source implements Stringable
     /** Prepared target. */
     private string $target;
 
+    /** Time-prefixed UUID. */
+    private Uuid $uuid;
+
     /** Options with defaults. */
     protected array $options = [
         'allowedMimes'      => '*',   // All '*' allowed or 'image/jpeg,image/png' etc.
@@ -35,8 +39,9 @@ abstract class Source implements Stringable
         'maxFileSize'       => null,  // In binary mode: for 2 megabytes 2048, 2048k or 2m.
         'clear'             => true,  // To free resources after saving/moving file etc.
         'clearSource'       => false, // To delete sources after saving/moving files etc.
-        'slug'              => true,  // To slugify file name & appendix.
         'overwrite'         => false, // To prevent existing file overwrite.
+        'slug'              => true,  // To slugify file name & appendix.
+        'uuid'              => false, // To use UUIDs as target file names.
     ];
 
     /**
@@ -48,7 +53,11 @@ abstract class Source implements Stringable
      */
     public function __construct(array|string $file, array $options = null)
     {
-        $source = new SourceFile($file);
+        try {
+            $source = new SourceFile($file);
+        } catch (\Throwable $e) {
+            throw SourceException::exception($e, cause: $e);
+        }
 
         // Extract if these stuff given (see below).
         [$name, $size, $mime, $extension] = $source->select(['name', 'size', 'mime', 'extension']);
@@ -66,14 +75,24 @@ abstract class Source implements Stringable
 
         $this->options = array_options($options, $this->options);
 
+        // Keep original name.
+        $originalName = $source->path->getBaseName();
+
         // Separate name & extension of given (path/file/base) name.
         if ($name && preg_match('~[/\\\]?(.+)\.(\w+)$~', $name, $match)) {
             [$name, $suffix] = array_slice($match, 1);
             $extension ??= $suffix;
         }
 
-        // If none given, set target name to UUID as default.
-        $name = $name ? $this->prepareName($name) : uuid(true);
+        $this->uuid = Uuid::withTime();
+
+        // Use UUID as target name.
+        if ($this->options['uuid']) {
+            $name = (string) $this->uuid;
+        } else {
+            // If none given, set target name to UUID as default.
+            $name = $name ? $this->prepareName($name) : (string) $this->uuid;
+        }
 
         $size      ??= $this->file->size();
         $mime      ??= $this->file->getMime();
@@ -81,7 +100,7 @@ abstract class Source implements Stringable
 
         $this->securityCheck((int) $size, (string) $mime, (string) $extension);
 
-        $this->fileInfo = compact('name', 'size', 'mime', 'extension');
+        $this->fileInfo = compact('name', 'size', 'mime', 'extension', 'originalName');
     }
 
     /**
@@ -120,6 +139,16 @@ abstract class Source implements Stringable
     public function getPath(): Path
     {
         return $this->file->getPath();
+    }
+
+    /**
+     * Get generated UUID.
+     *
+     * @return Uuid
+     */
+    public function getUuid(): Uuid
+    {
+        return $this->uuid;
     }
 
     /**
@@ -170,6 +199,16 @@ abstract class Source implements Stringable
     public function getExtension(): string
     {
         return (string) $this->fileInfo['extension'];
+    }
+
+    /**
+     * Get source file original name.
+     *
+     * @return string
+     */
+    public function getOriginalName(): string
+    {
+        return (string) $this->fileInfo['originalName'];
     }
 
     /**
@@ -337,6 +376,12 @@ abstract class Source implements Stringable
         $name      = $pathInfo['filename']  ?: $fileInfo['name'];
         $extension = $pathInfo['extension'] ?: $fileInfo['extension'];
 
+        if (!$this->isAllowedExtension((string) $extension)) {
+            throw SourceException::forNotAllowedExtension(
+                (string) $this->options['allowedExtensions'], $extension
+            );
+        }
+
         // Directory given (uses UUID as name).
         if (strsfx($path, DIRECTORY_SEPARATOR)) {
             $directory = chop($path, DIRECTORY_SEPARATOR);
@@ -345,12 +390,6 @@ abstract class Source implements Stringable
         // Ensure directory.
         if (!@dirmake($directory)) {
             throw SourceException::forMakeDirectoryError($directory);
-        }
-
-        if (!$this->isAllowedExtension((string) $extension)) {
-            throw SourceException::forNotAllowedExtension(
-                (string) $this->options['allowedExtensions'], $extension
-            );
         }
 
         // Assign target as well, for save/move etc.

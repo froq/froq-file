@@ -21,13 +21,14 @@ class SourceFile extends \Item
     /** Path object. */
     public readonly Path $path;
 
-    /** Default fields. */
+    /** Available fields. */
     private array $fields = [
         'file', 'name', 'extension',
         'size', 'mime', 'error',
     ];
 
     /**
+     * @causes froq\file\PathException
      * @override
      */
     public function __construct(array|string $file)

@@ -125,7 +125,7 @@ class RemoteFile implements Stringable
                 'http' => [
                     'method'  => $this->request->method,
                     'header'  => http_build_headers($this->request->headers),
-                    'content' => $content
+                    'content' => $content, 'ignore_errors' => true, // HTTP errors thrown below.
                 ]
             ]);
 
@@ -141,11 +141,14 @@ class RemoteFile implements Stringable
 
             $this->stream = new Stream($resource);
 
-            $this->response = $this->response($this->stream->meta()['wrapper_data']);
+            $headers = !empty($http_response_header) ? $http_response_header
+                : $this->stream->meta()['wrapper_data'] ?? null;
+
+            $this->response = $this->response((array) $headers);
 
             // Throw HTTP errors.
             if ($this->response->status >= 400) {
-                throw RemoteFileException::forResponseError($this->request, $this->response);
+                throw RemoteFileException::forHttpError($this->request, $this->response);
             }
         } catch (\Throwable $e) {
             $status  = $e->getCode();
@@ -369,7 +372,7 @@ class RemoteFile implements Stringable
             // Apply mode.
             $file->mode($mode);
         } catch (FileException $e) {
-            throw RemoteFileException::exception($e);
+            throw RemoteFileException::exception($e, cause: $e);
         }
 
         // Return normalized path.
@@ -401,7 +404,7 @@ class RemoteFile implements Stringable
      */
     public function toDataUrl(): string
     {
-        return 'data:' . $this->mime . ';base64,' . $this->toBase64();
+        return 'data:' . ($this->mime ?? '') . ';base64,' . $this->toBase64();
     }
 
     /**
@@ -454,21 +457,35 @@ class RemoteFile implements Stringable
      */
     private function response(array $headers): object
     {
-        $headers = join("\r\n", $headers);
+        $status = $protocol = null;
+        $responseLine = null;
+        $offset = 0;
 
-        // Last slice of multi headers (eg: redirections).
-        if ($headers && str_contains($headers, "\r\n\r\n")) {
-            $headers = last(explode("\r\n\r\n", $headers));
-        }
-
-        if ($headers = http_parse_headers($headers, CASE_LOWER)) {
-            if ($responseLine = http_parse_response_line($headers[0])) {
-                $status   = $responseLine['status'];
-                $protocol = $responseLine['protocol'];
+        foreach ($headers as $i => $header) {
+            $header = trim((string) $header);
+            if (str_starts_with($header, 'HTTP/')) {
+                $responseLine = $header; // Keep looking.
+                $offset = $i;
             }
-        } else {
-            $status = $protocol = $headers = null;
         }
+
+        $headers = array_slice($headers, $offset);
+
+        if ($responseLine) {
+            // Drop response line.
+            unset($headers[array_search($responseLine, $headers)]);
+
+            ['status' => $status, 'protocol' => $protocol] = http_parse_response_line($responseLine);
+        }
+
+        // Normalize headers as a key/value map.
+        $headers = array_reduce($headers, function (array $hs, string $h): array {
+            $header = http_parse_header($h, CASE_LOWER);
+            return [...$hs, $header['name'] => $header['value']];
+        }, []);
+
+        // Put back response line.
+        $headers[0] = $responseLine;
 
         $contentType   = $headers['content-type']   ?? null;
         $contentLength = $headers['content-length'] ?? null;
@@ -488,7 +505,7 @@ class RemoteFile implements Stringable
             $contentLength = (int) $contentLength;
         }
 
-        $headers && ksort($headers);
+        ksort($headers);
 
         return object(
             status: $status, protocol: $protocol, headers: $headers,
@@ -501,14 +518,14 @@ class RemoteFile implements Stringable
      */
     private function decode(string|false $data): string|false
     {
-        if (!$this->options['gzip']) {
+        if (!$data || !$this->options['gzip']) {
             return $data;
         }
         if (!str_contains($this->response->headers['content-encoding'] ?? '', 'gzip')) {
             return $data;
         }
 
-        return ($data !== false) ? @gzdecode($data) : false;
+        return gzdecode($data);
     }
 
     /**

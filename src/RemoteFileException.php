@@ -24,11 +24,10 @@ class RemoteFileException extends FileSystemException
         parent::__construct(...$arguments);
     }
 
-    public static function forResponseError(object $request, object $response): static
+    public static function forHttpError(object $request, object $response): static
     {
-
         return new static(
-            'HTTP request failed! %s', $response->headers[0],
+            'HTTP Error: %s', $response->headers[0],
             code: $response->status, request: $request, response: $response
         );
     }

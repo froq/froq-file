@@ -15,7 +15,7 @@ namespace froq\file;
  */
 class Path extends PathInfo implements \Countable
 {
-    /** Path name. */
+    /** Path name (shortcut). */
     public readonly string $name;
 
     /** Use real path. */
@@ -24,11 +24,11 @@ class Path extends PathInfo implements \Countable
     /**
      * Constructor.
      *
-     * @param  string $path
-     * @param  bool   $useRealPath For part methods (@fornow).
+     * @param  string|Path|PathInfo $path
+     * @param  bool                 $useRealPath For part methods (@fornow).
      * @throws froq\file\PathException
      */
-    public function __construct(string $path, bool $useRealPath = false)
+    public function __construct(string|Path|PathInfo $path, bool $useRealPath = false)
     {
         try {
             parent::__construct($path);
