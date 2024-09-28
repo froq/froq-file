@@ -380,6 +380,23 @@ class RemoteFile implements Stringable
     }
 
     /**
+     * Download remote file constents, optionally write to given file.
+     *
+     * @param  string $to
+     * @param  bool   $force
+     * @param  int    $mode
+     * @return string
+     * @causes froq\file\RemoteFileException
+     */
+    public function download(string $as = null, bool $force = false, int $mode = File::MODE): string
+    {
+        // Open if not opened.
+        isset($this->stream) || $this->open();
+
+        return ($as === null) ? $this->toString() : $this->save($as, $force, $mode);
+    }
+
+    /**
      * @inheritDoc froq\common\interface\Stringable
      */
     public function toString(): string
